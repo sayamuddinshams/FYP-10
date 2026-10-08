@@ -1,14 +1,18 @@
 import { useId } from 'react';
 import { cn } from '../../utils/format';
 
-export function FieldLabel({ htmlFor, children, required, hint }) {
+export function FieldLabel({ htmlFor, children, required, hint, hintId }) {
   return (
     <div className="mb-1.5 flex items-baseline justify-between gap-3">
       <label htmlFor={htmlFor} className="text-sm font-medium text-slate-700">
         {children}
         {required && <span className="ml-0.5 text-red-500" aria-hidden="true">*</span>}
       </label>
-      {hint && <span className="text-xs text-slate-400">{hint}</span>}
+      {hint && (
+        <span id={hintId} className="text-xs text-slate-500">
+          {hint}
+        </span>
+      )}
     </div>
   );
 }
@@ -30,21 +34,26 @@ export function FieldError({ id, children }) {
 }
 
 const baseInput =
-  'w-full rounded-lg border bg-white text-sm text-slate-900 placeholder:text-slate-400 transition-colors duration-150 ' +
+  'w-full rounded-xl border bg-white text-sm text-slate-900 placeholder:text-slate-500 transition-colors duration-150 ' +
   'focus:border-brand-400 focus:ring-2 focus:ring-brand-100 focus:outline-none disabled:bg-slate-50 disabled:text-slate-400';
 
 function stateClass(error) {
   return error ? 'border-red-300 focus:border-red-400 focus:ring-red-100' : 'border-line';
 }
 
+/** Hints and errors are both announced — combine them into one description id list. */
+function describedBy({ inputId, error, hint }) {
+  const ids = [hint ? `${inputId}-hint` : '', error ? `${inputId}-error` : ''].filter(Boolean);
+  return ids.length ? ids.join(' ') : undefined;
+}
+
 export function Input({ label, error, hint, required, id, className = '', inputClassName = '', rightIcon, ...rest }) {
   const autoId = useId();
   const inputId = id || autoId;
-  const errorId = `${inputId}-error`;
   return (
     <div className={cn('w-full', className)}>
       {label && (
-        <FieldLabel htmlFor={inputId} required={required} hint={hint}>
+        <FieldLabel htmlFor={inputId} required={required} hint={hint} hintId={`${inputId}-hint`}>
           {label}
         </FieldLabel>
       )}
@@ -53,13 +62,13 @@ export function Input({ label, error, hint, required, id, className = '', inputC
           id={inputId}
           required={required}
           aria-invalid={error ? 'true' : undefined}
-          aria-describedby={error ? errorId : undefined}
+          aria-describedby={describedBy({ inputId, error, hint })}
           className={cn(baseInput, 'h-11 px-3.5', rightIcon && 'pr-11', stateClass(error), inputClassName)}
           {...rest}
         />
         {rightIcon}
       </div>
-      <FieldError id={errorId}>{error}</FieldError>
+      <FieldError id={`${inputId}-error`}>{error}</FieldError>
     </div>
   );
 }
@@ -67,11 +76,10 @@ export function Input({ label, error, hint, required, id, className = '', inputC
 export function Textarea({ label, error, hint, required, id, rows = 4, className = '', ...rest }) {
   const autoId = useId();
   const inputId = id || autoId;
-  const errorId = `${inputId}-error`;
   return (
     <div className={cn('w-full', className)}>
       {label && (
-        <FieldLabel htmlFor={inputId} required={required} hint={hint}>
+        <FieldLabel htmlFor={inputId} required={required} hint={hint} hintId={`${inputId}-hint`}>
           {label}
         </FieldLabel>
       )}
@@ -80,11 +88,11 @@ export function Textarea({ label, error, hint, required, id, rows = 4, className
         rows={rows}
         required={required}
         aria-invalid={error ? 'true' : undefined}
-        aria-describedby={error ? errorId : undefined}
+        aria-describedby={describedBy({ inputId, error, hint })}
         className={cn(baseInput, 'px-3.5 py-2.5 leading-relaxed', stateClass(error))}
         {...rest}
       />
-      <FieldError id={errorId}>{error}</FieldError>
+      <FieldError id={`${inputId}-error`}>{error}</FieldError>
     </div>
   );
 }
@@ -92,11 +100,10 @@ export function Textarea({ label, error, hint, required, id, rows = 4, className
 export function Select({ label, error, hint, required, id, children, className = '', selectClassName = '', placeholder, ...rest }) {
   const autoId = useId();
   const inputId = id || autoId;
-  const errorId = `${inputId}-error`;
   return (
     <div className={cn('w-full', className)}>
       {label && (
-        <FieldLabel htmlFor={inputId} required={required} hint={hint}>
+        <FieldLabel htmlFor={inputId} required={required} hint={hint} hintId={`${inputId}-hint`}>
           {label}
         </FieldLabel>
       )}
@@ -105,7 +112,7 @@ export function Select({ label, error, hint, required, id, children, className =
           id={inputId}
           required={required}
           aria-invalid={error ? 'true' : undefined}
-          aria-describedby={error ? errorId : undefined}
+          aria-describedby={describedBy({ inputId, error, hint })}
           className={cn(baseInput, 'h-11 appearance-none pr-9 pl-3.5', stateClass(error), selectClassName)}
           {...rest}
         >
@@ -120,12 +127,12 @@ export function Select({ label, error, hint, required, id, children, className =
           aria-hidden="true"
           viewBox="0 0 20 20"
           fill="none"
-          className="pointer-events-none absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-slate-400"
+          className="pointer-events-none absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-slate-500"
         >
           <path d="M6 8l4 4 4-4" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </div>
-      <FieldError id={errorId}>{error}</FieldError>
+      <FieldError id={`${inputId}-error`}>{error}</FieldError>
     </div>
   );
 }

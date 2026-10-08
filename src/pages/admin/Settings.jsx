@@ -8,7 +8,7 @@ import PageHeader from '../../components/dashboard/PageHeader';
 import Button from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
 import { ErrorState } from '../../components/common/Feedback';
-import { StatSkeleton } from '../../components/common/Skeleton';
+import { Skeleton } from '../../components/common/Skeleton';
 import Icon from '../../components/common/icons';
 
 /** Local switch control (defined in this file per the settings spec). */
@@ -28,6 +28,8 @@ function Toggle({ checked, onChange, label, disabled = false, danger = false, hi
         onClick={() => onChange(!checked)}
         className={cn(
           'relative mt-0.5 inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors duration-200',
+          // Invisible extension so the 24px switch still has a 40px touch target.
+          "after:absolute after:inset-x-0 after:-inset-y-2 after:content-['']",
           'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500',
           checked ? (danger ? 'bg-red-600' : 'bg-brand-700') : 'bg-slate-300',
           disabled && 'pointer-events-none opacity-50'
@@ -118,34 +120,44 @@ export default function Settings() {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   }
 
-  function validateSection(name) {
+  function validateSection(name, values = form) {
     const next = {};
     if (name === 'platform') {
-      if (!form.platformName.trim()) next.platformName = 'Platform name is required.';
-      if (!form.supportEmail.trim()) next.supportEmail = 'Support email is required.';
-      else if (!validateEmail(form.supportEmail)) next.supportEmail = 'Enter a valid email address.';
-      if (!form.supportPhone.trim()) next.supportPhone = 'Support phone is required.';
+      if (!values.platformName.trim()) next.platformName = 'Platform name is required.';
+      if (!values.supportEmail.trim()) next.supportEmail = 'Support email is required.';
+      else if (!validateEmail(values.supportEmail)) next.supportEmail = 'Enter a valid email address.';
+      if (!values.supportPhone.trim()) next.supportPhone = 'Support phone is required.';
     }
     if (name === 'fees') {
-      const fee = Number(form.platformFee);
+      const fee = Number(values.platformFee);
       if (Number.isNaN(fee) || fee < 0 || fee > 20) next.platformFee = 'Fee must be between 0 and 20%.';
-      const days = Number(form.visitWindowDays);
+      const days = Number(values.visitWindowDays);
       if (!Number.isInteger(days) || days < 1 || days > 60) next.visitWindowDays = 'Enter a value between 1 and 60 days.';
-      const max = Number(form.maxImagesPerListing);
+      const max = Number(values.maxImagesPerListing);
       if (!Number.isInteger(max) || max < 1 || max > 30) next.maxImagesPerListing = 'Enter a value between 1 and 30.';
     }
     setErrors(next);
     return !Object.keys(next).length;
   }
 
-  async function saveSection(name, message = 'Settings saved.') {
-    if (!validateSection(name)) return;
+  /**
+   * Saves a settings section. `overrides` lets callers persist a change in the same
+   * tick it is requested — `setForm` is async, so reading `form` right after a state
+   * update would send the previous values (this was silently dropping the
+   * maintenance-mode toggle).
+   */
+  async function saveSection(name, message = 'Settings saved.', overrides = {}) {
+    const payload = { ...form, ...overrides };
+    if (!validateSection(name, payload)) return;
     setSaving(true);
     try {
-      await adminService.saveSettings(form);
+      await adminService.saveSettings(payload);
+      setForm(payload);
       toast.success(message);
+      return true;
     } catch (err) {
       toast.error(err.message, 'Save failed');
+      return false;
     } finally {
       setSaving(false);
     }
@@ -161,12 +173,10 @@ export default function Settings() {
         tone: 'danger',
       });
       if (!ok) return;
-      setForm((f) => ({ ...f, maintenanceMode: true }));
-      await saveSection('moderation', 'Maintenance mode is now enabled.');
-      toast.warning('Platform is now in read-only maintenance mode.');
+      const saved = await saveSection('moderation', 'Maintenance mode is now enabled.', { maintenanceMode: true });
+      if (saved) toast.warning('Platform is now in read-only maintenance mode.');
     } else {
-      setForm((f) => ({ ...f, maintenanceMode: false }));
-      await saveSection('moderation', 'Maintenance mode is now off.');
+      await saveSection('moderation', 'Maintenance mode is now off.', { maintenanceMode: false });
     }
   }
 
@@ -176,7 +186,23 @@ export default function Settings() {
         <PageHeader title="Settings" subtitle="Platform configuration for RentLink." />
         <div className="grid gap-5 lg:grid-cols-2">
           {Array.from({ length: 4 }).map((_, i) => (
-            <StatSkeleton key={i} />
+            <section key={i} className="rounded-xl border border-line bg-white p-5 sm:p-6">
+              <div className="mb-5 flex items-start gap-3">
+                <Skeleton className="h-10 w-10" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-1/3" />
+                  <Skeleton className="h-3 w-2/3" />
+                </div>
+              </div>
+              <div className="space-y-4">
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-2/3" />
+              </div>
+              <div className="mt-6 flex justify-end border-t border-line pt-4">
+                <Skeleton className="h-10 w-32" />
+              </div>
+            </section>
           ))}
         </div>
       </div>
@@ -350,20 +376,23 @@ export default function Settings() {
         description="Actions with platform-wide consequences. These cannot be undone casually."
         icon="shield"
         danger
-        actionLabel="Enter maintenance mode"
-        onSave={() => toggleMaintenance(true)}
+        actionLabel={form.maintenanceMode ? 'Exit maintenance mode' : 'Enter maintenance mode'}
+        onSave={() => toggleMaintenance(!form.maintenanceMode)}
         saving={saving}
       >
-        <div className="rounded-xl border border-red-200 bg-red-50 p-4">
+        <div className={cn('rounded-xl border p-4', form.maintenanceMode ? 'border-red-200 bg-red-50' : 'border-emerald-200 bg-emerald-50')}>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm font-semibold text-red-800">Put the platform into maintenance mode</p>
-              <p className="mt-0.5 text-xs leading-relaxed text-red-700/80">
-                All tenant and owner access is paused. Only administrators can sign in. Turn it back off from the
-                Moderation settings when you are done.
+              <p className={cn('text-sm font-semibold', form.maintenanceMode ? 'text-red-800' : 'text-emerald-800')}>
+                {form.maintenanceMode ? 'The platform is in maintenance mode' : 'Put the platform into maintenance mode'}
+              </p>
+              <p className={cn('mt-0.5 text-xs leading-relaxed', form.maintenanceMode ? 'text-red-700/80' : 'text-emerald-700/90')}>
+                {form.maintenanceMode
+                  ? 'All tenant and owner access is paused — only administrators can sign in. Exit maintenance mode to restore access.'
+                  : 'All tenant and owner access is paused. Only administrators can sign in. Turn it back off from this panel when you are done.'}
               </p>
             </div>
-            <Icon name="info" className="h-8 w-8 shrink-0 text-red-400" />
+            <Icon name="info" className={cn('h-8 w-8 shrink-0', form.maintenanceMode ? 'text-red-400' : 'text-emerald-400')} />
           </div>
         </div>
         <p className="text-xs leading-relaxed text-slate-500">

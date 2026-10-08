@@ -10,7 +10,7 @@ import EmptyState from '../../components/common/EmptyState';
 import ImageWithFallback from '../../components/common/ImageWithFallback';
 import { ErrorState } from '../../components/common/Feedback';
 import { PageLoader } from '../../components/common/Spinner';
-import { ListingStatusBadge, VisitStatusBadge } from '../../components/common/Badge';
+import { ListingStatusBadge, VisitStatusBadge, VerificationBadge } from '../../components/common/Badge';
 import ReviewsSection from '../../components/property/ReviewsSection';
 
 import propertyService from '../../services/propertyService';
@@ -73,6 +73,22 @@ const BANNER_ICON = {
   amber: 'bg-amber-100 text-amber-600',
   red: 'bg-red-100 text-red-600',
   slate: 'bg-slate-200 text-slate-500',
+};
+
+/** Plain-language explanation shown under the owner card for each verification state. */
+const VERIFICATION_COPY = {
+  verified: {
+    body: 'This owner has confirmed their identity and ownership documents with our team.',
+  },
+  pending: {
+    body: 'This owner submitted verification documents that our team is still reviewing.',
+  },
+  rejected: {
+    body: 'This owner’s verification did not pass review. Their listings are checked manually until it does.',
+  },
+  unverified: {
+    body: 'This owner has not completed verification yet. Prefer verified owners when you can.',
+  },
 };
 
 export default function PropertyDetail() {
@@ -178,6 +194,7 @@ export default function PropertyDetail() {
 
   const images = property.images?.length ? property.images : [];
   const activePhoto = images[Math.min(photo, images.length - 1)];
+  const verificationStatus = property.owner?.verification || (property.ownerVerified ? 'verified' : 'unverified');
 
   const details = [
     { label: 'Bedrooms', value: formatNumber(property.bedrooms), icon: 'home' },
@@ -273,7 +290,7 @@ export default function PropertyDetail() {
               {activePhoto ? (
                 <ImageWithFallback src={activePhoto} alt={property.title} loading="eager" />
               ) : (
-                <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-slate-400">
+                <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-slate-500">
                   <Icon name="image" className="h-9 w-9" />
                   <span className="text-sm">No photos uploaded yet</span>
                 </div>
@@ -316,7 +333,7 @@ export default function PropertyDetail() {
                   <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                     {details.map((d) => (
                       <div key={d.label} className="rounded-xl border border-line bg-slate-50/70 px-4 py-3.5">
-                        <p className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wide text-slate-400 uppercase">
+                        <p className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wide text-slate-500 uppercase">
                           <Icon name={d.icon} className="h-3.5 w-3.5" />
                           {d.label}
                         </p>
@@ -415,7 +432,7 @@ export default function PropertyDetail() {
         {/* Sidebar */}
         <aside className="min-w-0 space-y-4">
           <div className="rounded-xl border border-line bg-white p-5">
-            <p className="text-xs font-semibold tracking-wide text-slate-400 uppercase">Listing performance</p>
+            <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase">Listing performance</p>
             <div className="mt-4 space-y-4">
               {[
                 { label: 'Views', value: property.views, icon: 'eye', tone: 'text-brand-700 bg-brand-50' },
@@ -436,7 +453,7 @@ export default function PropertyDetail() {
           </div>
 
           <div className="rounded-xl border border-line bg-white p-5">
-            <p className="text-xs font-semibold tracking-wide text-slate-400 uppercase">Quick actions</p>
+            <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase">Quick actions</p>
             <div className="mt-3 flex flex-col gap-2.5">
               <Button as={Link} to={`/owner/properties/${property.id}/edit`} variant="outline" size="sm" fullWidth>
                 <Icon name="edit" className="h-4 w-4" />
@@ -455,13 +472,8 @@ export default function PropertyDetail() {
 
           <div className="rounded-xl border border-line bg-white p-5">
             <div className="flex items-center justify-between gap-3">
-              <p className="text-xs font-semibold tracking-wide text-slate-400 uppercase">Owner</p>
-              {property.ownerVerified && (
-                <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600">
-                  <Icon name="verified" className="h-3.5 w-3.5" />
-                  Verified
-                </span>
-              )}
+              <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase">Owner</p>
+              <VerificationBadge status={property.owner?.verification || 'unverified'} />
             </div>
             <div className="mt-3 flex items-center gap-3">
               <Avatar name={property.owner?.name} size="md" />
@@ -470,6 +482,13 @@ export default function PropertyDetail() {
                 <p className="text-xs text-slate-500">Member since {property.owner?.memberSince}</p>
               </div>
             </div>
+            <p className="mt-3 text-xs leading-relaxed text-slate-500">{VERIFICATION_COPY[verificationStatus].body}</p>
+            {verificationStatus !== 'verified' && (
+              <Button as={Link} to="/owner/profile" variant="outline" size="sm" fullWidth className="mt-3">
+                <Icon name="shield" className="h-4 w-4" />
+                {verificationStatus === 'pending' ? 'Check verification status' : 'Verify my account'}
+              </Button>
+            )}
           </div>
         </aside>
       </div>

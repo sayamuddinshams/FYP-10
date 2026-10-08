@@ -85,18 +85,22 @@ export function getDistrictLabel(district) {
   return LOCATIONS[district]?.label || district || '';
 }
 
-/** All "City, District" combinations — used for popular location cards. */
+/**
+ * Curated "popular location" cards for the homepage and footer.
+ * Listing counts are NOT stored here — they are computed from live data
+ * (`propertyService.stats().byDistrict`) so the numbers can never drift.
+ */
 export const POPULAR_LOCATIONS = [
-  { name: 'Gilgit', district: 'Gilgit', listings: 42, image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=800&q=70' },
-  { name: 'Hunza', district: 'Hunza', listings: 31, image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=800&q=70' },
-  { name: 'Skardu', district: 'Skardu', listings: 27, image: 'https://images.unsplash.com/photo-1454496522488-7a8e488e8606?auto=format&fit=crop&w=800&q=70' },
-  { name: 'Nagar', district: 'Nagar', listings: 12, image: 'https://images.unsplash.com/photo-1483728642387-6c3bdd6c93e5?auto=format&fit=crop&w=800&q=70' },
-  { name: 'Ghizer', district: 'Ghizer', listings: 15, image: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=800&q=70' },
-  { name: 'Astore', district: 'Astore', listings: 9, image: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=800&q=70' },
-  { name: 'Diamer', district: 'Diamer', listings: 11, image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=800&q=70' },
-  { name: 'Shigar', district: 'Shigar', listings: 8, image: 'https://images.unsplash.com/photo-1454496522488-7a8e488e8606?auto=format&fit=crop&w=800&q=70' },
-  { name: 'Kharmang', district: 'Kharmang', listings: 7, image: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=800&q=70' },
-  { name: 'Ghanche', district: 'Ghanche', listings: 6, image: 'https://images.unsplash.com/photo-1483728642387-6c3bdd6c93e5?auto=format&fit=crop&w=800&q=70' },
+  { name: 'Gilgit', district: 'Gilgit', image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=800&q=70' },
+  { name: 'Hunza', district: 'Hunza', image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=800&q=70' },
+  { name: 'Skardu', district: 'Skardu', image: 'https://images.unsplash.com/photo-1454496522488-7a8e488e8606?auto=format&fit=crop&w=800&q=70' },
+  { name: 'Nagar', district: 'Nagar', image: 'https://images.unsplash.com/photo-1483728642387-6c3bdd6c93e5?auto=format&fit=crop&w=800&q=70' },
+  { name: 'Ghizer', district: 'Ghizer', image: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=800&q=70' },
+  { name: 'Astore', district: 'Astore', image: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=800&q=70' },
+  { name: 'Diamer', district: 'Diamer', image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=800&q=70' },
+  { name: 'Shigar', district: 'Shigar', image: 'https://images.unsplash.com/photo-1454496522488-7a8e488e8606?auto=format&fit=crop&w=800&q=70' },
+  { name: 'Kharmang', district: 'Kharmang', image: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=800&q=70' },
+  { name: 'Ghanche', district: 'Ghanche', image: 'https://images.unsplash.com/photo-1483728642387-6c3bdd6c93e5?auto=format&fit=crop&w=800&q=70' },
 ];
 
 /**

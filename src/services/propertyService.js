@@ -1,6 +1,17 @@
-import { db, emit, getOwner, isVerifiedOwner, uid } from '../data/store';
+import { db, emit, getOwner, getUser, isVerifiedOwner, uid } from '../data/store';
 import { delay, fail } from './core';
 import { PLATFORM_FEE_RATE } from '../utils/constants';
+
+/** Attach the reviewer's real account details so reviews never show a bare "Reviewer". */
+function decorateReview(review) {
+  const user = getUser(review.userId);
+  return {
+    ...review,
+    userName: review.userName || user?.name || null,
+    userRole: user?.role || null,
+    userVerification: user?.verification || null,
+  };
+}
 
 function decorate(property) {
   if (!property) return null;
@@ -9,7 +20,7 @@ function decorate(property) {
     ...property,
     owner: owner ? { id: owner.id, name: owner.name, avatar: owner.avatar, verification: owner.verification, memberSince: owner.memberSince, phone: owner.phone, role: owner.role } : null,
     ownerVerified: isVerifiedOwner(property),
-    reviews: db.reviews.filter((r) => r.propertyId === property.id),
+    reviews: db.reviews.filter((r) => r.propertyId === property.id).map(decorateReview),
     favoriteCount: (db.favorites[property.ownerId] ? property.favorites : property.favorites) || 0,
   };
 }
@@ -108,11 +119,16 @@ const propertyService = {
     const byType = {};
     approved.forEach((p) => { byType[p.type] = (byType[p.type] || 0) + 1; });
     return {
-      total: approved.length + 214,
+      total: approved.length,
       districts: new Set(approved.map((p) => p.district)).size,
-      verifiedOwners: db.users.filter((u) => u.role === 'owner' && u.verification === 'verified').length + 38,
-      visits: db.visits.length + 158,
+      verifiedOwners: db.users.filter((u) => u.role === 'owner' && u.verification === 'verified').length,
+      visits: db.visits.length,
       byType,
+      // Real approved-listing counts per district (used by the homepage location cards).
+      byDistrict: approved.reduce((acc, p) => {
+        acc[p.district] = (acc[p.district] || 0) + 1;
+        return acc;
+      }, {}),
     };
   },
 

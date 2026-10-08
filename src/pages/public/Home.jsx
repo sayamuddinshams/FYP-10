@@ -1,14 +1,17 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAsync, useDocumentTitle } from '../../hooks';
 import propertyService from '../../services/propertyService';
 import { PROPERTY_TYPES } from '../../utils/constants';
-import { POPULAR_LOCATIONS, searchLocations } from '../../data/locations';
+import { POPULAR_LOCATIONS } from '../../data/locations';
 import Button from '../../components/common/Button';
 import Icon from '../../components/common/icons';
 import Reveal from '../../components/common/Reveal';
 import PropertyCard from '../../components/property/PropertyCard';
-import { PropertyGridSkeleton } from '../../components/common/Skeleton';
+import LocationAutocomplete from '../../components/property/LocationAutocomplete';
+import EmptyState from '../../components/common/EmptyState';
+import { ErrorState } from '../../components/common/Feedback';
+import { PropertyCardSkeleton } from '../../components/common/Skeleton';
 
 const HERO_IMAGE =
   'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2000&q=80';
@@ -78,19 +81,24 @@ const TRUST_POINTS = [
 
 function LocationSearchBox() {
   const navigate = useNavigate();
-  const [query, setQuery] = useState('');
+  const [location, setLocation] = useState({ district: '', city: '', area: '', label: '', kind: 'text' });
   const [type, setType] = useState('');
   const [budget, setBudget] = useState('');
-  const [focused, setFocused] = useState(false);
 
-  const matches = useMemo(() => (query.trim() ? searchLocations(query, 6) : []), [query]);
-
+  // Build the exact query params Browse reads: districts/cities/areas/q + type + min/max.
   const submit = (e) => {
     e.preventDefault();
     const params = new URLSearchParams();
-    if (query.trim()) params.set('q', query.trim());
+    if (location.kind === 'district' && location.district) params.set('districts', location.district);
+    else if (location.kind === 'city' && location.city) params.set('cities', location.city);
+    else if (location.kind === 'area' && location.area) params.set('areas', location.area);
+    else if (location.label.trim()) params.set('q', location.label.trim());
     if (type) params.set('type', type);
-    if (budget) params.set('price', budget);
+    if (budget) {
+      const [min, max] = budget.split('-');
+      if (min && min !== '0') params.set('min', min);
+      if (max && max !== '9999999') params.set('max', max);
+    }
     navigate(`/browse?${params.toString()}`);
   };
 
@@ -98,48 +106,24 @@ function LocationSearchBox() {
     <div className="rounded-2xl border border-white/60 bg-white/97 p-3 shadow-pop backdrop-blur-xl sm:p-4">
       <form onSubmit={submit}>
         <div className="grid gap-3 sm:grid-cols-[1.5fr_1fr_1fr_auto]">
-          <div className="relative">
-            <div className="relative">
-              <Icon name="search" className="pointer-events-none absolute top-1/2 left-3.5 h-4.5 w-4.5 -translate-y-1/2 text-brand-400" />
-              <input
-                type="search"
-                aria-label="Location"
-                placeholder="Search location — try Jut, Kari, Sad, Gulm"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onFocus={() => setFocused(true)}
-                onBlur={() => setTimeout(() => setFocused(false), 180)}
-                className="h-11 w-full rounded-xl border border-line bg-slate-50/70 pr-3.5 pl-10 text-sm text-slate-900 transition-all duration-200 placeholder:text-slate-400 focus:border-brand-300 focus:bg-white focus:ring-4 focus:ring-brand-100 focus:outline-none"
-              />
-            </div>
-            {focused && matches.length > 0 && (
-              <ul className="absolute z-30 mt-1.5 w-full overflow-hidden rounded-xl border border-line bg-white shadow-pop">
-                {matches.map((m) => (
-                  <li key={`${m.kind}-${m.label}`}>
-                    <button
-                      type="button"
-                      className="flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-sm text-ink transition hover:bg-brand-50 hover:text-brand-800"
-                      onMouseDown={() => {
-                        setQuery(m.area || m.city || m.district);
-                        setFocused(false);
-                      }}
-                    >
-                      <span className="flex items-center gap-2 truncate font-medium">
-                        <Icon name="pin" className="h-3.5 w-3.5 shrink-0 text-brand-400" />
-                        {m.label}
-                      </span>
-                      <span className="shrink-0 text-xs text-slate-400">{m.kind}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+          <LocationAutocomplete
+            ariaLabel="Location"
+            placeholder="Search location — try Jut, Kari, Sad, Gulm"
+            onSelect={(item) =>
+              setLocation({
+                district: item.district || '',
+                city: item.city || '',
+                area: item.area || '',
+                label: item.label || '',
+                kind: item.kind || 'text',
+              })
+            }
+          />
           <select
             aria-label="Property type"
             value={type}
             onChange={(e) => setType(e.target.value)}
-            className="h-11 w-full appearance-none rounded-xl border border-line bg-slate-50/70 px-3.5 text-sm text-slate-700 transition-all duration-200 focus:border-brand-300 focus:bg-white focus:ring-4 focus:ring-brand-100 focus:outline-none"
+            className="h-12 w-full rounded-xl border border-line bg-white px-3.5 text-sm text-slate-700 transition-all duration-200 focus:border-brand-400 focus:ring-2 focus:ring-brand-100 focus:outline-none"
           >
             <option value="">Any property type</option>
             {PROPERTY_TYPES.map((t) => (
@@ -150,7 +134,7 @@ function LocationSearchBox() {
             aria-label="Monthly budget"
             value={budget}
             onChange={(e) => setBudget(e.target.value)}
-            className="h-11 w-full appearance-none rounded-xl border border-line bg-slate-50/70 px-3.5 text-sm text-slate-700 transition-all duration-200 focus:border-brand-300 focus:bg-white focus:ring-4 focus:ring-brand-100 focus:outline-none"
+            className="h-12 w-full rounded-xl border border-line bg-white px-3.5 text-sm text-slate-700 transition-all duration-200 focus:border-brand-400 focus:ring-2 focus:ring-brand-100 focus:outline-none"
           >
             <option value="">Any budget</option>
             <option value="0-20000">Under Rs 20,000</option>
@@ -166,13 +150,13 @@ function LocationSearchBox() {
       </form>
 
       <div className="mt-3 flex flex-wrap items-center gap-2 px-1 pb-1">
-        <span className="text-xs font-medium text-slate-400">Popular:</span>
+        <span className="text-xs font-medium text-slate-500">Popular:</span>
         {POPULAR_SEARCHES.map((name) => (
           <button
             key={name}
             type="button"
             onClick={() => navigate(`/browse?q=${encodeURIComponent(name)}`)}
-            className="rounded-full border border-line bg-white px-2.5 py-1 text-xs font-medium text-slate-600 transition-all duration-200 hover:-translate-y-px hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700"
+            className="inline-flex min-h-10 items-center rounded-full border border-line bg-white px-3.5 py-2.5 text-xs font-medium text-slate-600 transition-all duration-200 hover:-translate-y-px hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700"
           >
             {name}
           </button>
@@ -192,8 +176,8 @@ function SectionHeading({ kicker, title, description, action, align = 'left' }) 
             {kicker}
           </span>
         )}
-        <h2 className="mt-3 font-display text-3xl leading-tight font-semibold text-ink sm:text-4xl">{title}</h2>
-        {description && <p className="mt-3 text-base leading-relaxed text-slate-500">{description}</p>}
+        <h2 className="mt-3 font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">{title}</h2>
+        {description && <p className="mt-3 text-sm leading-relaxed text-slate-600">{description}</p>}
       </div>
       {action}
     </div>
@@ -203,10 +187,18 @@ function SectionHeading({ kicker, title, description, action, align = 'left' }) 
 export default function Home() {
   useDocumentTitle('Find a place that feels like home');
 
-  const { data: featured, loading } = useAsync(() => propertyService.getFeatured(6), []);
-  const { data: stats } = useAsync(() => propertyService.stats(), []);
+  const navigate = useNavigate();
+  const { data: featured, loading: featuredLoading, error: featuredError, reload: reloadFeatured } = useAsync(
+    () => propertyService.getFeatured(6),
+    []
+  );
+  const { data: stats, loading: statsLoading, error: statsError, reload: reloadStats } = useAsync(
+    () => propertyService.stats(),
+    []
+  );
 
   const s = stats || { total: 0, districts: 0, verifiedOwners: 0, visits: 0, byType: {} };
+  const featuredList = featured || [];
 
   return (
     <div>
@@ -268,28 +260,44 @@ export default function Home() {
           </div>
 
           {/* Stats strip */}
-          <dl className="mt-12 grid max-w-3xl grid-cols-2 gap-x-6 gap-y-8 border-t border-white/15 pt-8 sm:grid-cols-4">
-            {[
-              { label: 'Live listings', value: s.total, icon: 'building' },
-              { label: 'Districts covered', value: s.districts, icon: 'pin' },
-              { label: 'Verified owners', value: s.verifiedOwners, icon: 'shield' },
-              { label: 'Visits scheduled', value: s.visits, icon: 'calendar' },
-            ].map((stat) => (
-              <div key={stat.label} className="flex items-start gap-3">
-                <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/10 text-brand-200 ring-1 ring-white/15">
-                  <Icon name={stat.icon} className="h-4 w-4" />
-                </span>
-                <div>
-                  <dd className="text-3xl leading-none font-bold tracking-tight text-white tabular-nums">
-                    {stat.value}
-                  </dd>
-                  <dt className="mt-1.5 text-[11px] font-semibold tracking-wider text-white/55 uppercase">
-                    {stat.label}
-                  </dt>
+          {statsError ? (
+            <ErrorState
+              compact
+              className="mt-12 max-w-3xl"
+              message="The marketplace stats could not be loaded right now."
+              onRetry={reloadStats}
+            />
+          ) : (
+            <dl className="mt-12 grid max-w-3xl grid-cols-2 gap-x-6 gap-y-8 border-t border-white/15 pt-8 sm:grid-cols-4" aria-live="polite">
+              {[
+                { label: 'Live listings', value: s.total, icon: 'building' },
+                { label: 'Districts covered', value: s.districts, icon: 'pin' },
+                { label: 'Verified owners', value: s.verifiedOwners, icon: 'shield' },
+                { label: 'Visits scheduled', value: s.visits, icon: 'calendar' },
+              ].map((stat) => (
+                <div key={stat.label} className="flex items-start gap-3">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/10 text-brand-200 ring-1 ring-white/15">
+                    <Icon name={stat.icon} className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0">
+                    <dt className="text-[11px] font-semibold tracking-wider text-white/70 uppercase">
+                      {stat.label}
+                    </dt>
+                    <dd className="mt-1 text-3xl leading-none font-bold tracking-tight text-white tabular-nums">
+                      {statsLoading ? (
+                        <span
+                          aria-hidden="true"
+                          className="block h-7 w-16 animate-pulse rounded-lg bg-white/15"
+                        />
+                      ) : (
+                        stat.value
+                      )}
+                    </dd>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </dl>
+              ))}
+            </dl>
+          )}
         </div>
 
         {/* Soft fade into next section */}
@@ -297,7 +305,7 @@ export default function Home() {
       </section>
 
       {/* Featured properties */}
-      <section className="mx-auto w-full max-w-7xl px-4 pt-8 pb-16 sm:px-6 lg:px-8 lg:pt-10 lg:pb-20">
+      <section className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <Reveal>
           <SectionHeading
             kicker="Handpicked for you"
@@ -312,10 +320,39 @@ export default function Home() {
           />
         </Reveal>
 
+        <p className="sr-only" aria-live="polite">
+          {featuredLoading
+            ? 'Loading featured properties'
+            : featuredError
+              ? 'Featured properties could not be loaded'
+              : `${featuredList.length} featured ${featuredList.length === 1 ? 'property' : 'properties'} shown`}
+        </p>
+
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {loading && <PropertyGridSkeleton count={6} />}
-          {!loading &&
-            (featured || []).map((p, i) => (
+          {featuredLoading &&
+            Array.from({ length: 6 }).map((_, i) => <PropertyCardSkeleton key={i} />)}
+
+          {!featuredLoading && featuredError && (
+            <div className="sm:col-span-2 lg:col-span-3">
+              <ErrorState message={featuredError} onRetry={reloadFeatured} />
+            </div>
+          )}
+
+          {!featuredLoading && !featuredError && featuredList.length === 0 && (
+            <div className="sm:col-span-2 lg:col-span-3">
+              <EmptyState
+                icon="building"
+                title="No featured properties yet"
+                message="Approved listings show up here as soon as they are published."
+                actionLabel="Browse all properties"
+                onAction={() => navigate('/browse')}
+              />
+            </div>
+          )}
+
+          {!featuredLoading &&
+            !featuredError &&
+            featuredList.map((p, i) => (
               <Reveal key={p.id} delay={i * 70}>
                 <PropertyCard property={p} />
               </Reveal>
@@ -329,7 +366,7 @@ export default function Home() {
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_45%_60%_at_50%_0%,rgba(46,74,125,.06),transparent_70%)]"
         />
-        <div className="relative mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+        <div className="relative mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
           <Reveal>
             <SectionHeading
               align="center"
@@ -355,7 +392,13 @@ export default function Home() {
                   <span className="text-sm font-semibold text-ink transition-colors group-hover:text-brand-800">
                     {t.label}
                   </span>
-                  <span className="text-xs text-slate-500">{s.byType[t.value] || 0} listings</span>
+                  <span className="text-xs text-slate-500">
+                    {statsLoading ? (
+                      <span aria-hidden="true" className="block h-3 w-16 animate-pulse rounded bg-slate-200" />
+                    ) : statsError ? null : (
+                      `${s.byType[t.value] || 0} listings`
+                    )}
+                  </span>
                 </Link>
               </Reveal>
             ))}
@@ -364,7 +407,7 @@ export default function Home() {
       </section>
 
       {/* Popular locations */}
-      <section className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+      <section className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <Reveal>
           <SectionHeading
             kicker="Explore the region"
@@ -379,7 +422,9 @@ export default function Home() {
           />
         </Reveal>
         <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-          {POPULAR_LOCATIONS.map((loc, i) => (
+          {POPULAR_LOCATIONS.map((loc, i) => {
+            const count = stats?.byDistrict?.[loc.district] || 0;
+            return (
             <Reveal key={loc.name} delay={i * 50}>
               <Link
                 to={`/browse?location=${encodeURIComponent(loc.name)}`}
@@ -401,12 +446,16 @@ export default function Home() {
                   <p className="font-display text-lg font-semibold text-white">{loc.name}</p>
                   <p className="mt-0.5 flex items-center gap-1.5 text-xs text-white/70">
                     <Icon name="pin" className="h-3 w-3" />
-                    {loc.district} · {loc.listings} listings
+                    {loc.district}
+                    {!statsLoading && (
+                      <span>· {count > 0 ? `${count} listings` : 'no listings yet'}</span>
+                    )}
                   </p>
                 </div>
               </Link>
             </Reveal>
-          ))}
+            );
+          })}
         </div>
       </section>
 
@@ -417,17 +466,17 @@ export default function Home() {
           className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_55%_65%_at_20%_20%,rgba(75,116,180,.3),transparent_65%),radial-gradient(ellipse_45%_50%_at_85%_85%,rgba(46,74,125,.35),transparent_70%)]"
         />
         <div aria-hidden="true" className="bg-grid-lines absolute inset-0 opacity-60" />
-        <div className="relative mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
+        <div className="relative mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
           <Reveal>
             <div className="max-w-2xl">
               <span className="inline-flex items-center gap-2 text-xs font-bold tracking-[0.22em] text-brand-300 uppercase">
                 <span className="h-px w-8 bg-gradient-to-r from-brand-300 to-transparent" />
                 Simple and transparent
               </span>
-              <h2 className="mt-3 font-display text-3xl leading-tight font-semibold sm:text-4xl lg:text-5xl">
+              <h2 className="mt-3 font-display text-2xl font-bold tracking-tight sm:text-3xl">
                 How <span className="italic text-brand-300">RentLink</span> works
               </h2>
-              <p className="mt-4 text-base leading-relaxed text-white/65">
+              <p className="mt-4 text-sm leading-relaxed text-white/70">
                 Four steps between you and the right place — no brokers, no guesswork.
               </p>
             </div>
@@ -447,12 +496,15 @@ export default function Home() {
                       <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-[linear-gradient(140deg,#2e4a7d,#4b74b4)] text-white shadow-[0_8px_20px_-8px_rgba(46,74,125,.8)] transition-transform duration-300 group-hover:-translate-y-0.5">
                         <Icon name={step.icon} className="h-5 w-5" />
                       </span>
-                      <span className="font-display text-4xl font-semibold text-white/10 transition-colors duration-300 group-hover:text-brand-300/30">
+                      <span
+                        aria-hidden="true"
+                        className="font-display text-4xl font-semibold text-white/10 transition-colors duration-300 group-hover:text-brand-300/30"
+                      >
                         {step.step}
                       </span>
                     </div>
-                    <h3 className="mt-5 text-lg font-semibold text-white">{step.title}</h3>
-                    <p className="mt-2 text-sm leading-relaxed text-white/65">{step.text}</p>
+                    <h3 className="mt-5 text-base font-semibold text-white">{step.title}</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-white/70">{step.text}</p>
                   </div>
                 </Reveal>
               ))}
@@ -462,18 +514,18 @@ export default function Home() {
       </section>
 
       {/* Trust */}
-      <section className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
+      <section className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="grid items-start gap-12 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
           <Reveal>
-            <div className="lg:sticky lg:top-24">
+            <div>
               <span className="inline-flex items-center gap-2 text-xs font-bold tracking-[0.22em] text-primary uppercase">
                 <span className="h-px w-8 bg-gradient-to-r from-primary-600 to-primary-300" />
                 Why RentLink
               </span>
-              <h2 className="mt-3 font-display text-3xl leading-tight font-semibold text-ink sm:text-4xl lg:text-5xl">
+              <h2 className="mt-3 font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">
                 A marketplace built on <span className="text-gradient-dark italic">trust</span>
               </h2>
-              <p className="mt-4 max-w-md text-base leading-relaxed text-slate-500">
+              <p className="mt-4 max-w-md text-sm leading-relaxed text-slate-600">
                 Renting should not feel like a gamble. We built RentLink so every listing, owner and
                 visit carries a history you can rely on.
               </p>
@@ -493,8 +545,8 @@ export default function Home() {
                   <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-[linear-gradient(140deg,#f1f5fb,#e2eaf6)] text-primary shadow-soft transition-all duration-300 group-hover:bg-[linear-gradient(140deg,#2e4a7d,#4b74b4)] group-hover:text-white group-hover:shadow-lift">
                     <Icon name={point.icon} className="h-5 w-5" />
                   </span>
-                  <h3 className="mt-5 font-semibold text-ink">{point.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-slate-500">{point.text}</p>
+                  <h3 className="mt-5 text-base font-semibold text-ink">{point.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-600">{point.text}</p>
                 </div>
               </Reveal>
             ))}
@@ -502,8 +554,62 @@ export default function Home() {
         </div>
       </section>
 
+      {/* For owners */}
+      <section className="border-y border-line bg-surface">
+        <div className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+          <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_1fr]">
+            <Reveal>
+              <div>
+                <span className="inline-flex items-center gap-2 text-xs font-bold tracking-[0.22em] text-primary uppercase">
+                  <span className="h-px w-8 bg-gradient-to-r from-primary-600 to-primary-300" />
+                  For owners
+                </span>
+                <h2 className="mt-3 font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">
+                  List your place once, reach renters already looking
+                </h2>
+                <p className="mt-4 max-w-xl text-sm leading-relaxed text-slate-600">
+                  Publish through a guided form, keep visits and messages in one dashboard and edit
+                  details whenever something changes. Every submission is reviewed before it appears
+                  in search.
+                </p>
+                <div className="mt-7 flex flex-wrap gap-3">
+                  <Button as={Link} to="/owner/properties/new" size="lg">
+                    <Icon name="plus" className="h-4 w-4" />
+                    List your property
+                  </Button>
+                  <Button as={Link} to="/story" size="lg" variant="outline">
+                    How listing works
+                    <Icon name="arrowRight" className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </Reveal>
+
+            <Reveal delay={90}>
+              <ul className="space-y-4 rounded-2xl border border-line bg-white p-6 shadow-soft sm:p-7">
+                {[
+                  ['edit', 'Guided listing form', 'Photos, rent, amenities and availability collected step by step — no blank boxes.'],
+                  ['shield', 'Reviewed before it goes live', 'A moderator checks the details so serious renters trust what they see.'],
+                  ['inbox', 'Everything in one dashboard', 'Visit requests, messages and listing status stay together instead of on WhatsApp.'],
+                ].map(([icon, title, text]) => (
+                  <li key={title} className="flex gap-3.5">
+                    <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-primary">
+                      <Icon name={icon} className="h-4.5 w-4.5" />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-base font-semibold text-ink">{title}</p>
+                      <p className="mt-1 text-sm leading-relaxed text-slate-600">{text}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </Reveal>
+          </div>
+        </div>
+      </section>
+
       {/* Final CTA */}
-      <section className="mx-auto w-full max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
+      <section className="mx-auto w-full max-w-7xl px-4 pt-16 pb-16 sm:px-6 lg:px-8">
         <Reveal>
           <div className="relative overflow-hidden rounded-3xl shadow-pop">
             <img
@@ -520,17 +626,17 @@ export default function Home() {
               className="absolute -top-16 -right-16 h-64 w-64 animate-float-slow rounded-full bg-brand-400/20 blur-3xl"
             />
 
-            <div className="relative px-6 py-16 text-center sm:px-14 lg:py-20">
+            <div className="relative px-6 py-16 text-center sm:px-14">
               <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-semibold tracking-wide text-white/85 backdrop-blur-md">
                 <Icon name="spark" className="h-3.5 w-3.5 text-amber-300" />
-                Hundreds of verified properties
+                Verified listings across Gilgit-Baltistan
               </span>
-              <h2 className="mx-auto mt-6 max-w-2xl font-display text-3xl leading-tight font-semibold sm:text-4xl lg:text-5xl">
+              <h2 className="mx-auto mt-6 max-w-2xl font-display text-2xl font-bold tracking-tight sm:text-3xl">
                 Ready to find your <span className="italic text-brand-200">next home?</span>
               </h2>
               <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-white/75">
-                Browse hundreds of verified properties across Gilgit-Baltistan, or list your own and
-                reach thousands of serious renters.
+                Browse verified properties across Gilgit-Baltistan, or list your own and reach
+                renters who are ready to move.
               </p>
               <div className="mt-9 flex flex-wrap justify-center gap-3">
                 <Button as={Link} to="/browse" size="lg" className="min-w-48">

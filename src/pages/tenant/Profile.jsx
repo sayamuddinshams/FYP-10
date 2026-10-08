@@ -5,6 +5,7 @@ import Icon from '../../components/common/icons';
 import Input, { Textarea, Select, Checkbox } from '../../components/common/Input';
 import PageHeader from '../../components/dashboard/PageHeader';
 import Badge, { RoleBadge, VerificationBadge } from '../../components/common/Badge';
+import { PageLoader } from '../../components/common/Spinner';
 import { formatDate } from '../../utils/format';
 import { useDocumentTitle } from '../../hooks';
 import { useAuth } from '../../context/AuthContext';
@@ -40,6 +41,8 @@ export default function Profile() {
 
   const [pw, setPw] = useState({ current: '', next: '', confirm: '' });
   const [pwErrors, setPwErrors] = useState({});
+  const [pwSaving, setPwSaving] = useState(false);
+  const [prefsSaving, setPrefsSaving] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -55,10 +58,11 @@ export default function Profile() {
       preferredType: user.preferredType || '',
       budgetMax: user.budgetMax ? String(user.budgetMax) : '',
     });
+    setNotifPrefs((prev) => ({ ...prev, ...(user.notificationPrefs || {}) }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
-  if (!user) return null;
+  if (!user) return <PageLoader label="Loading your profile…" />;
 
   const cities = getCities(form.district);
   const areas = form.district ? getAreas(form.district, form.city) : [];
@@ -142,6 +146,7 @@ export default function Profile() {
       toast.error('Please fix the highlighted fields.', 'Check your password');
       return;
     }
+    setPwSaving(true);
     try {
       await userService.updateProfile(user.id, { password: pw.next });
       toast.success('Password changed. Use it next time you sign in.');
@@ -149,15 +154,20 @@ export default function Profile() {
       setPwErrors({});
     } catch (err) {
       toast.error(err?.message || 'Could not change the password. Please try again.');
+    } finally {
+      setPwSaving(false);
     }
   }
 
   async function handleSaveNotifPrefs() {
+    setPrefsSaving(true);
     try {
       await userService.updateProfile(user.id, { notificationPrefs: notifPrefs });
       toast.success('Notification preferences saved.');
     } catch (err) {
       toast.error(err?.message || 'Could not save preferences.');
+    } finally {
+      setPrefsSaving(false);
     }
   }
 
@@ -182,7 +192,7 @@ export default function Profile() {
           <dl className="mt-5 divide-y divide-line rounded-xl border border-line text-left text-sm">
             <div className="flex items-center justify-between gap-3 px-4 py-3">
               <dt className="flex items-center gap-2 text-slate-500">
-                <Icon name="calendar" className="h-4 w-4 text-slate-400" />
+                <Icon name="calendar" className="h-4 w-4 text-slate-500" />
                 Member since
               </dt>
               <dd className="font-medium text-slate-800">
@@ -191,14 +201,14 @@ export default function Profile() {
             </div>
             <div className="flex items-center justify-between gap-3 px-4 py-3">
               <dt className="flex items-center gap-2 text-slate-500">
-                <Icon name="pin" className="h-4 w-4 text-slate-400" />
+                <Icon name="pin" className="h-4 w-4 text-slate-500" />
                 Location
               </dt>
               <dd className="font-medium text-slate-800">{user.city ? `${user.city}, ${user.district}` : 'Not set'}</dd>
             </div>
             <div className="flex items-center justify-between gap-3 px-4 py-3">
               <dt className="flex items-center gap-2 text-slate-500">
-                <Icon name="phone" className="h-4 w-4 text-slate-400" />
+                <Icon name="phone" className="h-4 w-4 text-slate-500" />
                 Phone
               </dt>
               <dd className="font-medium text-slate-800">{user.phone || 'Not set'}</dd>
@@ -229,7 +239,7 @@ export default function Profile() {
                 <Avatar name={user.name} size="lg" />
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-slate-800">{user.name}</p>
-                  <p className="text-xs text-slate-400 capitalize">{user.role} account</p>
+                  <p className="text-xs text-slate-500 capitalize">{user.role} account</p>
                 </div>
                 <Button
                   variant="outline"
@@ -364,7 +374,7 @@ export default function Profile() {
                   />
                 </div>
                 <div className="mt-4 flex justify-end">
-                  <Button variant="outline" size="sm" onClick={handleChangePassword}>
+                  <Button variant="outline" size="sm" loading={pwSaving} onClick={handleChangePassword}>
                     <Icon name="key" className="h-4 w-4" />
                     Update password
                   </Button>
@@ -398,7 +408,7 @@ export default function Profile() {
                   />
                 </div>
                 <div className="mt-4 flex justify-end">
-                  <Button variant="ghost" size="sm" onClick={handleSaveNotifPrefs}>
+                  <Button variant="ghost" size="sm" loading={prefsSaving} onClick={handleSaveNotifPrefs}>
                     <Icon name="check" className="h-4 w-4" />
                     Save preferences
                   </Button>

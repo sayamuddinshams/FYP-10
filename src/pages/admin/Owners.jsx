@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
-import { useAsync, useDocumentTitle } from '../../hooks';
+import { useAsync, useDebounce, useDocumentTitle } from '../../hooks';
 import { useToast } from '../../context/ToastContext';
 import { useModals } from '../../context/ModalContext';
-import { formatDate, formatNumber } from '../../utils/format';
+import { cn, formatDate, formatNumber } from '../../utils/format';
 import userService from '../../services/userService';
 import PageHeader from '../../components/dashboard/PageHeader';
 import StatCard from '../../components/dashboard/StatCard';
@@ -14,9 +14,32 @@ import Dropdown from '../../components/common/Dropdown';
 import EmptyState from '../../components/common/EmptyState';
 import { ErrorState } from '../../components/common/Feedback';
 import { VerificationBadge, UserStatusBadge } from '../../components/common/Badge';
-import { Textarea } from '../../components/common/Input';
+import { Input, Textarea } from '../../components/common/Input';
 import { StatSkeleton } from '../../components/common/Skeleton';
 import Icon from '../../components/common/icons';
+
+const VERIFICATION_FILTERS = [
+  { value: 'all', label: 'All' },
+  { value: 'verified', label: 'Verified' },
+  { value: 'pending', label: 'Pending' },
+  { value: 'rejected', label: 'Rejected' },
+];
+
+const STATUS_FILTERS = [
+  { value: 'all', label: 'Any status' },
+  { value: 'active', label: 'Active' },
+  { value: 'suspended', label: 'Suspended' },
+];
+
+function filterClasses(active) {
+  return cn(
+    'inline-flex h-10 items-center rounded-lg border px-3.5 text-sm font-medium transition-colors select-none',
+    'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500',
+    active
+      ? 'border-brand-700 bg-brand-700 text-white shadow-sm'
+      : 'border-line bg-white text-slate-600 hover:border-brand-300 hover:bg-brand-50/60 hover:text-brand-800'
+  );
+}
 
 export default function Owners() {
   useDocumentTitle('Owners');
@@ -26,10 +49,32 @@ export default function Owners() {
   const [viewOwner, setViewOwner] = useState(null);
   const [rejectOwner, setRejectOwner] = useState(null);
   const [rejectReason, setRejectReason] = useState('');
+  const [query, setQuery] = useState('');
+  const debouncedQuery = useDebounce(query, 350);
+  const [verificationFilter, setVerificationFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
 
   const { data, loading, error, reload } = useAsync(() => userService.listOwners(), []);
 
   const owners = data || [];
+
+  const filteredOwners = useMemo(() => {
+    const q = debouncedQuery.trim().toLowerCase();
+    return owners.filter((o) => {
+      if (verificationFilter !== 'all' && o.verification !== verificationFilter) return false;
+      if (statusFilter !== 'all' && o.status !== statusFilter) return false;
+      if (q && !`${o.name || ''} ${o.email || ''}`.toLowerCase().includes(q)) return false;
+      return true;
+    });
+  }, [owners, debouncedQuery, verificationFilter, statusFilter]);
+
+  const hasActiveFilters = Boolean(debouncedQuery) || verificationFilter !== 'all' || statusFilter !== 'all';
+
+  function clearFilters() {
+    setQuery('');
+    setVerificationFilter('all');
+    setStatusFilter('all');
+  }
 
   const stats = useMemo(() => {
     const verified = owners.filter((o) => o.verification === 'verified').length;
@@ -113,7 +158,7 @@ export default function Owners() {
       render: (o) => (
         <span className="text-sm font-semibold text-slate-700">
           {formatNumber(o.propertyCount || 0)}
-          <span className="ml-1 font-normal text-slate-400">({formatNumber(o.approvedCount || 0)} live)</span>
+          <span className="ml-1 font-normal text-slate-500">({formatNumber(o.approvedCount || 0)} live)</span>
         </span>
       ),
     },
@@ -156,6 +201,60 @@ export default function Owners() {
         subtitle="Review owner verification documents and manage owner accounts."
       />
 
+      {/* Filters */}
+      <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+        <Input
+          label="Search owners"
+          placeholder="Search by name or email…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="xl:max-w-sm"
+          rightIcon={
+            <span className="absolute inset-y-0 right-3 flex items-center text-slate-500">
+              <Icon name="search" className="h-4 w-4" />
+            </span>
+          }
+        />
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-5">
+          <div>
+            <span id="owners-verification-filter" className="mb-1.5 block text-sm font-medium text-slate-700">
+              Verification
+            </span>
+            <div role="group" aria-labelledby="owners-verification-filter" className="flex flex-wrap gap-1.5">
+              {VERIFICATION_FILTERS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  aria-pressed={verificationFilter === opt.value}
+                  onClick={() => setVerificationFilter(opt.value)}
+                  className={filterClasses(verificationFilter === opt.value)}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <span id="owners-status-filter" className="mb-1.5 block text-sm font-medium text-slate-700">
+              Account
+            </span>
+            <div role="group" aria-labelledby="owners-status-filter" className="flex flex-wrap gap-1.5">
+              {STATUS_FILTERS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  aria-pressed={statusFilter === opt.value}
+                  onClick={() => setStatusFilter(opt.value)}
+                  className={filterClasses(statusFilter === opt.value)}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
       {loading ? (
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
@@ -173,18 +272,34 @@ export default function Owners() {
         </div>
       )}
 
+      <p className="text-sm text-slate-500" role="status" aria-live="polite">
+        {loading
+          ? 'Loading owners…'
+          : `${filteredOwners.length} of ${owners.length} owner${owners.length === 1 ? '' : 's'} shown`}
+      </p>
+
       {error ? null : (
         <DataTable
           columns={columns}
-          rows={owners}
+          rows={filteredOwners}
           rowKey="id"
           loading={loading}
           empty={
-            <EmptyState
-              icon="inbox"
-              title="No owners yet"
-              message="Owners and agents will appear here as they join RentLink."
-            />
+            hasActiveFilters ? (
+              <EmptyState
+                icon="search"
+                title="No owners match your filters"
+                message="No owners match this search and filter combination. Clear the filters to see everyone."
+                actionLabel="Clear filters"
+                onAction={clearFilters}
+              />
+            ) : (
+              <EmptyState
+                icon="inbox"
+                title="No owners yet"
+                message="Owners and agents will appear here as they join RentLink."
+              />
+            )
           }
           actions={actions}
         />
@@ -211,31 +326,31 @@ export default function Owners() {
 
             <dl className="grid grid-cols-1 gap-x-6 gap-y-3 text-sm sm:grid-cols-2">
               <div>
-                <dt className="text-xs font-semibold tracking-wide text-slate-400 uppercase">Phone</dt>
+                <dt className="text-xs font-semibold tracking-wide text-slate-500 uppercase">Phone</dt>
                 <dd className="mt-0.5 text-slate-800">{viewOwner.phone || '—'}</dd>
               </div>
               <div>
-                <dt className="text-xs font-semibold tracking-wide text-slate-400 uppercase">Location</dt>
+                <dt className="text-xs font-semibold tracking-wide text-slate-500 uppercase">Location</dt>
                 <dd className="mt-0.5 text-slate-800">
                   {[viewOwner.area, viewOwner.city, viewOwner.district].filter(Boolean).join(', ') || '—'}
                 </dd>
               </div>
               <div className="sm:col-span-2">
-                <dt className="text-xs font-semibold tracking-wide text-slate-400 uppercase">Bio</dt>
+                <dt className="text-xs font-semibold tracking-wide text-slate-500 uppercase">Bio</dt>
                 <dd className="mt-0.5 text-slate-700">{viewOwner.bio || 'No bio provided.'}</dd>
               </div>
               <div>
-                <dt className="text-xs font-semibold tracking-wide text-slate-400 uppercase">Total listings</dt>
+                <dt className="text-xs font-semibold tracking-wide text-slate-500 uppercase">Total listings</dt>
                 <dd className="mt-0.5 text-slate-800">{formatNumber(viewOwner.propertyCount || 0)}</dd>
               </div>
               <div>
-                <dt className="text-xs font-semibold tracking-wide text-slate-400 uppercase">Live listings</dt>
+                <dt className="text-xs font-semibold tracking-wide text-slate-500 uppercase">Live listings</dt>
                 <dd className="mt-0.5 text-slate-800">{formatNumber(viewOwner.approvedCount || 0)}</dd>
               </div>
             </dl>
 
             <div className="rounded-xl border border-line bg-slate-50/60 p-4 text-sm">
-              <p className="text-xs font-semibold tracking-wide text-slate-400 uppercase">Portfolio summary</p>
+              <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase">Portfolio summary</p>
               <p className="mt-1.5 text-slate-600">
                 {viewOwner.approvedCount || 0} approved listings are live, with {Math.max(0, (viewOwner.propertyCount || 0) - (viewOwner.approvedCount || 0))} awaiting
                 review, edits or suspension.

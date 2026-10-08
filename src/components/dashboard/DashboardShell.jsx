@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import Avatar from '../common/Avatar';
 import Icon from '../common/icons';
 import Dropdown from '../common/Dropdown';
@@ -18,16 +18,57 @@ export default function DashboardShell({ navGroups, children, brandLabel }) {
   const { openAuth } = useModals();
   const toast = useToast();
   const location = useLocation();
+  const navigate = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const drawerRef = useRef(null);
+  const drawerWasOpen = useRef(false);
+  const hamburgerRef = useRef(null);
   const unread = useUnreadNotifications();
+
+  const baseRole = user?.role === 'owner' ? 'owner' : user?.role === 'admin' ? 'admin' : 'tenant';
+  const goProfile = () => navigate(`/${baseRole}/profile`);
+  const goSettings = () => navigate(`/${baseRole}/settings`);
+  const goNotifications = () => navigate(`/${baseRole}/notifications`);
 
   useEffect(() => {
     setDrawerOpen(false);
   }, [location.pathname]);
 
+  // Drawer: Escape to close, move focus in on open, restore on close, Tab cycles inside.
   useEffect(() => {
-    if (!drawerOpen) return undefined;
-    const onKey = (e) => e.key === 'Escape' && setDrawerOpen(false);
+    if (!drawerOpen) {
+      // Only restore focus if we are actually closing a drawer (not on first mount).
+      if (drawerWasOpen.current) hamburgerRef.current?.focus?.();
+      drawerWasOpen.current = false;
+      return undefined;
+    }
+    drawerWasOpen.current = true;
+    const panel = drawerRef.current;
+    const focusables = () =>
+      Array.from(
+        panel?.querySelectorAll('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])') || []
+      ).filter((el) => el.offsetParent !== null);
+    focusables()[0]?.focus();
+
+    const onKey = (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setDrawerOpen(false);
+        return;
+      }
+      if (e.key !== 'Tab') return;
+      const list = focusables();
+      if (!list.length) return;
+      const first = list[0];
+      const last = list[list.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [drawerOpen]);
@@ -37,8 +78,8 @@ export default function DashboardShell({ navGroups, children, brandLabel }) {
     toast.info('You have been signed out.', 'Logged out');
   }
 
-  const nav = (
-    <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-5 thin-scrollbar">
+  const nav = (label) => (
+    <nav aria-label={label} className="flex-1 space-y-6 overflow-y-auto px-3 py-5 thin-scrollbar">
       {navGroups.map((group) => (
         <div key={group.title}>
           {group.title && (
@@ -128,8 +169,8 @@ export default function DashboardShell({ navGroups, children, brandLabel }) {
           </div>
         }
         items={[
-          { label: 'Profile', icon: <Icon name="user" className="h-4 w-4" />, onClick: () => window.location.assign(`/${user?.role === 'owner' ? 'owner' : user?.role === 'admin' ? 'admin' : 'tenant'}/profile`) },
-          { label: 'Settings', icon: <Icon name="settings" className="h-4 w-4" />, onClick: () => window.location.assign(`/${user?.role === 'owner' ? 'owner' : user?.role === 'admin' ? 'admin' : 'tenant'}/settings`) },
+          { label: 'Profile', icon: <Icon name="user" className="h-4 w-4" />, onClick: goProfile },
+          { label: 'Settings', icon: <Icon name="settings" className="h-4 w-4" />, onClick: goSettings },
           '-',
           { label: 'Log out', icon: <Icon name="logout" className="h-4 w-4" />, onClick: handleLogout, tone: 'danger' },
         ]}
@@ -147,7 +188,7 @@ export default function DashboardShell({ navGroups, children, brandLabel }) {
         />
         <div className="relative flex min-h-0 flex-1 flex-col">
           {brand}
-          {nav}
+          {nav('Main')}
           {userCard}
         </div>
       </aside>
@@ -162,9 +203,16 @@ export default function DashboardShell({ navGroups, children, brandLabel }) {
           className={cn('absolute inset-0 bg-slate-950/50 transition-opacity duration-300', drawerOpen ? 'opacity-100' : 'opacity-0')}
         />
         <div
+          id="dashboard-nav"
+          ref={drawerRef}
+          role="dialog"
+          aria-modal={drawerOpen || undefined}
+          aria-label="Navigation menu"
           className={cn(
-            'absolute inset-y-0 left-0 flex w-72 max-w-[85%] flex-col overflow-hidden bg-brand-950 shadow-2xl transition-transform duration-300',
-            drawerOpen ? 'translate-x-0' : '-translate-x-full'
+            // `invisible` (not just opacity/transform) removes the closed drawer from the
+            // tab order and the accessibility tree — the previous version stayed focusable.
+            'absolute inset-y-0 left-0 flex w-72 max-w-[85%] flex-col overflow-hidden bg-brand-950 shadow-2xl transition-[transform,visibility] duration-300',
+            drawerOpen ? 'visible translate-x-0' : 'invisible -translate-x-full'
           )}
         >
           <div
@@ -175,13 +223,13 @@ export default function DashboardShell({ navGroups, children, brandLabel }) {
             type="button"
             onClick={() => setDrawerOpen(false)}
             aria-label="Close navigation"
-            className="absolute top-4 right-3 z-10 rounded-lg p-2 text-white/50 transition hover:bg-white/10 hover:text-white"
+            className="absolute top-4 right-3 z-10 rounded-lg p-2 text-white/70 transition hover:bg-white/10 hover:text-white"
           >
             <Icon name="x" className="h-5 w-5" />
           </button>
           <div className="relative flex min-h-0 flex-1 flex-col">
             {brand}
-            {nav}
+            {nav('Main menu')}
             {userCard}
           </div>
         </div>
@@ -191,10 +239,16 @@ export default function DashboardShell({ navGroups, children, brandLabel }) {
         {/* Top bar */}
         <header className="sticky top-0 z-30 flex h-17 items-center justify-between gap-3 border-b border-line/80 bg-white/85 px-4 shadow-[0_1px_2px_rgba(16,25,43,.03)] backdrop-blur-xl sm:px-6">
           <div className="flex items-center gap-3">
+            <a href="#main-content" className="skip-link">
+              Skip to main content
+            </a>
             <button
+              ref={hamburgerRef}
               type="button"
               onClick={() => setDrawerOpen(true)}
               aria-label="Open navigation"
+              aria-expanded={drawerOpen}
+              aria-controls="dashboard-nav"
               className="rounded-xl border border-line bg-white p-2 text-slate-600 shadow-soft transition-all duration-200 hover:border-brand-200 hover:bg-brand-50 hover:text-brand-700 lg:hidden"
             >
               <Icon name="menu" className="h-5 w-5" />
@@ -206,7 +260,7 @@ export default function DashboardShell({ navGroups, children, brandLabel }) {
               <span className="rounded-lg bg-[linear-gradient(135deg,#f1f5fb,#e2eaf6)] px-2.5 py-1 text-xs font-bold tracking-wide text-brand-700 ring-1 ring-brand-100">
                 {brandLabel} portal
               </span>
-              <span className="text-sm text-slate-400">Manage your rentals in one place</span>
+              <span className="text-sm text-slate-500">Manage your rentals in one place</span>
             </div>
           </div>
 
@@ -215,9 +269,9 @@ export default function DashboardShell({ navGroups, children, brandLabel }) {
               type="button"
               onClick={() => {
                 if (!user) openAuth('login');
-                else window.location.assign(`/${user.role === 'owner' ? 'owner' : user.role === 'admin' ? 'admin' : 'tenant'}/notifications`);
+                else goNotifications();
               }}
-              aria-label="Notifications"
+              aria-label={unread > 0 ? `Notifications, ${unread} unread` : 'Notifications'}
               className="relative rounded-xl p-2 text-slate-500 transition-all duration-200 hover:-translate-y-px hover:bg-brand-50 hover:text-brand-700"
             >
               <Icon name="bell" className="h-5 w-5" />
@@ -232,12 +286,12 @@ export default function DashboardShell({ navGroups, children, brandLabel }) {
               trigger={
                 <button type="button" className="flex items-center gap-2 rounded-xl p-1 transition-all duration-200 hover:bg-slate-100" aria-label="Open profile menu">
                   <Avatar name={user?.name} size="sm" />
-                  <Icon name="chevronDown" className="hidden h-4 w-4 text-slate-400 sm:block" />
+                  <Icon name="chevronDown" className="hidden h-4 w-4 text-slate-500 sm:block" />
                 </button>
               }
               items={[
-                { label: 'My profile', icon: <Icon name="user" className="h-4 w-4" />, onClick: () => window.location.assign(`/${user?.role === 'owner' ? 'owner' : user?.role === 'admin' ? 'admin' : 'tenant'}/profile`) },
-                { label: 'Settings', icon: <Icon name="settings" className="h-4 w-4" />, onClick: () => window.location.assign(`/${user?.role === 'owner' ? 'owner' : user?.role === 'admin' ? 'admin' : 'tenant'}/settings`) },
+                { label: 'My profile', icon: <Icon name="user" className="h-4 w-4" />, onClick: goProfile },
+                { label: 'Settings', icon: <Icon name="settings" className="h-4 w-4" />, onClick: goSettings },
                 '-',
                 { label: 'Log out', icon: <Icon name="logout" className="h-4 w-4" />, onClick: handleLogout, tone: 'danger' },
               ]}
@@ -245,7 +299,9 @@ export default function DashboardShell({ navGroups, children, brandLabel }) {
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-[1500px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">{children}</main>
+        <main id="main-content" tabIndex={-1} className="mx-auto w-full max-w-[1500px] px-4 py-6 focus:outline-none sm:px-6 lg:px-8 lg:py-8">
+          {children}
+        </main>
       </div>
     </div>
   );

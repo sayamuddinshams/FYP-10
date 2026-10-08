@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useDocumentTitle } from '../../hooks';
+import { PROPERTY_TYPES } from '../../utils/constants';
+import { DISTRICTS } from '../../data/locations';
 import Button from '../../components/common/Button';
 import Icon from '../../components/common/icons';
 
@@ -27,8 +29,8 @@ const VALUES = [
 ];
 
 const NUMBERS = [
-  { value: '10', label: 'Districts covered' },
-  { value: '6', label: 'Property categories' },
+  { value: String(DISTRICTS.length), label: 'Districts covered' },
+  { value: String(PROPERTY_TYPES.length), label: 'Property categories' },
   { value: '5%', label: 'Flat platform fee' },
   { value: '24h', label: 'Typical review time' },
 ];
@@ -66,7 +68,7 @@ export default function About() {
       <section className="border-b border-line bg-brand-950 text-white">
         <div className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
           <p className="text-sm font-semibold tracking-widest text-primary-300 uppercase">About RentLink</p>
-          <h1 className="mt-3 max-w-3xl font-display text-4xl leading-tight font-semibold sm:text-5xl">
+          <h1 className="mt-3 max-w-3xl font-display text-4xl leading-tight font-bold tracking-tight sm:text-5xl">
             Rental housing in Gilgit-Baltistan, finally in one place.
           </h1>
           <p className="mt-5 max-w-2xl text-lg leading-relaxed text-white/70">
@@ -82,7 +84,9 @@ export default function About() {
         <div className="grid gap-10 lg:grid-cols-2 lg:gap-16">
           <div>
             <p className="text-sm font-semibold tracking-widest text-primary uppercase">Why we exist</p>
-            <h2 className="mt-2 font-display text-3xl font-semibold text-ink">The old way was a phone tree</h2>
+            <h2 className="mt-2 font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">
+              The old way was a phone tree
+            </h2>
             <p className="mt-4 leading-relaxed text-slate-600">
               Finding a place to rent in Gilgit meant calling a cousin who knew an agent, who knew a
               landlord, who may or may not still be accepting tenants. Photos arrived on WhatsApp days
@@ -110,7 +114,7 @@ export default function About() {
       {/* Values */}
       <section className="border-y border-line bg-white">
         <div className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-          <h2 className="font-display text-3xl font-semibold text-ink">What we hold to</h2>
+          <h2 className="font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">What we hold to</h2>
           <p className="mt-2 max-w-2xl text-slate-600">
             Four principles shape every decision we make, from how a listing is reviewed to how a dispute
             is handled.
@@ -121,7 +125,7 @@ export default function About() {
                 <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-900 text-white">
                   <Icon name={v.icon} className="h-5 w-5" />
                 </span>
-                <h3 className="mt-4 text-lg font-semibold text-ink">{v.title}</h3>
+                <h3 className="mt-4 text-base font-semibold text-ink">{v.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-slate-600">{v.text}</p>
               </div>
             ))}
@@ -131,18 +135,16 @@ export default function About() {
 
       {/* Audiences */}
       <section className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <h2 className="font-display text-3xl font-semibold text-ink">One platform, three jobs</h2>
+        <h2 className="font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">One platform, three jobs</h2>
         <div className="mt-8 grid gap-6 lg:grid-cols-3">
           {AUDIENCES.map((a) => (
             <div key={a.title} className="flex flex-col rounded-2xl border border-line bg-white p-6">
               <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-primary">
                 <Icon name={a.icon} className="h-5 w-5" />
               </span>
-              <h3 className="mt-4 text-lg font-semibold text-ink">{a.title}</h3>
+              <h3 className="mt-4 text-base font-semibold text-ink">{a.title}</h3>
               <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-600">{a.text}</p>
-              <Link to={a.to} className="mt-5">
-                <Button variant="outline" fullWidth>{a.cta}</Button>
-              </Link>
+              <Button as={Link} to={a.to} variant="outline" fullWidth className="mt-5">{a.cta}</Button>
             </div>
           ))}
         </div>
@@ -154,7 +156,7 @@ export default function About() {
           <div className="grid gap-10 lg:grid-cols-[1fr_1fr] lg:gap-16">
             <div>
               <p className="text-sm font-semibold tracking-widest text-primary uppercase">Safety</p>
-              <h2 className="mt-2 font-display text-3xl font-semibold text-ink">
+              <h2 className="mt-2 font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">
                 How we keep the marketplace clean
               </h2>
               <p className="mt-4 leading-relaxed text-slate-600">
@@ -187,20 +189,26 @@ export default function About() {
       {/* CTA */}
       <section className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="flex flex-col items-center gap-6 rounded-3xl bg-brand-950 px-6 py-12 text-center text-white sm:px-14">
-          <h2 className="font-display text-3xl font-semibold">Meet the people behind RentLink</h2>
+          <h2 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
+            Meet the people behind RentLink
+          </h2>
           <p className="max-w-xl text-white/70">
             A small team spread across Gilgit, Hunza, Skardu and Ghizer, building for the region we all
             call home.
           </p>
           <div className="flex flex-wrap justify-center gap-3">
-            <Link to="/team">
-              <Button size="lg" className="bg-white text-brand-900 hover:bg-brand-50">Our team</Button>
-            </Link>
-            <Link to="/collaborations">
-              <Button size="lg" variant="ghost" className="border border-white/30 text-white hover:bg-white/10">
-                Collaborations
-              </Button>
-            </Link>
+            <Button as={Link} to="/team" size="lg" className="bg-white text-brand-900 hover:bg-brand-50">
+              Our team
+            </Button>
+            <Button
+              as={Link}
+              to="/collaborations"
+              size="lg"
+              variant="ghost"
+              className="border border-white/30 text-white hover:bg-white/10"
+            >
+              Collaborations
+            </Button>
           </div>
         </div>
       </section>

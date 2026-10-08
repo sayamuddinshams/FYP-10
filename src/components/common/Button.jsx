@@ -25,7 +25,8 @@ const variants = {
     'bg-[linear-gradient(135deg,#f59e0b_0%,#d97706_100%)] text-white ' +
     'shadow-[0_1px_2px_rgba(180,83,9,.25),0_8px_18px_-8px_rgba(180,83,9,.4)] ' +
     'hover:-translate-y-px active:translate-y-0',
-  link: 'bg-transparent text-brand-700 hover:text-brand-900 underline-offset-4 hover:underline px-0',
+  // Text-like variant: must not inherit height/padding/radius from `sizes`.
+  link: 'bg-transparent text-brand-700 hover:text-brand-900 underline-offset-4 hover:underline h-auto rounded-none px-0',
 };
 
 const sizes = {
@@ -49,17 +50,19 @@ export default function Button({
   ...rest
 }) {
   const isDisabled = disabled || loading;
+  const isLink = variant === 'link';
   return (
     <Tag
       type={Tag === 'button' ? type : undefined}
       disabled={Tag === 'button' ? isDisabled : undefined}
       aria-busy={loading || undefined}
       className={cn(
-        'inline-flex items-center justify-center rounded-lg font-semibold transition-all duration-200 select-none',
+        'inline-flex cursor-pointer items-center justify-center font-semibold transition-all duration-200 select-none',
         'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500',
         'disabled:pointer-events-none disabled:opacity-50',
         variants[variant] || variants.primary,
-        sizes[size] || sizes.md,
+        // Radius lives on `sizes` only — never both, so no conflicting rounded-* classes.
+        !isLink && (sizes[size] || sizes.md),
         fullWidth && 'w-full',
         className
       )}

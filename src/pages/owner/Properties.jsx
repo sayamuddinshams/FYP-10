@@ -161,7 +161,7 @@ export default function Properties() {
           >
             {row.title}
           </Link>
-          <span className="text-xs text-slate-400">{propertyTypeLabel(row.type)}</span>
+          <span className="text-xs text-slate-500">{propertyTypeLabel(row.type)}</span>
         </div>
       ),
     },
@@ -209,7 +209,7 @@ export default function Properties() {
             type="button"
             aria-label={`Open actions for ${row.title}`}
             disabled={busyId === row.id}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-line bg-white text-slate-500 transition hover:border-brand-300 hover:text-brand-700 disabled:opacity-50"
+            className="flex h-10 w-10 items-center justify-center rounded-lg border border-line bg-white text-slate-500 transition hover:border-brand-300 hover:text-brand-700 disabled:opacity-50"
           >
             <Icon name="list" className="h-4 w-4" />
           </button>
@@ -252,7 +252,7 @@ export default function Properties() {
         icon="building"
         title={EMPTY_COPY[tab]?.title || 'Nothing here'}
         message={EMPTY_COPY[tab]?.message}
-        actionLabel="Add Property"
+        actionLabel="List a property"
         onAction={() => navigate('/owner/properties/new')}
         secondaryLabel={tab !== 'all' ? 'View all listings' : undefined}
         onSecondary={tab !== 'all' ? () => setTab('all') : undefined}
@@ -286,7 +286,10 @@ export default function Properties() {
       <div className="mb-5">
         <Tabs
           ariaLabel="Filter listings by status"
-          tabs={TABS.map((t) => ({ ...t, count: counts[t.value] ?? 0 }))}
+          tabs={TABS.map((t) => ({
+            ...t,
+            count: loading && !data ? undefined : counts[t.value],
+          }))}
           value={tab}
           onChange={setTab}
         />
@@ -306,11 +309,16 @@ export default function Properties() {
         />
       )}
 
-      {data && rows.length > 0 && (
-        <p className="mt-4 text-center text-xs text-slate-400">
-          Showing {rows.length} of {properties.length} listing{properties.length === 1 ? '' : 's'}
-        </p>
-      )}
+      <div className="mt-4" aria-live="polite">
+        {error && !data ? null : loading && !data ? (
+          <p className="text-center text-xs text-slate-500">Loading your listings…</p>
+        ) : (
+          <p className="text-center text-xs text-slate-500">
+            Showing {rows.length} of {properties.length} listing{properties.length === 1 ? '' : 's'}
+            {tab !== 'all' ? ` · ${TABS.find((t) => t.value === tab)?.label || tab} tab` : ''}
+          </p>
+        )}
+      </div>
     </div>
   );
 }

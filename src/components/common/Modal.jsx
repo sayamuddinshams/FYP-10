@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import { cn } from '../../utils/format';
 
 /**
@@ -20,6 +20,7 @@ export default function Modal({
 }) {
   const panelRef = useRef(null);
   const previouslyFocused = useRef(null);
+  const descId = useId();
 
   useEffect(() => {
     if (!open) return undefined;
@@ -28,10 +29,14 @@ export default function Modal({
     document.body.style.overflow = 'hidden';
 
     const timer = setTimeout(() => {
-      const focusable = panelRef.current?.querySelector(
-        'input, select, textarea, button, [href], [tabindex]:not([tabindex="-1"])'
-      );
-      focusable?.focus();
+      const panel = panelRef.current;
+      if (!panel) return;
+      // Prefer the first form field — landing on the header's close button is a
+      // poor default for form modals. Fall back to the first focusable control.
+      const target =
+        panel.querySelector('input:not([disabled]), select:not([disabled]), textarea:not([disabled])') ||
+        panel.querySelector('button:not([disabled]), [href], [tabindex]:not([tabindex="-1"])');
+      target?.focus();
     }, 40);
 
     const onKey = (e) => {
@@ -70,7 +75,7 @@ export default function Modal({
   const sizes = { sm: 'max-w-md', md: 'max-w-lg', lg: 'max-w-2xl', xl: 'max-w-4xl', full: 'max-w-6xl' };
 
   return (
-    <div className={cn('fixed inset-0 z-[90] flex items-end justify-center overflow-y-auto p-0 sm:items-center sm:p-4', className)} role="dialog" aria-modal="true" aria-label={title}>
+    <div className={cn('fixed inset-0 z-[90] flex items-end justify-center overflow-y-auto p-0 sm:items-center sm:p-4', className)}>
       <div
         className="fixed inset-0 bg-slate-950/55 backdrop-blur-[2px] animate-fade-in"
         onClick={closeOnOverlay ? onClose : undefined}
@@ -78,6 +83,10 @@ export default function Modal({
       />
       <div
         ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title || 'Dialog'}
+        aria-describedby={description ? descId : undefined}
         className={cn(
           'relative w-full rounded-t-2xl bg-white shadow-2xl ring-1 ring-slate-900/5 animate-pop sm:rounded-2xl',
           sizes[size],
@@ -88,16 +97,20 @@ export default function Modal({
           <div className="flex items-start justify-between gap-4 border-b border-line px-5 py-4 sm:px-6">
             <div className="min-w-0">
               {title && <h2 className="text-lg font-semibold tracking-tight text-slate-900">{title}</h2>}
-              {description && <p className="mt-1 text-sm text-slate-500">{description}</p>}
+              {description && (
+                <p id={descId} className="mt-1 text-sm text-slate-500">
+                  {description}
+                </p>
+              )}
             </div>
             {showClose && (
               <button
                 type="button"
                 onClick={onClose}
                 aria-label="Close dialog"
-                className="-m-1.5 -mt-1 shrink-0 rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                className="-m-1.5 -mt-1 shrink-0 rounded-lg p-1.5 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
               >
-                <svg viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">
+                <svg viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5" aria-hidden="true">
                   <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.22 5.22z" />
                 </svg>
               </button>

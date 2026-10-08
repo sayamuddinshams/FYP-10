@@ -19,10 +19,10 @@ import { Skeleton } from '../../components/common/Skeleton';
 import Icon from '../../components/common/icons';
 
 const STATUS_META = {
-  active: { tone: 'success', label: 'Active' },
-  paused: { tone: 'warning', label: 'Paused' },
-  scheduled: { tone: 'brand', label: 'Scheduled' },
-  draft: { tone: 'neutral', label: 'Draft' },
+  active: { tone: 'success', label: 'Active', icon: 'check' },
+  paused: { tone: 'warning', label: 'Paused', icon: 'pause' },
+  scheduled: { tone: 'brand', label: 'Scheduled', icon: 'clock' },
+  draft: { tone: 'neutral', label: 'Draft', icon: 'edit' },
 };
 
 const EMPTY_FORM = {
@@ -278,7 +278,11 @@ export default function Advertisements() {
           onAction={() => { setForm(EMPTY_FORM); setFormErrors({}); setCreateOpen(true); }}
         />
       ) : (
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        <>
+          <p role="status" aria-live="polite" className="text-sm text-slate-600">
+            {formatNumber(ads.length)} advertisement{ads.length === 1 ? '' : 's'} on the platform.
+          </p>
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {ads.map((ad) => {
             const meta = STATUS_META[ad.status] || STATUS_META.draft;
             const ctr = ad.impressions > 0 ? ((ad.clicks / ad.impressions) * 100).toFixed(1) : '0.0';
@@ -287,7 +291,11 @@ export default function Advertisements() {
                 <div className="relative">
                   <ImageWithFallback src={ad.image} alt={ad.title} imgClassName="h-40 w-full" />
                   <div className="absolute top-3 right-3">
-                    <Badge tone={meta.tone}>{meta.label}</Badge>
+                    <span className="inline-flex rounded-full bg-white/95 shadow-soft">
+                      <Badge tone={meta.tone} icon={<Icon name={meta.icon} className="h-3.5 w-3.5" aria-hidden="true" />}>
+                        {meta.label}
+                      </Badge>
+                    </span>
                   </div>
                 </div>
                 <div className="p-5">
@@ -302,8 +310,9 @@ export default function Advertisements() {
                       ariaLabel={`Actions for ${ad.title}`}
                       align="right"
                       trigger={
-                        <span className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700">
+                        <span className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-700">
                           <Icon name="chevronDown" className="h-4 w-4" />
+                          <span className="sr-only">Actions for {ad.title}</span>
                         </span>
                       }
                       items={[
@@ -339,15 +348,15 @@ export default function Advertisements() {
 
                   <dl className="mt-4 grid grid-cols-3 gap-2 border-t border-line pt-4">
                     <div>
-                      <dt className="text-[11px] font-semibold tracking-wide text-slate-400 uppercase">Impressions</dt>
+                      <dt className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">Impressions</dt>
                       <dd className="mt-0.5 text-sm font-bold text-slate-900">{formatNumber(ad.impressions)}</dd>
                     </div>
                     <div>
-                      <dt className="text-[11px] font-semibold tracking-wide text-slate-400 uppercase">Clicks</dt>
+                      <dt className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">Clicks</dt>
                       <dd className="mt-0.5 text-sm font-bold text-slate-900">{formatNumber(ad.clicks)}</dd>
                     </div>
                     <div>
-                      <dt className="text-[11px] font-semibold tracking-wide text-slate-400 uppercase">CTR</dt>
+                      <dt className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">CTR</dt>
                       <dd className="mt-0.5 text-sm font-bold text-brand-700">{ctr}%</dd>
                     </div>
                   </dl>
@@ -355,7 +364,8 @@ export default function Advertisements() {
               </article>
             );
           })}
-        </div>
+          </div>
+        </>
       )}
 
       {/* Create modal */}

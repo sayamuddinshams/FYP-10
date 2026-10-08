@@ -1,92 +1,130 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Modal from '../common/Modal';
 import Button from '../common/Button';
 import Icon from '../common/icons';
-import { useToast } from '../../context/ToastContext';
 
-export default function ShareModal({ open, onClose, property }) {
-  const toast = useToast();
+/**
+ * ShareModal
+ *
+ * Share sheet for a property listing. Supports native share where available,
+ * copy-to-clipboard with fallback, and direct share links.
+ */
+export default function ShareModal({ open, onClose, url, title = 'Check out this property on RentLink' }) {
   const [copied, setCopied] = useState(false);
-  const link = property ? `${window.location.origin}/property/${property.id}` : window.location.origin;
+  const [error, setError] = useState('');
+  const inputRef = useRef(null);
+  const shareUrl = url || (typeof window !== 'undefined' ? window.location.href : '');
 
-  async function copy() {
-    try {
-      await navigator.clipboard.writeText(link);
-    } catch (err) {
-      // fallback for older browsers
-      const el = document.createElement('textarea');
-      el.value = link;
-      document.body.appendChild(el);
-      el.select();
-      document.execCommand('copy');
-      document.body.removeChild(el);
+  useEffect(() => {
+    if (open) {
+      setCopied(false);
+      setError('');
     }
-    setCopied(true);
-    toast.success('Link copied to clipboard.', 'Share');
-    setTimeout(() => setCopied(false), 2500);
-  }
+  }, [open]);
 
-  async function nativeShare() {
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: property?.title || 'RentLink', text: property?.description, url: link });
-        return;
-      } catch (err) {
-        /* user dismissed the share sheet */
-      }
-    }
-    copy();
-  }
+  const encodedUrl = encodeURIComponent(shareUrl);
+  const encodedTitle = encodeURIComponent(title);
 
-  const options = [
-    {
-      label: 'WhatsApp',
-      href: `https://wa.me/?text=${encodeURIComponent(`${property?.title || 'RentLink'} — ${link}`)}`,
-      tone: 'bg-emerald-50 text-emerald-600',
-    },
-    {
-      label: 'Email',
-      href: `mailto:?subject=${encodeURIComponent(property?.title || 'A property on RentLink')}&body=${encodeURIComponent(link)}`,
-      tone: 'bg-brand-50 text-brand-700',
-    },
-    {
-      label: 'Facebook',
-      href: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(link)}`,
-      tone: 'bg-sky-50 text-sky-600',
-    },
+  const shareLinks = [
+    { label: 'WhatsApp', icon: 'chat', href: `https://wa.me/?text=${encodedTitle}%20${encodedUrl}`, color: 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100 border-emerald-100' },
+    { label: 'Email', icon: 'mail', href: `mailto:?subject=${encodedTitle}&body=${encodedUrl}`, color: 'text-slate-600 bg-slate-50 hover:bg-slate-100 border-slate-200' },
+    { label: 'Facebook', icon: 'share', href: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`, color: 'text-primary-600 bg-primary-50 hover:bg-primary-100 border-primary-100' },
   ];
 
-  return (
-    <Modal open={open} onClose={onClose} title="Share property" description="Send this listing to someone who might be interested." size="sm">
-      <div className="space-y-4">
-        <div className="flex items-center gap-2 rounded-lg border border-line bg-slate-50 p-2">
-          <input readOnly value={link} aria-label="Property link" className="h-9 min-w-0 flex-1 bg-transparent px-2 text-sm text-slate-600 focus:outline-none" />
-          <Button size="sm" onClick={copy} className="shrink-0">
-            {copied ? 'Copied' : 'Copy link'}
-          </Button>
-        </div>
+  const handleCopy = async () => {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareUrl);
+      } else {
+        inputRef.current?.select();
+        document.execCommand('copy');
+      }
+      setCopied(true);
+      setError('');
+      setTimeout(() => setCopied(false), 2500);
+    } catch {
+      setError('Copy failed. Select the link and copy it manually.');
+    }
+  };
 
-        <div className="grid grid-cols-3 gap-2.5">
-          {options.map((opt) => (
+  const handleNativeShare = async () => {
+    if (!navigator.share) return;
+    try {
+      await navigator.share({ title, url: shareUrl });
+      onClose?.();
+    } catch {
+      /* user cancelled or share failed — fall back to links below */
+    }
+  };
+
+  const canNativeShare = typeof navigator !== 'undefined' && Boolean(navigator.share);
+
+  return (
+    <Modal open={open} onClose={onClose} title="Share property">
+      <div className="space-y-5">
+        {/* Direct share links */}
+        <div className="flex flex-wrap gap-3">
+          {shareLinks.map((s) => (
             <a
-              key={opt.label}
-              href={opt.href}
+              key={s.label}
+              href={s.href}
               target="_blank"
-              rel="noreferrer"
-              className="flex flex-col items-center gap-2 rounded-xl border border-line bg-white px-2 py-3.5 text-center transition hover:border-brand-300 hover:bg-slate-50"
+              rel="noopener noreferrer"
+              className={`inline-flex min-h-11 items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium transition ${s.color}`}
             >
-              <span className={`flex h-9 w-9 items-center justify-center rounded-full ${opt.tone}`}>
-                <Icon name="share" className="h-4.5 w-4.5" />
-              </span>
-              <span className="text-xs font-semibold text-slate-600">{opt.label}</span>
+              <Icon name={s.icon} size={16} aria-hidden="true" />
+              {s.label}
             </a>
           ))}
         </div>
 
-        <Button variant="outline" fullWidth onClick={nativeShare}>
-          <Icon name="send" className="h-4 w-4" />
-          More sharing options
-        </Button>
+        {/* Copy link */}
+        <div>
+          <label htmlFor="share-link" className="mb-1.5 block text-xs font-medium text-slate-500">
+            Link
+          </label>
+          <div className="flex gap-2">
+            <input
+              ref={inputRef}
+              id="share-link"
+              type="text"
+              readOnly
+              value={shareUrl}
+              onFocus={(e) => e.target.select()}
+              className="h-11 min-w-0 flex-1 rounded-xl border border-line bg-slate-50 px-3 text-sm text-slate-600 outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100"
+            />
+            <Button onClick={handleCopy} variant="primary">
+              {copied ? 'Copied' : 'Copy'}
+            </Button>
+          </div>
+          {error && (
+            <p className="mt-1.5 text-xs font-medium text-rose-600" role="alert">
+              {error}
+            </p>
+          )}
+        </div>
+
+        {/* Native share */}
+        {canNativeShare && (
+          <button
+            type="button"
+            onClick={handleNativeShare}
+            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-line px-4 py-2.5 text-sm font-medium text-ink transition hover:bg-slate-50"
+          >
+            <Icon name="share" size={16} aria-hidden="true" />
+            More share options
+          </button>
+        )}
+
+        {/* Confirmation */}
+        <div aria-live="polite" className="min-h-0">
+          {copied && (
+            <div className="flex items-start gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-xs font-medium text-emerald-700">
+              <Icon name="check" size={16} aria-hidden="true" className="mt-px shrink-0" />
+              Link copied to clipboard
+            </div>
+          )}
+        </div>
       </div>
     </Modal>
   );

@@ -20,6 +20,12 @@ const MAX_IMAGES = 8;
 const MIN_DESCRIPTION = 80;
 const MIN_TITLE = 10;
 
+function formatFileSize(bytes) {
+  if (!Number.isFinite(bytes) || bytes <= 0) return 'Photo ready';
+  if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+}
+
 const STEPS = [
   { label: 'Basics', title: 'Basic information', hint: 'What are you renting out?' },
   { label: 'Location', title: 'Location', hint: 'Where is the property?' },
@@ -104,6 +110,10 @@ export default function AddProperty() {
   const [saving, setSaving] = useState('');
   const [formError, setFormError] = useState('');
   const [dragging, setDragging] = useState(false);
+  // UI-only upload state: files skipped during selection (with the reason) and
+  // per-image metadata for the ready/uploading status chips. Never part of the payload.
+  const [rejected, setRejected] = useState([]);
+  const [fileMeta, setFileMeta] = useState({});
 
   const cities = useMemo(() => getCities(form.district), [form.district]);
   const areas = useMemo(() => getAreas(form.district, form.city), [form.district, form.city]);
@@ -199,18 +209,40 @@ export default function AddProperty() {
   }
 
   function addFiles(fileList) {
-    const files = Array.from(fileList || []).filter((f) => f.type.startsWith('image/'));
+    const all = Array.from(fileList || []);
+    const files = all.filter((f) => f.type.startsWith('image/'));
+    const skipped = all
+      .filter((f) => !f.type.startsWith('image/'))
+      .map((f) => ({ name: f.name, reason: 'Not a supported image — use JPG or PNG.' }));
     if (!files.length) {
+      setRejected(skipped);
       toast.warning('Only image files can be uploaded.', 'Unsupported file');
       return;
     }
     const room = MAX_IMAGES - form.images.length;
     if (room <= 0) {
+      setRejected(
+        skipped.concat(
+          files.map((f) => ({ name: f.name, reason: `Photo limit of ${MAX_IMAGES} reached — remove a photo first.` }))
+        )
+      );
       toast.warning(`You can upload up to ${MAX_IMAGES} photos per listing.`, 'Photo limit reached');
       return;
     }
     const accepted = files.slice(0, room);
+    const overflow = files.slice(room).map((f) => ({
+      name: f.name,
+      reason: `Photo limit of ${MAX_IMAGES} reached — this file was not added.`,
+    }));
     const urls = accepted.map((f) => URL.createObjectURL(f));
+    setFileMeta((prev) => {
+      const next = { ...prev };
+      accepted.forEach((f, i) => {
+        next[urls[i]] = { name: f.name, size: f.size };
+      });
+      return next;
+    });
+    setRejected(skipped.concat(overflow));
     setForm((prev) => ({ ...prev, images: [...prev.images, ...urls] }));
     if (files.length > room) {
       toast.warning(`Only ${room} more photo${room === 1 ? '' : 's'} could be added.`, 'Photo limit reached');
@@ -228,6 +260,13 @@ export default function AddProperty() {
   }
 
   function removeImage(index) {
+    const target = form.images[index];
+    setFileMeta((prev) => {
+      if (!target || !prev[target]) return prev;
+      const next = { ...prev };
+      delete next[target];
+      return next;
+    });
     setForm((prev) => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }));
   }
 
@@ -292,6 +331,8 @@ export default function AddProperty() {
   }
 
   const progress = (step / (STEPS.length - 1)) * 100;
+  // Read-only completeness snapshot for the review step (same rules as submit).
+  const reviewCheck = validateAll(false);
 
   return (
     <div className="animate-fade-up">
@@ -302,11 +343,13 @@ export default function AddProperty() {
         backLabel="My properties"
       />
 
-      {/* Stepper */}
-      <div className="mb-6 rounded-xl border border-line bg-white p-4 sm:p-5">
-        <ol className="flex items-start justify-between gap-1 sm:gap-3">
+      {/* Sticky step rail */}
+      <div className="sticky top-[68px] z-20 mb-6 rounded-xl border border-line bg-white/95 p-4 shadow-soft backdrop-blur sm:p-5">
+        <ol className="flex items-start justify-between gap-1 sm:gap-3" aria-label="Listing steps">
           {STEPS.map((s, i) => {
-            const completed = i < step;
+            const sectionErrors = Object.keys(validateStep(i, false)).length > 0;
+            const completed = i < step && !sectionErrors;
+            const needsAttention = i < step && sectionErrors;
             const current = i === step;
             const reachable = i <= maxVisited;
             return (
@@ -316,18 +359,23 @@ export default function AddProperty() {
                   disabled={!reachable}
                   onClick={() => reachable && goTo(i)}
                   aria-current={current ? 'step' : undefined}
-                  aria-label={`Step ${i + 1}: ${s.label}`}
+                  aria-label={`Step ${i + 1}: ${s.label}${
+                    completed ? ' — complete' : needsAttention ? ' — needs attention' : ''
+                  }`}
                   className={cn(
-                    'flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold transition-all duration-300',
+                    'flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold transition-all duration-300',
                     completed && 'bg-brand-700 text-white hover:bg-brand-800',
+                    needsAttention && 'bg-amber-100 text-amber-700 ring-2 ring-amber-300 ring-offset-2',
                     current && 'bg-white text-brand-800 ring-2 ring-brand-600 ring-offset-2',
-                    !completed && !current && 'bg-slate-100 text-slate-400',
+                    !completed && !current && !needsAttention && 'bg-slate-100 text-slate-500',
                     reachable && 'cursor-pointer',
                     !reachable && 'cursor-not-allowed'
                   )}
                 >
                   {completed ? (
                     <Icon name="check" className="h-4 w-4" strokeWidth={2.5} />
+                  ) : needsAttention ? (
+                    <Icon name="alert" className="h-4 w-4" />
                   ) : (
                     i + 1
                   )}
@@ -335,7 +383,13 @@ export default function AddProperty() {
                 <span
                   className={cn(
                     'hidden text-[11px] font-semibold sm:block',
-                    current ? 'text-brand-800' : completed ? 'text-slate-600' : 'text-slate-400'
+                    current
+                      ? 'text-brand-800'
+                      : completed
+                        ? 'text-slate-600'
+                        : needsAttention
+                          ? 'text-amber-700'
+                          : 'text-slate-500'
                   )}
                 >
                   {s.label}
@@ -357,6 +411,10 @@ export default function AddProperty() {
           />
         </div>
       </div>
+
+      <p className="sr-only" aria-live="polite">
+        Step {step + 1} of {STEPS.length}: {STEPS[step].title}
+      </p>
 
       {formError && (
         <div
@@ -490,9 +548,9 @@ export default function AddProperty() {
             />
 
             <div className="rounded-xl border border-dashed border-line bg-slate-50 px-4 py-6 text-center">
-              <Icon name="pin" className="mx-auto h-6 w-6 text-slate-400" />
+              <Icon name="pin" className="mx-auto h-6 w-6 text-slate-500" />
               <p className="mt-2 text-sm font-medium text-slate-600">Map pinning will be available at launch</p>
-              <p className="mx-auto mt-1 max-w-md text-xs leading-relaxed text-slate-400">
+              <p className="mx-auto mt-1 max-w-md text-xs leading-relaxed text-slate-500">
                 Your written address is enough for now — the exact pin is shared with a tenant only after you approve
                 their visit request.
               </p>
@@ -515,7 +573,7 @@ export default function AddProperty() {
                 onChange={(e) => update('price', e.target.value)}
                 error={errors.price}
                 rightIcon={
-                  <span className="pointer-events-none absolute top-1/2 right-3.5 -translate-y-1/2 text-xs font-medium text-slate-400">
+                  <span className="pointer-events-none absolute top-1/2 right-3.5 -translate-y-1/2 text-xs font-medium text-slate-500">
                     Rs / mo
                   </span>
                 }
@@ -627,7 +685,7 @@ export default function AddProperty() {
                     <span className="flex-1">{a.label}</span>
                     <Icon
                       name={active ? 'check' : 'plus'}
-                      className={cn('h-4 w-4', active ? 'text-brand-700' : 'text-slate-300')}
+                      className={cn('h-4 w-4', active ? 'text-brand-700' : 'text-slate-500')}
                       strokeWidth={2.2}
                     />
                   </button>
@@ -701,6 +759,34 @@ export default function AddProperty() {
               )}
             </div>
 
+            {rejected.length > 0 && (
+              <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3.5 animate-fade-up">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="flex items-center gap-2 text-sm font-semibold text-red-700">
+                      <Icon name="alert" className="h-4 w-4 shrink-0" />
+                      {rejected.length} photo{rejected.length === 1 ? '' : 's'} could not be added
+                    </p>
+                    <ul className="mt-2 space-y-1">
+                      {rejected.map((r, i) => (
+                        <li key={`${r.name}-${i}`} className="text-xs leading-relaxed text-red-700">
+                          <span className="font-semibold">{r.name}</span> — {r.reason}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setRejected([])}
+                    aria-label="Dismiss photo errors"
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-red-500 transition hover:bg-red-100 hover:text-red-700"
+                  >
+                    <Icon name="x" className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+
             {form.images.length > 0 ? (
               <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                 {form.images.map((url, index) => (
@@ -725,6 +811,27 @@ export default function AddProperty() {
                         <Icon name="trash" className="h-3.5 w-3.5" />
                       </button>
                     </div>
+
+                    <p className="flex items-center gap-1.5 px-2.5 pt-2 text-[10px] font-medium text-slate-500">
+                      {saving === 'review' ? (
+                        <>
+                          <span
+                            className="h-3 w-3 shrink-0 animate-spin rounded-full border-2 border-brand-600 border-t-transparent"
+                            aria-hidden="true"
+                          />
+                          <span className="truncate">Uploading…</span>
+                        </>
+                      ) : (
+                        <>
+                          <Icon name="check" className="h-3 w-3 shrink-0 text-emerald-600" strokeWidth={2.5} />
+                          <span className="truncate">
+                            {fileMeta[url]
+                              ? `${fileMeta[url].name} · ${formatFileSize(fileMeta[url].size)}`
+                              : 'Photo ready'}
+                          </span>
+                        </>
+                      )}
+                    </p>
 
                     <div className="flex items-center justify-between gap-1 px-2 py-2">
                       <div className="flex gap-1">
@@ -761,12 +868,12 @@ export default function AddProperty() {
                 ))}
               </ul>
             ) : (
-              <p className="text-center text-sm text-slate-400">
+              <p className="text-center text-sm text-slate-500">
                 No photos added yet. Drafts can be saved without photos, but submissions need at least one.
               </p>
             )}
 
-            <p className="text-center text-xs text-slate-400">
+            <p className="text-center text-xs text-slate-500" aria-live="polite">
               {form.images.length} of {MAX_IMAGES} photos used
             </p>
           </div>
@@ -781,7 +888,7 @@ export default function AddProperty() {
                 {form.images[0] ? (
                   <img src={form.images[0]} alt={form.title} className="h-full w-full object-cover" />
                 ) : (
-                  <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-slate-400">
+                  <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-slate-500">
                     <Icon name="image" className="h-8 w-8" />
                     <span className="text-xs">No cover photo yet</span>
                   </div>
@@ -834,11 +941,53 @@ export default function AddProperty() {
                 ['Photos', `${form.images.length} of ${MAX_IMAGES}`],
               ].map(([label, value]) => (
                 <div key={label} className="flex items-start justify-between gap-4 px-4 py-3">
-                  <dt className="shrink-0 text-xs font-semibold tracking-wide text-slate-400 uppercase">{label}</dt>
+                  <dt className="shrink-0 text-xs font-semibold tracking-wide text-slate-500 uppercase">{label}</dt>
                   <dd className="text-right text-sm text-slate-700">{value || '—'}</dd>
                 </div>
               ))}
             </dl>
+
+            {/* Read-only description for the final check */}
+            <div className="rounded-xl border border-line px-4 py-3.5 lg:col-span-2">
+              <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase">Description</p>
+              <p className="mt-1.5 line-clamp-4 text-sm leading-relaxed text-slate-600">
+                {form.description || '—'}
+              </p>
+            </div>
+
+            {/* Read-only completeness check */}
+            {Object.keys(reviewCheck.errors).length === 0 ? (
+              <div className="flex items-start gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3.5 text-xs leading-relaxed text-emerald-800 lg:col-span-2">
+                <Icon name="check" className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={2.5} />
+                <p>
+                  <strong className="font-semibold">Everything looks complete.</strong> This summary is read-only —
+                  use Back at any point to change a detail before submitting.
+                </p>
+              </div>
+            ) : (
+              <div
+                role="alert"
+                className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3.5 text-xs leading-relaxed text-amber-800 lg:col-span-2"
+              >
+                <p className="font-semibold">
+                  Still needed before submitting ({Object.keys(reviewCheck.errors).length} section
+                  {Object.keys(reviewCheck.errors).length === 1 ? '' : 's'}):
+                </p>
+                <ul className="mt-2 space-y-1">
+                  {Object.entries(reviewCheck.errors).map(([field, message]) => (
+                    <li key={field}>• {message}</li>
+                  ))}
+                </ul>
+                <Button
+                  size="xs"
+                  variant="outline"
+                  className="mt-3"
+                  onClick={() => goTo(reviewCheck.firstStep ?? 0)}
+                >
+                  Fix the first issue
+                </Button>
+              </div>
+            )}
 
             <div className="lg:col-span-2">
               <div className="flex items-start gap-2.5 rounded-xl border border-brand-100 bg-brand-50 px-4 py-3.5 text-xs leading-relaxed text-brand-800">
@@ -855,7 +1004,7 @@ export default function AddProperty() {
       </div>
 
       {/* Navigation */}
-      <div className="sticky bottom-0 z-20 mt-5 flex flex-col-reverse gap-3 rounded-xl border border-line bg-white/95 px-4 py-3.5 backdrop-blur sm:flex-row sm:items-center sm:justify-between sm:px-5">
+      <div className="sticky bottom-0 z-20 mt-5 flex flex-col-reverse gap-3 rounded-xl border border-line bg-white/95 px-4 pt-3.5 pb-[calc(0.875rem_+_env(safe-area-inset-bottom))] backdrop-blur sm:flex-row sm:items-center sm:justify-between sm:px-5">
         <Button variant="ghost" onClick={() => goTo(step - 1)} disabled={step === 0 || Boolean(saving)}>
           <Icon name="arrowLeft" className="h-4 w-4" />
           Back

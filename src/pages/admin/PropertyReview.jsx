@@ -8,11 +8,12 @@ import { AMENITY_MAP, PROPERTY_TYPE_MAP, propertyTypeLabel } from '../../utils/c
 import propertyService from '../../services/propertyService';
 import PageHeader from '../../components/dashboard/PageHeader';
 import Modal from '../../components/common/Modal';
+import Dropdown from '../../components/common/Dropdown';
 import Button from '../../components/common/Button';
 import Avatar from '../../components/common/Avatar';
 import EmptyState from '../../components/common/EmptyState';
 import { ErrorState } from '../../components/common/Feedback';
-import { ListingStatusBadge, VerificationBadge } from '../../components/common/Badge';
+import Badge, { ListingStatusBadge, VerificationBadge } from '../../components/common/Badge';
 import ImageWithFallback from '../../components/common/ImageWithFallback';
 import { Textarea } from '../../components/common/Input';
 import { LineSkeleton } from '../../components/common/Skeleton';
@@ -52,6 +53,20 @@ const MODE_META = {
   },
 };
 
+/** Verification timeline shown in the decision panel (icon + text, never colour alone). */
+const VERIFICATION_STEPS = [
+  { key: 'pending', label: 'Pending review', icon: 'clock', tone: 'warning' },
+  { key: 'approved', label: 'Verified', icon: 'check', tone: 'success' },
+  { key: 'rejected', label: 'Rejected', icon: 'x', tone: 'danger' },
+  { key: 'changes', label: 'Needs changes', icon: 'edit', tone: 'brand' },
+];
+
+function stepState(status, key) {
+  if (status === key) return 'current';
+  if (key === 'pending' && (status === 'approved' || status === 'rejected' || status === 'changes')) return 'done';
+  return 'upcoming';
+}
+
 export default function PropertyReview() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -63,12 +78,14 @@ export default function PropertyReview() {
   const [decision, setDecision] = useState(null);
   const [reason, setReason] = useState('');
   const [busy, setBusy] = useState(false);
+  const [actionError, setActionError] = useState('');
 
   const { data: property, loading, error, reload } = useAsync(() => propertyService.getById(id), [id]);
 
   useEffect(() => {
     setMainImage(0);
     setReason('');
+    setActionError('');
   }, [id]);
 
   useEffect(() => {
@@ -87,11 +104,13 @@ export default function PropertyReview() {
     });
     if (!ok) return;
     setBusy(true);
+    setActionError('');
     try {
       await propertyService.setListingStatus(property.id, 'approved');
       toast.success('Property approved.');
       await reload();
     } catch (err) {
+      setActionError(err.message || 'Approval failed. Please try again.');
       toast.error(err.message, 'Action failed');
     } finally {
       setBusy(false);
@@ -99,6 +118,7 @@ export default function PropertyReview() {
   }
 
   function openDecision(mode) {
+    setActionError('');
     if (mode === 'suspend') {
       confirm({
         title: `Suspend "${property.title}"?`,
@@ -119,12 +139,14 @@ export default function PropertyReview() {
     if (!decision || !trimReason) return;
     const meta = MODE_META[decision.mode];
     setBusy(true);
+    setActionError('');
     try {
       await propertyService.setListingStatus(property.id, meta.status, trimReason);
       toast[meta.toastKind]?.(meta.toastMessage);
       setDecision(null);
       await reload();
     } catch (err) {
+      setActionError(err.message || 'The decision could not be saved. Please try again.');
       toast.error(err.message, 'Action failed');
     } finally {
       setBusy(false);
@@ -227,13 +249,13 @@ export default function PropertyReview() {
                 <h2 className="text-xl font-bold tracking-tight text-slate-900">{property.title}</h2>
                 <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-slate-500">
                   <span>{property.area}, {property.city}, {property.district}</span>
-                  <span className="text-slate-300">•</span>
+                  <span className="text-slate-400">•</span>
                   <span>{PROPERTY_TYPE_MAP[property.type] || property.type}</span>
-                  <span className="text-slate-300">•</span>
+                  <span className="text-slate-400">•</span>
                   <span>{formatNumber(property.views)} views</span>
                 </p>
               </div>
-              <p className="rounded-lg bg-slate-50 px-3 py-2 text-lg font-bold text-slate-900">{formatPrice(property.price)}<span className="text-xs font-medium text-slate-400"> /month</span></p>
+              <p className="rounded-lg bg-slate-50 px-3 py-2 text-lg font-bold text-slate-900">{formatPrice(property.price)}<span className="text-xs font-medium text-slate-500"> /month</span></p>
             </div>
           </section>
 
@@ -254,13 +276,13 @@ export default function PropertyReview() {
                   </p>
                   <div className="mt-1 flex flex-wrap items-center gap-2">
                     <VerificationBadge status={property.owner?.verification} />
-                    <span className="text-xs text-slate-400">Owner since {property.owner?.memberSince || '—'}</span>
+                    <span className="text-xs text-slate-500">Owner since {property.owner?.memberSince || '—'}</span>
                   </div>
                 </div>
               </div>
               <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-slate-600 sm:ml-4">
-                <span className="inline-flex items-center gap-1.5"><Icon name="mail" className="h-4 w-4 text-slate-400" />{property.owner?.email || '—'}</span>
-                <span className="inline-flex items-center gap-1.5"><Icon name="phone" className="h-4 w-4 text-slate-400" />{property.owner?.phone || '—'}</span>
+                <span className="inline-flex items-center gap-1.5"><Icon name="mail" className="h-4 w-4 text-slate-500" />{property.owner?.email || '—'}</span>
+                <span className="inline-flex items-center gap-1.5"><Icon name="phone" className="h-4 w-4 text-slate-500" />{property.owner?.phone || '—'}</span>
               </div>
             </div>
           </section>
@@ -269,10 +291,10 @@ export default function PropertyReview() {
           <section className="rounded-xl border border-line bg-white p-5 sm:p-6">
             <h3 className="text-sm font-semibold tracking-tight text-slate-900">Location</h3>
             <dl className="mt-4 grid grid-cols-1 gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
-              <div><dt className="text-xs font-semibold tracking-wide text-slate-400 uppercase">District</dt><dd className="mt-0.5 text-slate-800">{property.district || '—'}</dd></div>
-              <div><dt className="text-xs font-semibold tracking-wide text-slate-400 uppercase">City</dt><dd className="mt-0.5 text-slate-800">{property.city || '—'}</dd></div>
-              <div><dt className="text-xs font-semibold tracking-wide text-slate-400 uppercase">Area</dt><dd className="mt-0.5 text-slate-800">{property.area || '—'}</dd></div>
-              <div><dt className="text-xs font-semibold tracking-wide text-slate-400 uppercase">Address</dt><dd className="mt-0.5 text-slate-800">{property.address || '—'}</dd></div>
+              <div><dt className="text-xs font-semibold tracking-wide text-slate-500 uppercase">District</dt><dd className="mt-0.5 text-slate-800">{property.district || '—'}</dd></div>
+              <div><dt className="text-xs font-semibold tracking-wide text-slate-500 uppercase">City</dt><dd className="mt-0.5 text-slate-800">{property.city || '—'}</dd></div>
+              <div><dt className="text-xs font-semibold tracking-wide text-slate-500 uppercase">Area</dt><dd className="mt-0.5 text-slate-800">{property.area || '—'}</dd></div>
+              <div><dt className="text-xs font-semibold tracking-wide text-slate-500 uppercase">Address</dt><dd className="mt-0.5 text-slate-800">{property.address || '—'}</dd></div>
             </dl>
           </section>
 
@@ -282,7 +304,7 @@ export default function PropertyReview() {
             <dl className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
               {detailItems.map((item) => (
                 <div key={item.label} className="rounded-lg bg-slate-50 p-3">
-                  <dt className="text-[11px] font-semibold tracking-wide text-slate-400 uppercase">{item.label}</dt>
+                  <dt className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">{item.label}</dt>
                   <dd className="mt-1 text-sm font-semibold text-slate-800">{item.value}</dd>
                 </div>
               ))}
@@ -330,13 +352,50 @@ export default function PropertyReview() {
             <div>
               <h3 className="text-sm font-semibold tracking-tight text-slate-900">Moderation decision</h3>
               <p className="mt-1 text-xs leading-relaxed text-slate-500">
-                Pending Review → Approved / Rejected / Changes Requested → Resubmission
+                Track where this submission sits, then approve or send it back with a reason.
               </p>
             </div>
 
+            {/* Verification state timeline */}
+            <div>
+              <p className="mb-2 text-xs font-semibold tracking-wide text-slate-500 uppercase">Verification status</p>
+              <ol className="space-y-2">
+                {VERIFICATION_STEPS.map((step) => {
+                  const state = stepState(property.status, step.key);
+                  return (
+                    <li key={step.key} aria-current={state === 'current' ? 'step' : undefined}>
+                      <Badge
+                        tone={state === 'current' ? step.tone : state === 'done' ? 'success' : 'neutral'}
+                        icon={<Icon name={state === 'done' ? 'check' : step.icon} className="h-3.5 w-3.5" />}
+                        className={state === 'upcoming' ? 'opacity-70' : ''}
+                      >
+                        {step.label}
+                        {state === 'current' && <span className="sr-only"> (current status)</span>}
+                        {state === 'done' && <span className="sr-only"> (completed)</span>}
+                      </Badge>
+                    </li>
+                  );
+                })}
+              </ol>
+              {!VERIFICATION_STEPS.some((s) => s.key === property.status) && (
+                <p className="mt-2">
+                  <ListingStatusBadge status={property.status} />
+                </p>
+              )}
+            </div>
+
+            {actionError && (
+              <p
+                role="alert"
+                className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700"
+              >
+                {actionError}
+              </p>
+            )}
+
             <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-1">
               <Button
-                variant={property.status === 'approved' ? 'success' : 'success'}
+                variant="success"
                 fullWidth
                 loading={busy}
                 disabled={property.status === 'approved'}

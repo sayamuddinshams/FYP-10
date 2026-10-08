@@ -9,7 +9,7 @@ import StatCard from '../../components/dashboard/StatCard';
 import Tabs from '../../components/common/Tabs';
 import Modal from '../../components/common/Modal';
 import Button from '../../components/common/Button';
-import Badge from '../../components/common/Badge';
+import Badge, { ReportStatusBadge } from '../../components/common/Badge';
 import Dropdown from '../../components/common/Dropdown';
 import EmptyState from '../../components/common/EmptyState';
 import { ErrorState } from '../../components/common/Feedback';
@@ -131,7 +131,7 @@ export default function Reports() {
     <Dropdown
       ariaLabel={`Actions for report ${r.id}`}
       trigger={
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="md">
           Actions
           <Icon name="chevronDown" className="h-4 w-4" />
         </Button>
@@ -177,6 +177,13 @@ export default function Reports() {
         onChange={setFilter}
       />
 
+      {!loading && !error && (
+        <p role="status" aria-live="polite" className="text-sm text-slate-600">
+          Showing {filtered.length} of {counts.all} report{counts.all === 1 ? '' : 's'}
+          {filter === 'all' ? '' : ` marked ${filter}`}.
+        </p>
+      )}
+
       {error ? null : loading ? (
         <TableSkeleton rows={4} cols={4} />
       ) : !filtered.length ? (
@@ -199,7 +206,7 @@ export default function Reports() {
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
                         <Badge tone={type.tone}>{type.label} report</Badge>
-                        <Badge tone={r.status === 'open' ? 'warning' : r.status === 'resolved' ? 'success' : 'danger'}>{r.status}</Badge>
+                        <ReportStatusBadge status={r.status} />
                       </div>
                       <p className="mt-1.5 text-sm text-slate-500">
                         Reported by <span className="font-medium text-slate-700">{r.reporter?.name || 'Unknown'}</span>
@@ -211,7 +218,7 @@ export default function Reports() {
                 </div>
 
                 <div className="mt-4 rounded-lg bg-slate-50 p-4">
-                  <p className="text-xs font-semibold tracking-wide text-slate-400 uppercase">Reported content</p>
+                  <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase">Reported content</p>
                   <p className="mt-1 text-sm font-medium text-slate-800">{r.targetLabel || '—'}</p>
                   <p className="mt-1 text-sm text-slate-600">
                     <span className="font-medium">{r.reason}</span> — {r.details}
@@ -257,18 +264,18 @@ export default function Reports() {
           <div className="space-y-4 text-sm">
             <div className="flex flex-wrap items-center gap-2">
               <Badge tone={(TYPE_META[review.type] || {}).tone || 'neutral'}>{(TYPE_META[review.type] || {}).label || review.type}</Badge>
-              <Badge tone={review.status === 'open' ? 'warning' : review.status === 'resolved' ? 'success' : 'danger'}>{review.status}</Badge>
+              <ReportStatusBadge status={review.status} />
             </div>
             <div>
-              <p className="text-xs font-semibold tracking-wide text-slate-400 uppercase">Reported content</p>
+              <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase">Reported content</p>
               <p className="mt-1 font-medium text-slate-800">{review.targetLabel || '—'}</p>
             </div>
             <div>
-              <p className="text-xs font-semibold tracking-wide text-slate-400 uppercase">Reason</p>
+              <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase">Reason</p>
               <p className="mt-1 text-slate-700">{review.reason}</p>
             </div>
             <div>
-              <p className="text-xs font-semibold tracking-wide text-slate-400 uppercase">Details</p>
+              <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase">Details</p>
               <p className="mt-1 leading-relaxed text-slate-700">{review.details || 'No details provided.'}</p>
             </div>
             {review.resolution && (

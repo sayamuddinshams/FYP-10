@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAsync, useDebounce, useDocumentTitle } from '../../hooks';
 import { useToast } from '../../context/ToastContext';
 import { useModals } from '../../context/ModalContext';
-import { formatDate, timeAgo } from '../../utils/format';
+import { cn, formatDate, timeAgo } from '../../utils/format';
 import userService from '../../services/userService';
 import PageHeader from '../../components/dashboard/PageHeader';
 import DataTable from '../../components/dashboard/DataTable';
@@ -18,6 +18,29 @@ import Pagination from '../../components/common/Pagination';
 import Icon from '../../components/common/icons';
 
 const PAGE_LIMIT = 8;
+
+const ROLE_FILTERS = [
+  { value: 'all', label: 'All roles' },
+  { value: 'tenant', label: 'Tenant' },
+  { value: 'owner', label: 'Owner / Agent' },
+  { value: 'admin', label: 'Admin' },
+];
+
+const STATUS_FILTERS = [
+  { value: 'all', label: 'All statuses' },
+  { value: 'active', label: 'Active' },
+  { value: 'suspended', label: 'Suspended' },
+];
+
+function filterClasses(active) {
+  return cn(
+    'inline-flex h-10 items-center rounded-lg border px-3.5 text-sm font-medium transition-colors select-none',
+    'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500',
+    active
+      ? 'border-brand-700 bg-brand-700 text-white shadow-sm'
+      : 'border-line bg-white text-slate-600 hover:border-brand-300 hover:bg-brand-50/60 hover:text-brand-800'
+  );
+}
 
 export default function Users() {
   useDocumentTitle('Users');
@@ -135,17 +158,27 @@ export default function Users() {
     />
   );
 
-  const emptyBlock = (
+  const hasActiveFilters = Boolean(debouncedQuery) || role !== 'all' || status !== 'all';
+
+  function clearFilters() {
+    setQuery('');
+    setRole('all');
+    setStatus('all');
+  }
+
+  const emptyBlock = hasActiveFilters ? (
+    <EmptyState
+      icon="search"
+      title="No users match your filters"
+      message="No accounts match this search and filter combination. Try a different query or clear the filters."
+      actionLabel="Clear filters"
+      onAction={clearFilters}
+    />
+  ) : (
     <EmptyState
       icon="inbox"
-      title={debouncedQuery || role !== 'all' || status !== 'all' ? 'No matching users' : 'No users yet'}
-      message="Try changing the search query or clearing the filters."
-      actionLabel="Clear filters"
-      onAction={() => {
-        setQuery('');
-        setRole('all');
-        setStatus('all');
-      }}
+      title="No users yet"
+      message="Registered tenants, owners and admins will appear here as they join RentLink."
     />
   );
 
@@ -157,33 +190,60 @@ export default function Users() {
       />
 
       {/* Filters */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+      <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
         <Input
           label="Search users"
           placeholder="Search by name, email or city…"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="sm:max-w-xs sm:flex-1"
+          className="xl:max-w-sm"
           rightIcon={
-            <span className="absolute inset-y-0 right-3 flex items-center text-slate-400">
+            <span className="absolute inset-y-0 right-3 flex items-center text-slate-500">
               <Icon name="search" className="h-4 w-4" />
             </span>
           }
         />
-        <Select label="Role" value={role} onChange={(e) => setRole(e.target.value)} className="sm:w-44">
-          <option value="all">All roles</option>
-          <option value="tenant">Tenant</option>
-          <option value="owner">Owner / Agent</option>
-          <option value="admin">Admin</option>
-        </Select>
-        <Select label="Status" value={status} onChange={(e) => setStatus(e.target.value)} className="sm:w-44">
-          <option value="all">All statuses</option>
-          <option value="active">Active</option>
-          <option value="suspended">Suspended</option>
-        </Select>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-5">
+          <div>
+            <span id="users-role-filter" className="mb-1.5 block text-sm font-medium text-slate-700">
+              Role
+            </span>
+            <div role="group" aria-labelledby="users-role-filter" className="flex flex-wrap gap-1.5">
+              {ROLE_FILTERS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  aria-pressed={role === opt.value}
+                  onClick={() => setRole(opt.value)}
+                  className={filterClasses(role === opt.value)}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <span id="users-status-filter" className="mb-1.5 block text-sm font-medium text-slate-700">
+              Status
+            </span>
+            <div role="group" aria-labelledby="users-status-filter" className="flex flex-wrap gap-1.5">
+              {STATUS_FILTERS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  aria-pressed={status === opt.value}
+                  onClick={() => setStatus(opt.value)}
+                  className={filterClasses(status === opt.value)}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
-      <p className="text-sm text-slate-500" role="status">
+      <p className="text-sm text-slate-500" role="status" aria-live="polite">
         {loading ? 'Loading users…' : `${total.toLocaleString()} user${total === 1 ? '' : 's'} found`}
       </p>
 
@@ -220,25 +280,25 @@ export default function Users() {
 
             <dl className="grid grid-cols-1 gap-x-6 gap-y-3 text-sm sm:grid-cols-2">
               <div>
-                <dt className="text-xs font-semibold tracking-wide text-slate-400 uppercase">Phone</dt>
+                <dt className="text-xs font-semibold tracking-wide text-slate-500 uppercase">Phone</dt>
                 <dd className="mt-0.5 text-slate-800">{viewUser.phone || '—'}</dd>
               </div>
               <div>
-                <dt className="text-xs font-semibold tracking-wide text-slate-400 uppercase">Location</dt>
+                <dt className="text-xs font-semibold tracking-wide text-slate-500 uppercase">Location</dt>
                 <dd className="mt-0.5 text-slate-800">
                   {[viewUser.area, viewUser.city, viewUser.district].filter(Boolean).join(', ') || '—'}
                 </dd>
               </div>
               <div className="sm:col-span-2">
-                <dt className="text-xs font-semibold tracking-wide text-slate-400 uppercase">Bio</dt>
+                <dt className="text-xs font-semibold tracking-wide text-slate-500 uppercase">Bio</dt>
                 <dd className="mt-0.5 text-slate-700">{viewUser.bio || 'No bio provided.'}</dd>
               </div>
               <div>
-                <dt className="text-xs font-semibold tracking-wide text-slate-400 uppercase">Properties</dt>
+                <dt className="text-xs font-semibold tracking-wide text-slate-500 uppercase">Properties</dt>
                 <dd className="mt-0.5 text-slate-800">{viewUser.propertyCount || 0} listed · {viewUser.approvedCount || 0} approved</dd>
               </div>
               <div>
-                <dt className="text-xs font-semibold tracking-wide text-slate-400 uppercase">Joined</dt>
+                <dt className="text-xs font-semibold tracking-wide text-slate-500 uppercase">Joined</dt>
                 <dd className="mt-0.5 text-slate-800">{formatDate(viewUser.joinedAt)}</dd>
               </div>
             </dl>

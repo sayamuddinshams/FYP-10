@@ -45,6 +45,7 @@ import AdminTransactions from '../pages/admin/Transactions';
 import AdminAdvertisements from '../pages/admin/Advertisements';
 import AdminAnalytics from '../pages/admin/Analytics';
 import AdminNotifications from '../pages/admin/Notifications';
+import AdminProfile from '../pages/admin/Profile';
 import AdminSettings from '../pages/admin/Settings';
 
 import NotFound from '../pages/public/NotFound';
@@ -124,7 +125,7 @@ export default function AppRoutes() {
         <Route path="analytics" element={<AdminAnalytics />} />
         <Route path="notifications" element={<AdminNotifications />} />
         <Route path="settings" element={<AdminSettings />} />
-        <Route path="profile" element={<AdminSettings />} />
+        <Route path="profile" element={<AdminProfile />} />
         <Route index element={<Navigate to="/admin/dashboard" replace />} />
       </Route>
     </Routes>

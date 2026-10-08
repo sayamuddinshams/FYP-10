@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAsync, useDocumentTitle } from '../../hooks';
 import advertisementService from '../../services/advertisementService';
 import { formatDate } from '../../utils/format';
@@ -7,6 +7,7 @@ import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
 import Icon from '../../components/common/icons';
 import EmptyState from '../../components/common/EmptyState';
+import { ErrorState } from '../../components/common/Feedback';
 import ImageWithFallback from '../../components/common/ImageWithFallback';
 
 const FILTERS = [
@@ -27,6 +28,7 @@ export default function Advertisements() {
 
   const { data, loading, error, reload } = useAsync(() => advertisementService.listAll(), []);
   const [filter, setFilter] = useState('all');
+  const navigate = useNavigate();
 
   const ads = useMemo(() => {
     const items = data || [];
@@ -39,11 +41,11 @@ export default function Advertisements() {
     <div>
       {/* Hero */}
       <section className="border-b border-line bg-brand-950 text-white">
-        <div className="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
+        <div className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
           <div className="grid items-end gap-8 lg:grid-cols-[1.5fr_1fr]">
             <div>
               <p className="text-sm font-semibold tracking-widest text-primary-300 uppercase">Advertisements</p>
-              <h1 className="mt-3 max-w-3xl font-display text-4xl leading-tight font-semibold sm:text-5xl">
+              <h1 className="mt-3 max-w-3xl font-display text-4xl leading-tight font-bold tracking-tight sm:text-5xl">
                 Campaigns running across RentLink
               </h1>
               <p className="mt-5 max-w-2xl text-lg text-white/70">
@@ -66,16 +68,19 @@ export default function Advertisements() {
       </section>
 
       {/* Body */}
-      <div className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <h2 className="sr-only">Advertising campaigns</h2>
+
         {/* Filters */}
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 no-scrollbar">
+          <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 no-scrollbar" role="group" aria-label="Filter campaigns">
             {FILTERS.map((f) => (
               <button
                 key={f.value}
                 type="button"
                 onClick={() => setFilter(f.value)}
-                className={`shrink-0 rounded-full border px-4 py-1.5 text-sm font-medium transition ${
+                aria-pressed={filter === f.value}
+                className={`inline-flex min-h-10 shrink-0 items-center rounded-full border px-4 py-2 text-sm font-medium transition ${
                   filter === f.value
                     ? 'border-brand-800 bg-brand-800 text-white'
                     : 'border-line bg-white text-slate-600 hover:border-brand-300 hover:text-brand-700'
@@ -86,7 +91,7 @@ export default function Advertisements() {
             ))}
           </div>
           {!loading && !error && (
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-slate-500" aria-live="polite">
               {ads.length} {ads.length === 1 ? 'campaign' : 'campaigns'}
             </p>
           )}
@@ -109,21 +114,19 @@ export default function Advertisements() {
         )}
 
         {error && (
-          <div className="mt-8 rounded-xl border border-red-100 bg-red-50 p-6 text-center">
-            <p className="font-semibold text-red-700">Unable to load advertisements.</p>
-            <p className="mt-1 text-sm text-red-600">{error}</p>
-            <Button variant="outline" className="mt-4" onClick={reload}>Try again</Button>
+          <div className="mt-8">
+            <ErrorState message={error} onRetry={reload} />
           </div>
         )}
 
         {!loading && !error && ads.length === 0 && (
-          <div className="mt-8 rounded-xl border border-line bg-white">
+          <div className="mt-8 rounded-2xl border border-line bg-white">
             <EmptyState
-              icon="building"
+              icon="megaphone"
               title="No campaigns in this category"
               message="Campaigns rotate through the year — check back soon, or browse live listings instead."
               actionLabel="Browse properties"
-              onAction={() => window.location.assign('/browse')}
+              onAction={() => navigate('/browse')}
             />
           </div>
         )}
@@ -159,8 +162,8 @@ export default function Advertisements() {
 
                   <div className="flex flex-1 flex-col p-5">
                     <div className="flex items-start justify-between gap-3">
-                      <h2 className="text-base leading-snug font-semibold text-ink">{ad.title}</h2>
-                      <Icon name="megaphone" className="h-5 w-5 shrink-0 text-slate-300" />
+                      <h3 className="text-base leading-snug font-semibold text-ink">{ad.title}</h3>
+                      <Icon name="megaphone" className="h-5 w-5 shrink-0 text-slate-400" />
                     </div>
 
                     <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-600">{ad.description}</p>
@@ -197,14 +200,16 @@ export default function Advertisements() {
         {/* Advertising info */}
         <section className="mt-14 grid gap-6 rounded-3xl border border-line bg-surface p-8 sm:p-10 lg:grid-cols-3">
           <div>
-            <h2 className="font-display text-2xl font-semibold text-ink">How advertising works here</h2>
+            <h2 className="font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">
+              How advertising works here
+            </h2>
             <p className="mt-3 text-sm leading-relaxed text-slate-600">
               We keep promotion honest: campaigns are labelled, budgets are visible and no advertisement
               can impersonate an organic listing.
             </p>
           </div>
           {[
-            ['label', 'Always labelled', 'Promoted content carries a clear badge so renters know what they are looking at.'],
+            ['tag', 'Always labelled', 'Promoted content carries a clear badge so renters know what they are looking at.'],
             ['filter', 'Precise targeting', 'Campaigns are scoped to a district or a property type — never sprayed everywhere.'],
             ['chart', 'Reported numbers', 'Impressions and clicks are shown to advertisers directly inside their dashboard.'],
           ].map(([icon, title, text]) => (
@@ -212,7 +217,7 @@ export default function Advertisements() {
               <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-50 text-primary">
                 <Icon name={icon} className="h-5 w-5" />
               </span>
-              <h3 className="mt-3 font-semibold text-ink">{title}</h3>
+              <h3 className="mt-3 text-base font-semibold text-ink">{title}</h3>
               <p className="mt-1.5 text-sm leading-relaxed text-slate-600">{text}</p>
             </div>
           ))}

@@ -15,7 +15,7 @@ const COMPANY = [
 
 export default function Footer() {
   return (
-    <footer className="relative mt-20 overflow-hidden bg-brand-950 text-white">
+    <footer aria-label="Site footer" className="relative mt-20 overflow-hidden bg-brand-950 text-white">
       {/* Ambient background */}
       <div
         aria-hidden="true"
@@ -36,7 +36,7 @@ export default function Footer() {
             <p className="mt-5 font-display text-2xl leading-snug text-white/95">
               Find a place. <span className="italic text-brand-300">Make it home.</span>
             </p>
-            <p className="mt-4 max-w-sm text-sm leading-relaxed text-white/55">
+            <p className="mt-4 max-w-sm text-sm leading-relaxed text-white/70">
               The rental marketplace for Gilgit-Baltistan — verified owners, reviewed listings and
               direct communication between tenants and property owners.
             </p>
@@ -73,53 +73,56 @@ export default function Footer() {
           </div>
 
           {/* Links */}
-          <div className="lg:col-span-2">
-            <h3 className="text-xs font-bold tracking-[0.16em] text-white/40 uppercase">Company</h3>
+          <nav aria-label="Company" className="lg:col-span-2">
+            <h3 className="text-xs font-bold tracking-[0.16em] text-white/70 uppercase">Company</h3>
             <ul className="mt-5 space-y-3">
               {COMPANY.map((item) => (
                 <li key={item.to}>
-                  <Link to={item.to} className="group inline-flex items-center gap-1.5 text-sm text-white/65 transition-colors duration-200 hover:text-white">
-                    <span className="h-px w-0 bg-brand-300 transition-all duration-300 group-hover:w-3" />
+                  <Link to={item.to} className="group inline-flex min-h-10 items-center gap-1.5 text-sm text-white/75 transition-colors duration-200 hover:text-white">
+                    <span aria-hidden="true" className="h-px w-0 bg-brand-300 transition-all duration-300 group-hover:w-3" />
                     {item.label}
                   </Link>
                 </li>
               ))}
             </ul>
-          </div>
+          </nav>
 
-          <div className="lg:col-span-2">
-            <h3 className="text-xs font-bold tracking-[0.16em] text-white/40 uppercase">Property types</h3>
+          <nav aria-label="Property types" className="lg:col-span-2">
+            <h3 className="text-xs font-bold tracking-[0.16em] text-white/70 uppercase">Property types</h3>
             <ul className="mt-5 space-y-3">
               {PROPERTY_TYPES.map((type) => (
                 <li key={type.value}>
-                  <Link to={`/browse?type=${type.value}`} className="group inline-flex items-center gap-1.5 text-sm text-white/65 transition-colors duration-200 hover:text-white">
-                    <span className="h-px w-0 bg-brand-300 transition-all duration-300 group-hover:w-3" />
+                  <Link to={`/browse?type=${type.value}`} className="group inline-flex min-h-10 items-center gap-1.5 text-sm text-white/75 transition-colors duration-200 hover:text-white">
+                    <span aria-hidden="true" className="h-px w-0 bg-brand-300 transition-all duration-300 group-hover:w-3" />
                     {type.label}
                   </Link>
                 </li>
               ))}
             </ul>
-          </div>
+          </nav>
 
-          <div className="lg:col-span-2">
-            <h3 className="text-xs font-bold tracking-[0.16em] text-white/40 uppercase">Popular locations</h3>
+          <nav aria-label="Popular locations" className="lg:col-span-2">
+            <h3 className="text-xs font-bold tracking-[0.16em] text-white/70 uppercase">Popular locations</h3>
             <ul className="mt-5 space-y-3">
               {POPULAR_LOCATIONS.slice(0, 6).map((loc) => (
                 <li key={loc.name}>
-                  <Link to={`/browse?district=${loc.district}`} className="group inline-flex items-center gap-1.5 text-sm text-white/65 transition-colors duration-200 hover:text-white">
-                    <span className="h-px w-0 bg-brand-300 transition-all duration-300 group-hover:w-3" />
+                  <Link
+                    to={`/browse?districts=${encodeURIComponent(loc.district)}`}
+                    className="group inline-flex min-h-10 items-center gap-1.5 text-sm text-white/75 transition-colors duration-200 hover:text-white"
+                  >
+                    <span aria-hidden="true" className="h-px w-0 bg-brand-300 transition-all duration-300 group-hover:w-3" />
                     {loc.name}
                   </Link>
                 </li>
               ))}
             </ul>
-          </div>
+          </nav>
 
           {/* CTA */}
-          <div className="lg:col-span-2">
-            <h3 className="text-xs font-bold tracking-[0.16em] text-white/40 uppercase">Get started</h3>
-            <p className="mt-5 text-sm leading-relaxed text-white/60">
-              Browse verified rentals or list your property and reach thousands of serious renters.
+          <nav aria-label="Get started" className="lg:col-span-2">
+            <h3 className="text-xs font-bold tracking-[0.16em] text-white/70 uppercase">Get started</h3>
+            <p className="mt-5 text-sm leading-relaxed text-white/70">
+              Browse verified rentals or list your property and reach renters who are ready to move.
             </p>
             <div className="mt-5 space-y-2.5">
               <Button as={Link} to="/browse" fullWidth size="sm" className="justify-start">
@@ -131,17 +134,17 @@ export default function Footer() {
                 How it works
               </Button>
             </div>
-          </div>
+          </nav>
         </div>
 
         <div className="mt-14 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-7 sm:flex-row">
-          <p className="text-xs text-white/40">© {new Date().getFullYear()} RentLink. Built for the Gilgit-Baltistan rental market.</p>
-          <div className="flex items-center gap-5 text-xs text-white/40">
-            <span className="transition-colors hover:text-white/70">Privacy</span>
-            <span className="h-3 w-px bg-white/15" />
-            <span className="transition-colors hover:text-white/70">Terms</span>
-            <span className="h-3 w-px bg-white/15" />
-            <span className="transition-colors hover:text-white/70">Support</span>
+          <p className="text-xs text-white/60">© {new Date().getFullYear()} RentLink. Built for the Gilgit-Baltistan rental market.</p>
+          <div className="flex items-center gap-5 text-xs text-white/60">
+            <span>Privacy</span>
+            <span aria-hidden="true" className="h-3 w-px bg-white/15" />
+            <span>Terms</span>
+            <span aria-hidden="true" className="h-3 w-px bg-white/15" />
+            <span>Support</span>
           </div>
         </div>
       </div>

@@ -61,7 +61,7 @@ export default function DataTable({ columns = [], rows = [], rowKey = 'id', acti
                 .filter((col) => !col.hideOnMobile)
                 .map((col) => (
                   <div key={col.key} className="flex items-start justify-between gap-4">
-                    <span className="shrink-0 text-xs font-semibold tracking-wide text-slate-400 uppercase">{col.label}</span>
+                    <span className="shrink-0 text-xs font-semibold tracking-wide text-slate-500 uppercase">{col.label}</span>
                     <span className="text-right text-sm text-slate-700">
                       {col.render ? col.render(row) : row[col.key]}
                     </span>

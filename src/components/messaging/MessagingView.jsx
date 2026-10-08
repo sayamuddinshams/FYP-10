@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ConversationList from './ConversationList';
 import ChatWindow from './ChatWindow';
 import EmptyState from '../common/EmptyState';
@@ -16,6 +17,7 @@ import { cn } from '../../utils/format';
 export default function MessagingView({ role = 'tenant' }) {
   const { user } = useAuth();
   const toast = useToast();
+  const navigate = useNavigate();
   const { data, loading, error, reload, setData } = useAsync(() => messageService.conversations(user?.id), [user?.id], { immediate: Boolean(user) });
 
   const [activeId, setActiveId] = useState(null);
@@ -77,7 +79,7 @@ export default function MessagingView({ role = 'tenant' }) {
         title="No conversations yet"
         message="When you message an owner about a property — or a tenant reaches out to you — the conversation will appear here."
         actionLabel="Browse properties"
-        onAction={() => window.location.assign('/browse')}
+        onAction={() => navigate('/browse')}
       />
     );
   }
@@ -86,9 +88,11 @@ export default function MessagingView({ role = 'tenant' }) {
     <div className="grid h-[calc(100vh-11rem)] min-h-[520px] grid-cols-1 overflow-hidden rounded-xl border border-line bg-white lg:h-[calc(100vh-10rem)] lg:grid-cols-[340px_1fr]">
       <div className={cn('min-h-0 border-r border-line', mobileThread ? 'hidden lg:flex' : 'flex flex-col')}>
         <div className="border-b border-line px-4 py-3.5">
-          <h2 className="text-sm font-semibold text-slate-900">
+          <h2 className="flex items-baseline gap-2 text-sm font-semibold text-slate-900">
             Messages
-            <span className="ml-2 text-xs font-normal text-slate-400">{conversations.length} conversations</span>
+            <span className="text-xs font-normal text-slate-500" aria-live="polite">
+              {loading ? 'Loading…' : `${conversations.length} ${conversations.length === 1 ? 'conversation' : 'conversations'}`}
+            </span>
           </h2>
         </div>
         <div className="min-h-0 flex-1">

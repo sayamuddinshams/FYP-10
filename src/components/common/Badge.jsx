@@ -111,6 +111,21 @@ export function UserStatusBadge({ status, className }) {
   );
 }
 
+export function ReportStatusBadge({ status, className }) {
+  const map = {
+    open: { tone: 'warning', label: 'Open' },
+    resolved: { tone: 'success', label: 'Resolved' },
+    removed: { tone: 'danger', label: 'Removed' },
+  };
+  const conf = map[status] || map.open;
+  return (
+    <Badge tone={conf.tone} className={className}>
+      <Dot />
+      {conf.label}
+    </Badge>
+  );
+}
+
 export function RoleBadge({ role, className }) {
   const map = {
     tenant: { tone: 'brand', label: 'Tenant' },

@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom';
-import { useDocumentTitle } from '../../hooks';
+import { useAsync, useDocumentTitle } from '../../hooks';
+import propertyService from '../../services/propertyService';
 import Button from '../../components/common/Button';
 import Icon from '../../components/common/icons';
+import { ErrorState } from '../../components/common/Feedback';
 
 const TIMELINE = [
   {
@@ -48,15 +50,15 @@ const PRINCIPLES = [
   },
 ];
 
-const MILESTONES = [
-  { value: '1,370+', label: 'Registered tenants' },
-  { value: '289', label: 'Properties listed' },
-  { value: '171', label: 'Visits scheduled this month' },
-  { value: '10', label: 'Districts served' },
-];
+const MILESTONE_FALLBACK = { total: 0, districts: 0, verifiedOwners: 0, visits: 0 };
 
 export default function Story() {
   useDocumentTitle('Our Story');
+  const { data: stats, loading: statsLoading, error: statsError, reload: reloadStats } = useAsync(
+    () => propertyService.stats(),
+    []
+  );
+  const s = stats || MILESTONE_FALLBACK;
 
   return (
     <div>
@@ -71,7 +73,7 @@ export default function Story() {
         <div className="absolute inset-0 bg-gradient-to-r from-brand-950 via-brand-950/90 to-brand-900/60" />
         <div className="relative mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
           <p className="text-sm font-semibold tracking-widest text-primary-300 uppercase">Our Story</p>
-          <h1 className="mt-3 max-w-3xl font-display text-4xl leading-tight font-semibold sm:text-5xl">
+          <h1 className="mt-3 max-w-3xl font-display text-4xl leading-tight font-bold tracking-tight sm:text-5xl">
             Built from a notebook, a phone and a lot of winter evenings.
           </h1>
           <p className="mt-5 max-w-2xl text-lg text-white/70">
@@ -82,10 +84,12 @@ export default function Story() {
       </section>
 
       {/* Timeline */}
-      <section className="mx-auto w-full max-w-5xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+      <section className="mx-auto w-full max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="text-center">
           <p className="text-sm font-semibold tracking-widest text-primary uppercase">Timeline</p>
-          <h2 className="mt-2 font-display text-3xl font-semibold text-ink sm:text-4xl">How we got here</h2>
+          <h2 className="mt-2 font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">
+            How we got here
+          </h2>
         </div>
 
         <ol className="relative mt-12 space-y-8">
@@ -108,7 +112,7 @@ export default function Story() {
               </div>
               <div className="flex-1 pl-8 sm:pl-0">
                 <div className="rounded-2xl border border-line bg-white p-6">
-                  <h3 className="text-lg font-semibold text-ink">{item.title}</h3>
+                  <h3 className="text-base font-semibold text-ink">{item.title}</h3>
                   <p className="mt-2 text-sm leading-relaxed text-slate-600">{item.text}</p>
                 </div>
               </div>
@@ -119,16 +123,38 @@ export default function Story() {
       </section>
 
       {/* Milestones */}
-      <section className="border-y border-line bg-white">
-        <div className="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 gap-6 lg:grid-cols-4">
-            {MILESTONES.map((m) => (
-              <div key={m.label} className="text-center">
-                <p className="font-display text-4xl font-semibold text-primary">{m.value}</p>
-                <p className="mt-2 text-sm text-slate-500">{m.label}</p>
-              </div>
-            ))}
-          </div>
+      <section className="border-y border-line bg-white" aria-live="polite">
+        <div className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+          {statsError ? (
+            <ErrorState
+              compact
+              message="Marketplace stats could not be loaded right now."
+              onRetry={reloadStats}
+            />
+          ) : (
+            <div className="grid grid-cols-2 gap-6 lg:grid-cols-4">
+              {[
+                { value: s.total, label: 'Live listings' },
+                { value: s.districts, label: 'Districts covered' },
+                { value: s.verifiedOwners, label: 'Verified owners' },
+                { value: s.visits, label: 'Visits scheduled' },
+              ].map((m) => (
+                <div key={m.label} className="text-center">
+                  {statsLoading ? (
+                    <span
+                      aria-hidden="true"
+                      className="mx-auto block h-9 w-24 animate-pulse rounded-lg bg-slate-100"
+                    />
+                  ) : (
+                    <p className="font-display text-4xl font-bold text-primary tabular-nums">
+                      {m.value}
+                    </p>
+                  )}
+                  <p className="mt-2 text-sm text-slate-500">{m.label}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -136,7 +162,9 @@ export default function Story() {
       <section className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="max-w-2xl">
           <p className="text-sm font-semibold tracking-widest text-primary uppercase">What we learned</p>
-          <h2 className="mt-2 font-display text-3xl font-semibold text-ink">Three rules we refuse to bend</h2>
+          <h2 className="mt-2 font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">
+            Three rules we refuse to bend
+          </h2>
         </div>
         <div className="mt-8 grid gap-6 md:grid-cols-3">
           {PRINCIPLES.map((p) => (
@@ -154,32 +182,36 @@ export default function Story() {
       {/* Quote */}
       <section className="border-y border-line bg-brand-950 text-white">
         <div className="mx-auto w-full max-w-4xl px-4 py-16 text-center sm:px-6 lg:px-8">
-          <Icon name="chat" className="mx-auto h-8 w-8 text-primary-300" />
-          <blockquote className="mt-6 font-display text-2xl leading-relaxed font-medium sm:text-3xl">
-            “A rental listing is a promise. It should describe a real place, at a real price, that someone
-            is genuinely willing to show you this week.”
-          </blockquote>
-          <figcaption className="mt-6 text-sm text-white/60">
-            Zahid Karim · Founder &amp; CEO, RentLink
-          </figcaption>
+          <figure>
+            <Icon name="chat" aria-hidden="true" className="mx-auto h-8 w-8 text-primary-300" />
+            <blockquote className="mt-6 font-display text-2xl leading-relaxed font-medium sm:text-3xl">
+              “A rental listing is a promise. It should describe a real place, at a real price, that someone
+              is genuinely willing to show you this week.”
+            </blockquote>
+            <figcaption className="mt-6 text-sm text-white/70">
+              Zahid Karim · Founder &amp; CEO, RentLink
+            </figcaption>
+          </figure>
         </div>
       </section>
 
       {/* CTA */}
       <section className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="flex flex-col items-center gap-5 text-center">
-          <h2 className="font-display text-3xl font-semibold text-ink">Be part of the next chapter</h2>
-          <p className="max-w-xl text-slate-600">
+          <h2 className="font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">
+            Be part of the next chapter
+          </h2>
+          <p className="max-w-xl text-sm leading-relaxed text-slate-600">
             Whether you are looking for your first room in Gilgit or managing forty apartments in Hunza,
             there is a place for you on RentLink.
           </p>
           <div className="flex flex-wrap justify-center gap-3">
-            <Link to="/browse">
-              <Button size="lg">Browse properties</Button>
-            </Link>
-            <Link to="/collaborations">
-              <Button size="lg" variant="outline">Partner with us</Button>
-            </Link>
+            <Button as={Link} to="/browse" size="lg">
+              Browse properties
+            </Button>
+            <Button as={Link} to="/collaborations" size="lg" variant="outline">
+              Partner with us
+            </Button>
           </div>
         </div>
       </section>

@@ -16,11 +16,46 @@ import { useModals } from '../../context/ModalContext';
 import { useAsync, useDocumentTitle } from '../../hooks';
 import { PROPERTY_TYPES, AMENITIES, FURNISHING_OPTIONS, AMENITY_MAP } from '../../utils/constants';
 import { DISTRICTS, getCities, getAreas } from '../../data/locations';
-import { cn, formatNumber } from '../../utils/format';
+import { cn, formatDate, formatNumber } from '../../utils/format';
 
 const MAX_IMAGES = 8;
 const MIN_DESCRIPTION = 80;
 const MIN_TITLE = 10;
+
+/** Scroll-spy rail sections — ids must match the Section elements below. */
+/** Which rail section owns a given form field — used by "Fix the first issue". */
+const FIELD_SECTION = {
+  title: "sec-basics",
+  type: "sec-basics",
+  description: "sec-basics",
+  district: "sec-location",
+  city: "sec-location",
+  area: "sec-location",
+  address: "sec-location",
+  price: "sec-details",
+  bedrooms: "sec-details",
+  bathrooms: "sec-details",
+  size: "sec-details",
+  furnishing: "sec-details",
+  availableFrom: "sec-details",
+  images: "sec-photos",
+};
+
+const RAIL_SECTIONS = [
+  { id: 'sec-basics', label: 'Basics' },
+  { id: 'sec-location', label: 'Location' },
+  { id: 'sec-details', label: 'Rent & details' },
+  { id: 'sec-amenities', label: 'Amenities' },
+  { id: 'sec-photos', label: 'Photos' },
+  { id: 'sec-availability', label: 'Availability' },
+  { id: 'sec-review', label: 'Review & submit' },
+];
+
+function formatFileSize(bytes) {
+  if (!Number.isFinite(bytes) || bytes <= 0) return 'Photo ready';
+  if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+}
 
 const AMENITY_GLYPHS = {
   parking: (
@@ -85,9 +120,9 @@ function toForm(property) {
   };
 }
 
-function Section({ title, description, children }) {
+function Section({ id, title, description, children }) {
   return (
-    <section className="border-b border-line px-5 py-6 last:border-b-0 sm:px-6">
+    <section id={id} className="scroll-mt-36 border-b border-line px-5 py-6 last:border-b-0 sm:px-6">
       <header className="mb-5">
         <h2 className="text-sm font-semibold tracking-tight text-slate-900 sm:text-base">{title}</h2>
         {description && <p className="mt-1 text-xs leading-relaxed text-slate-500">{description}</p>}
@@ -112,6 +147,13 @@ export default function EditProperty() {
   const [saving, setSaving] = useState('');
   const [formError, setFormError] = useState('');
   const [dragging, setDragging] = useState(false);
+  const [activeSection, setActiveSection] = useState(RAIL_SECTIONS[0].id);
+  const [loadedId, setLoadedId] = useState(null);
+  const [baseline, setBaseline] = useState('');
+  // UI-only upload state: files skipped during selection (with reasons) and
+  // per-image metadata for the status chips. Never part of the submit payload.
+  const [rejected, setRejected] = useState([]);
+  const [fileMeta, setFileMeta] = useState({});
 
   const { data: property, loading, error, reload } = useAsync(
     () => propertyService.getById(id),
@@ -119,9 +161,56 @@ export default function EditProperty() {
     { immediate: Boolean(id) }
   );
 
+  // Prefill once per property id — re-prefills correctly if the route id changes,
+  // and never clobbers in-progress edits on a background reload.
   useEffect(() => {
-    if (property && !form) setForm(toForm(property));
-  }, [property, form]);
+    if (property && !loading && loadedId !== id) {
+      setForm(toForm(property));
+      setBaseline(JSON.stringify(toForm(property)));
+      setLoadedId(id);
+      setErrors({});
+      setRejected([]);
+      setFileMeta({});
+    }
+  }, [property, loading, id, loadedId]);
+
+  const dirty = Boolean(form && baseline) && JSON.stringify(form) !== baseline;
+
+  // Warn before losing edits on refresh / tab close. Never discards user input.
+  useEffect(() => {
+    if (!dirty) return undefined;
+    const warn = (e) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [dirty]);
+
+  // Scroll-spy for the sticky section rail (rAF-throttled).
+  useEffect(() => {
+    if (!form) return undefined;
+    let frame = 0;
+    const onScroll = () => {
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        const OFFSET = 150;
+        let current = RAIL_SECTIONS[0].id;
+        RAIL_SECTIONS.forEach((s) => {
+          const el = document.getElementById(s.id);
+          if (el && el.getBoundingClientRect().top <= OFFSET) current = s.id;
+        });
+        setActiveSection((prev) => (prev === current ? prev : current));
+      });
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, [Boolean(form)]);
 
   const cities = useMemo(() => getCities(form?.district), [form?.district]);
   const areas = useMemo(() => getAreas(form?.district, form?.city), [form?.district, form?.city]);
@@ -179,19 +268,55 @@ export default function EditProperty() {
   }
 
   function addFiles(fileList) {
-    const files = Array.from(fileList || []).filter((f) => f.type.startsWith('image/'));
+    const all = Array.from(fileList || []);
+    const files = all.filter((f) => f.type.startsWith('image/'));
+    const skipped = all
+      .filter((f) => !f.type.startsWith('image/'))
+      .map((f) => ({ name: f.name, reason: 'Not a supported image — use JPG or PNG.' }));
     if (!files.length) {
+      setRejected(skipped);
       toast.warning('Only image files can be uploaded.', 'Unsupported file');
       return;
     }
     const room = MAX_IMAGES - form.images.length;
     if (room <= 0) {
+      setRejected(
+        skipped.concat(
+          files.map((f) => ({ name: f.name, reason: `Photo limit of ${MAX_IMAGES} reached — remove a photo first.` }))
+        )
+      );
       toast.warning(`You can upload up to ${MAX_IMAGES} photos per listing.`, 'Photo limit reached');
       return;
     }
-    const urls = files.slice(0, room).map((f) => URL.createObjectURL(f));
+    const accepted = files.slice(0, room);
+    const overflow = files.slice(room).map((f) => ({
+      name: f.name,
+      reason: `Photo limit of ${MAX_IMAGES} reached — this file was not added.`,
+    }));
+    const urls = accepted.map((f) => URL.createObjectURL(f));
+    setFileMeta((prev) => {
+      const next = { ...prev };
+      accepted.forEach((f, i) => {
+        next[urls[i]] = { name: f.name, size: f.size };
+      });
+      return next;
+    });
+    setRejected(skipped.concat(overflow));
     setForm((prev) => ({ ...prev, images: [...prev.images, ...urls] }));
-    if (files.length > room) toast.warning('Some photos were skipped because the limit was reached.');
+    if (files.length > room) {
+      toast.warning(`Only ${room} more photo${room === 1 ? '' : 's'} could be added.`, 'Photo limit reached');
+    }
+  }
+
+  function removeImage(index) {
+    const target = form.images[index];
+    setFileMeta((prev) => {
+      if (!target || !prev[target]) return prev;
+      const next = { ...prev };
+      delete next[target];
+      return next;
+    });
+    setForm((prev) => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }));
   }
 
   function moveImage(index, direction) {
@@ -266,6 +391,33 @@ export default function EditProperty() {
     if (ok) navigate(`/owner/properties/${id}`);
   }
 
+  // Read-only completion snapshot for the rail — derived from the same validate()
+  // rules that gate submit, so the rail can never disagree with validation.
+  const draftErrors = validate(true);
+  const submitErrors = validate(false);
+  const ready = Object.keys(submitErrors).length === 0;
+  const completeFor = (fields) => fields.every((field) => !draftErrors[field]);
+  const sections = RAIL_SECTIONS.map((s) => {
+    let complete = false;
+    if (s.id === 'sec-basics') complete = completeFor(['title', 'type', 'description']);
+    else if (s.id === 'sec-location') complete = completeFor(['district', 'city', 'area', 'address']);
+    else if (s.id === 'sec-details')
+      complete = completeFor(['price', 'bedrooms', 'bathrooms', 'size', 'furnishing', 'availableFrom']);
+    else if (s.id === 'sec-amenities') complete = true;
+    else if (s.id === 'sec-photos') complete = form.images.length > 0;
+    else if (s.id === 'sec-availability') complete = completeFor(['price', 'availableFrom']);
+    else if (s.id === 'sec-review') complete = ready;
+    return { ...s, complete };
+  });
+  const completeCount = sections.filter((s) => s.complete).length;
+
+  function scrollToSection(sectionId) {
+    const el = document.getElementById(sectionId);
+    if (!el) return;
+    setActiveSection(sectionId);
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   return (
     <div className="animate-fade-up">
       <PageHeader
@@ -273,7 +425,20 @@ export default function EditProperty() {
         subtitle={property?.title}
         back={`/owner/properties/${id}`}
         backLabel="Back to listing"
-        actions={<ListingStatusBadge status={property?.status} />}
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            {dirty && (
+              <span
+                role="status"
+                className="inline-flex animate-fade-in items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-800"
+              >
+                <Icon name="alert" className="h-3.5 w-3.5" />
+                You have unsaved changes
+              </span>
+            )}
+            <ListingStatusBadge status={property?.status} />
+          </div>
+        }
       />
 
       <div className="mb-5 flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3.5 text-xs leading-relaxed text-amber-800">
@@ -291,9 +456,63 @@ export default function EditProperty() {
         </div>
       )}
 
-      <div className="overflow-hidden rounded-xl border border-line bg-white pb-24">
+      <div className="grid items-start gap-5 lg:grid-cols-[230px_minmax(0,1fr)]">
+        {/* Sticky scroll-spy section rail */}
+        <aside className="sticky top-[68px] z-10 lg:top-[92px]">
+          <nav
+            aria-label="Form sections"
+            className="rounded-xl border border-line bg-white/95 p-2 shadow-soft backdrop-blur"
+          >
+            <p className="hidden px-2 pt-1 pb-2 text-[11px] font-semibold tracking-wide text-slate-500 uppercase lg:block">
+              Sections · {completeCount}/{sections.length}
+            </p>
+            <ol className="flex gap-1.5 overflow-x-auto no-scrollbar lg:flex-col lg:gap-1 lg:overflow-visible">
+              {sections.map((s, i) => {
+                const active = activeSection === s.id;
+                return (
+                  <li key={s.id} className="shrink-0 lg:shrink">
+                    <button
+                      type="button"
+                      data-rail={s.id}
+                      onClick={() => scrollToSection(s.id)}
+                      aria-current={active ? 'true' : undefined}
+                      aria-label={`Go to ${s.label} — ${s.complete ? 'complete' : 'in progress'}`}
+                      className={cn(
+                        'flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm font-medium whitespace-nowrap transition-colors',
+                        'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 lg:w-full lg:whitespace-normal',
+                        active
+                          ? 'bg-brand-50 text-brand-800'
+                          : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          'flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold',
+                          s.complete
+                            ? 'bg-brand-700 text-white'
+                            : active
+                              ? 'bg-white text-brand-700 ring-1 ring-brand-300'
+                              : 'bg-slate-100 text-slate-500'
+                        )}
+                      >
+                        {s.complete ? (
+                          <Icon name="check" className="h-3.5 w-3.5" strokeWidth={3} />
+                        ) : (
+                          i + 1
+                        )}
+                      </span>
+                      {s.label}
+                    </button>
+                  </li>
+                );
+              })}
+            </ol>
+          </nav>
+        </aside>
+
+        <div className="overflow-hidden rounded-xl border border-line bg-white pb-24">
         {/* Basic information */}
-        <Section title="Basic information" description="What tenants see first in search results.">
+        <Section id="sec-basics" title="Basic information" description="What tenants see first in search results.">
           <div className="grid gap-5">
             <Input
               label="Listing title"
@@ -333,7 +552,7 @@ export default function EditProperty() {
         </Section>
 
         {/* Location */}
-        <Section title="Location" description="District, city and area power the filters tenants use.">
+        <Section id="sec-location" title="Location" description="District, city and area power the filters tenants use.">
           <div className="grid gap-5 sm:grid-cols-3">
             <Select
               label="District"
@@ -393,7 +612,7 @@ export default function EditProperty() {
         </Section>
 
         {/* Details */}
-        <Section title="Rent and details" description="Keep the rent and availability accurate — tenants filter on them.">
+        <Section id="sec-details" title="Rent and details" description="Keep the rent and availability accurate — tenants filter on them.">
           <div className="grid gap-5 sm:grid-cols-2">
             <Input
               label="Monthly rent (PKR)"
@@ -461,7 +680,7 @@ export default function EditProperty() {
         </Section>
 
         {/* Amenities */}
-        <Section title="Amenities" description="Selected amenities appear as filters on your listing.">
+        <Section id="sec-amenities" title="Amenities" description="Selected amenities appear as filters on your listing.">
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {AMENITIES.map((a) => {
               const active = form.amenities.includes(a.value);
@@ -489,7 +708,7 @@ export default function EditProperty() {
                   <span className="flex-1">{a.label}</span>
                   <Icon
                     name={active ? 'check' : 'plus'}
-                    className={cn('h-4 w-4', active ? 'text-brand-700' : 'text-slate-300')}
+                    className={cn('h-4 w-4', active ? 'text-brand-700' : 'text-slate-500')}
                     strokeWidth={2.2}
                   />
                 </button>
@@ -500,7 +719,7 @@ export default function EditProperty() {
         </Section>
 
         {/* Images */}
-        <Section title="Photos" description="The first photo is the cover image tenants see in search.">
+        <Section id="sec-photos" title="Photos" description="The first photo is the cover image tenants see in search.">
           <div
             onDragOver={(e) => {
               e.preventDefault();
@@ -517,7 +736,7 @@ export default function EditProperty() {
               dragging ? 'border-brand-500 bg-brand-50' : 'border-line bg-slate-50'
             )}
           >
-            <Icon name="image" className="h-6 w-6 text-slate-400" />
+            <Icon name="image" className="h-6 w-6 text-slate-500" />
             <p className="mt-2 text-sm font-semibold text-slate-700">Drop new photos here</p>
             <p className="mt-1 text-xs text-slate-500">JPG or PNG · up to {MAX_IMAGES} images</p>
             <input
@@ -542,6 +761,34 @@ export default function EditProperty() {
             )}
           </div>
 
+          {rejected.length > 0 && (
+            <div role="alert" className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3.5 animate-fade-up">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="flex items-center gap-2 text-sm font-semibold text-red-700">
+                    <Icon name="alert" className="h-4 w-4 shrink-0" />
+                    {rejected.length} photo{rejected.length === 1 ? '' : 's'} could not be added
+                  </p>
+                  <ul className="mt-2 space-y-1">
+                    {rejected.map((r, i) => (
+                      <li key={`${r.name}-${i}`} className="text-xs leading-relaxed text-red-700">
+                        <span className="font-semibold">{r.name}</span> — {r.reason}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setRejected([])}
+                  aria-label="Dismiss photo errors"
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-red-500 transition hover:bg-red-100 hover:text-red-700"
+                >
+                  <Icon name="x" className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          )}
+
           <ul className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {form.images.map((url, index) => (
               <li
@@ -558,15 +805,32 @@ export default function EditProperty() {
                   )}
                   <button
                     type="button"
-                    onClick={() => {
-                      setForm((prev) => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }));
-                    }}
+                    onClick={() => removeImage(index)}
                     aria-label={`Remove photo ${index + 1}`}
                     className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-full bg-white/95 text-slate-600 shadow-sm transition hover:bg-red-50 hover:text-red-600"
                   >
                     <Icon name="trash" className="h-3.5 w-3.5" />
                   </button>
                 </div>
+
+                <p className="flex items-center gap-1.5 px-2.5 pt-2 text-[10px] font-medium text-slate-500">
+                  {saving === 'review' ? (
+                    <>
+                      <span
+                        className="h-3 w-3 shrink-0 animate-spin rounded-full border-2 border-brand-600 border-t-transparent"
+                        aria-hidden="true"
+                      />
+                      <span className="truncate">Uploading…</span>
+                    </>
+                  ) : (
+                    <>
+                      <Icon name="check" className="h-3 w-3 shrink-0 text-emerald-600" strokeWidth={2.5} />
+                      <span className="truncate">
+                        {fileMeta[url] ? `${fileMeta[url].name} · ${formatFileSize(fileMeta[url].size)}` : 'Photo ready'}
+                      </span>
+                    </>
+                  )}
+                </p>
                 <div className="flex items-center justify-between gap-1 px-2 py-2">
                   <div className="flex gap-1">
                     <button
@@ -609,16 +873,16 @@ export default function EditProperty() {
           </ul>
 
           {form.images.length === 0 && (
-            <p className="mt-4 text-center text-sm text-slate-400">No photos yet — add at least one before submitting.</p>
+            <p className="mt-4 text-center text-sm text-slate-500">No photos yet — add at least one before submitting.</p>
           )}
 
-          <p className="mt-3 text-center text-xs text-slate-400">
+          <p className="mt-3 text-center text-xs text-slate-500" aria-live="polite">
             {form.images.length} of {MAX_IMAGES} photos used
           </p>
         </Section>
 
         {/* Availability summary */}
-        <Section title="Availability" description="Tenants can see when the property becomes usable.">
+        <Section id="sec-availability" title="Availability" description="Tenants can see when the property becomes usable.">
           <div className="rounded-xl border border-line bg-slate-50 px-4 py-4 text-sm text-slate-600">
             <p>
               Available from{' '}
@@ -630,10 +894,82 @@ export default function EditProperty() {
             </p>
           </div>
         </Section>
+
+        {/* Read-only review before submitting */}
+        <Section
+          id="sec-review"
+          title="Review and submit"
+          description="A read-only summary of exactly what will be sent to the review team."
+        >
+          <dl className="divide-y divide-line rounded-xl border border-line">
+            {[
+              ['Title', form.title],
+              ['Type', PROPERTY_TYPES.find((t) => t.value === form.type)?.label || '—'],
+              ['Monthly rent', `Rs ${formatNumber(form.price || 0)}`],
+              ['Location', `${form.area}, ${form.city}, ${form.district}`],
+              ['Address', form.address],
+              ['Bedrooms / Bathrooms', `${form.bedrooms} / ${form.bathrooms}`],
+              ['Covered area', `${formatNumber(form.size || 0)} sq ft`],
+              ['Furnishing', form.furnishing],
+              ['Available from', form.availableFrom ? formatDate(form.availableFrom) : '—'],
+              [
+                'Amenities',
+                form.amenities.length ? form.amenities.map((a) => AMENITY_MAP[a]).join(', ') : 'None selected',
+              ],
+              ['Photos', `${form.images.length} of ${MAX_IMAGES}`],
+            ].map(([label, value]) => (
+              <div key={label} className="flex items-start justify-between gap-4 px-4 py-3">
+                <dt className="shrink-0 text-xs font-semibold tracking-wide text-slate-500 uppercase">{label}</dt>
+                <dd className="text-right text-sm text-slate-700">{value || '—'}</dd>
+              </div>
+            ))}
+          </dl>
+
+          <div className="mt-4 rounded-xl border border-line px-4 py-3.5">
+            <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase">Description</p>
+            <p className="mt-1.5 line-clamp-4 text-sm leading-relaxed text-slate-600">{form.description || '—'}</p>
+          </div>
+
+          {ready ? (
+            <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3.5 text-xs leading-relaxed text-emerald-800">
+              <Icon name="check" className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={2.5} />
+              <p>
+                <strong className="font-semibold">Ready to submit.</strong> This summary is read-only — scroll up to
+                change any detail, then use Submit changes below.
+              </p>
+            </div>
+          ) : (
+            <div
+              role="alert"
+              className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3.5 text-xs leading-relaxed text-amber-800"
+            >
+              <p className="font-semibold">
+                Still needed before submitting ({Object.keys(submitErrors).length} item
+                {Object.keys(submitErrors).length === 1 ? '' : 's'}):
+              </p>
+              <ul className="mt-2 space-y-1">
+                {Object.entries(submitErrors).map(([field, message]) => (
+                  <li key={field}>• {message}</li>
+                ))}
+              </ul>
+              <Button
+                size="xs"
+                variant="outline"
+                className="mt-3"
+                onClick={() =>
+                  scrollToSection(FIELD_SECTION[Object.keys(submitErrors)[0]] || 'sec-basics')
+                }
+              >
+                Fix the first issue
+              </Button>
+            </div>
+          )}
+        </Section>
+        </div>
       </div>
 
       {/* Sticky action bar */}
-      <div className="sticky bottom-0 z-20 -mx-4 mt-5 flex flex-col-reverse gap-3 border-t border-line bg-white/95 px-4 py-3.5 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+      <div className="sticky bottom-0 z-20 -mx-4 mt-5 flex flex-col-reverse gap-3 border-t border-line bg-white/95 px-4 pt-3.5 pb-[calc(0.875rem_+_env(safe-area-inset-bottom))] backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
         <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
           <Button variant="ghost" onClick={handleCancel} disabled={Boolean(saving)}>
             Cancel

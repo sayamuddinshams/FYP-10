@@ -9,19 +9,73 @@ import { formatTime, cn } from '../../utils/format';
 export default function ChatWindow({ conversation, currentUserId, onSend, onBack, sending = false }) {
   const [text, setText] = useState('');
   const [error, setError] = useState('');
+  const [sendError, setSendError] = useState('');
+  const [atBottom, setAtBottom] = useState(true);
+  const [newBelow, setNewBelow] = useState(0);
   const bottomRef = useRef(null);
   const listRef = useRef(null);
+  const stickRef = useRef(true); // user is reading the newest messages
+  const lenRef = useRef(0);
+  const hintId = 'chat-composer-hint';
 
+  // Reset composer and scroll position whenever the thread changes.
   useEffect(() => {
     setText('');
     setError('');
+    setSendError('');
+    stickRef.current = true;
+    setAtBottom(true);
+    setNewBelow(0);
   }, [conversation?.id]);
 
+  // Follow new messages only while the user is at (or near) the bottom.
+  // Scrolling up pauses auto-scroll; sending your own message still jumps down.
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-  }, [conversation?.messages?.length, conversation?.id]);
+    const messages = conversation?.messages || [];
+    const len = messages.length;
+    const prev = lenRef.current;
+    if (len !== prev) lenRef.current = len;
+    const delta = len - prev;
 
-  async function submit(e) {
+    if (delta > 0 && !stickRef.current) {
+      const last = messages[len - 1];
+      const mine = last && last.senderId === currentUserId;
+      if (!mine) {
+        setNewBelow((n) => n + delta);
+        return;
+      }
+    }
+    if (stickRef.current) {
+      bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
+  }, [conversation?.messages?.length, conversation?.id, sending, currentUserId]);
+
+  function handleScroll() {
+    const el = listRef.current;
+    if (!el) return;
+    const bottom = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+    stickRef.current = bottom;
+    setAtBottom(bottom);
+    if (bottom) setNewBelow(0);
+  }
+
+  function jumpToLatest() {
+    stickRef.current = true;
+    setNewBelow(0);
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }
+
+  async function doSend(body) {
+    setSendError('');
+    const result = await onSend?.(body);
+    if (result === false) {
+      // Restore the draft so nothing is lost, and offer an inline retry.
+      setText(body);
+      setSendError('Message could not be sent. Your text is back in the composer — try again.');
+    }
+  }
+
+  function submit(e) {
     e.preventDefault();
     const body = text.trim();
     if (!body) {
@@ -29,9 +83,9 @@ export default function ChatWindow({ conversation, currentUserId, onSend, onBack
       return;
     }
     setError('');
+    setSendError('');
     setText('');
-    const result = await onSend?.(body);
-    if (result === false) setText(body); // restore the draft if sending failed
+    doSend(body);
   }
 
   if (!conversation) {
@@ -50,6 +104,7 @@ export default function ChatWindow({ conversation, currentUserId, onSend, onBack
 
   const property = conversation.property;
   const other = conversation.other;
+  const messages = conversation.messages || [];
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -60,7 +115,7 @@ export default function ChatWindow({ conversation, currentUserId, onSend, onBack
             type="button"
             onClick={onBack}
             aria-label="Back to conversations"
-            className="-ml-1 rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 lg:hidden"
+            className="-ml-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 lg:hidden"
           >
             <Icon name="arrowLeft" className="h-5 w-5" />
           </button>
@@ -71,7 +126,7 @@ export default function ChatWindow({ conversation, currentUserId, onSend, onBack
             <p className="truncate text-sm font-semibold text-slate-900">{other?.name}</p>
             {other?.verification === 'verified' && <VerificationBadge status="verified" className="hidden sm:inline-flex" />}
           </div>
-          <p className="truncate text-xs text-slate-400 capitalize">{other?.role === 'owner' ? 'Owner / Agent' : 'Tenant'}</p>
+          <p className="truncate text-xs text-slate-500 capitalize">{other?.role === 'owner' ? 'Owner / Agent' : 'Tenant'}</p>
         </div>
         {property && (
           <Link
@@ -89,7 +144,7 @@ export default function ChatWindow({ conversation, currentUserId, onSend, onBack
       {/* Property context strip */}
       {property && (
         <div className="flex items-center gap-2 border-b border-line bg-slate-50 px-4 py-2 text-xs text-slate-500">
-          <Icon name="building" className="h-4 w-4 text-slate-400" />
+          <Icon name="building" className="h-4 w-4 shrink-0" />
           <span className="truncate">
             Conversation about <span className="font-medium text-slate-700">{property.title}</span> · {property.location}
           </span>
@@ -97,46 +152,105 @@ export default function ChatWindow({ conversation, currentUserId, onSend, onBack
       )}
 
       {/* Messages */}
-      <div ref={listRef} className="flex-1 space-y-4 overflow-y-auto bg-slate-50/60 px-4 py-5 thin-scrollbar">
-        {conversation.messages.length === 0 && (
-          <p className="py-8 text-center text-sm text-slate-400">No messages yet. Say hello to start the conversation.</p>
-        )}
-        {conversation.messages.map((m) => {
-          const mine = m.senderId === currentUserId;
-          return (
-            <div key={m.id} className={cn('flex gap-2.5', mine ? 'justify-end' : 'justify-start')}>
-              {!mine && <Avatar name={other?.name} size="xs" className="mt-1" />}
-              <div className={cn('max-w-[78%] sm:max-w-[65%]', mine && 'items-end')}>
-                <div
-                  className={cn(
-                    'rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-sm animate-fade-up',
-                    mine ? 'rounded-br-sm bg-brand-800 text-white' : 'rounded-bl-sm border border-line bg-white text-slate-700'
-                  )}
-                >
-                  {m.text}
+      <div className="relative min-h-0 flex-1">
+        <div
+          ref={listRef}
+          onScroll={handleScroll}
+          aria-live="polite"
+          className="thin-scrollbar h-full space-y-4 overflow-y-auto bg-slate-50/60 px-4 py-5"
+        >
+          {messages.length === 0 && (
+            <p className="py-8 text-center text-sm text-slate-500">
+              No messages yet. Say hello to start the conversation.
+            </p>
+          )}
+          {messages.map((m, i) => {
+            const mine = m.senderId === currentUserId;
+            const readByOther = mine && messages.slice(i + 1).some((x) => x.senderId !== currentUserId);
+            return (
+              <div key={m.id} className={cn('flex gap-2.5', mine ? 'justify-end' : 'justify-start')}>
+                {!mine && <Avatar name={other?.name} size="xs" className="mt-1" />}
+                <div className={cn('max-w-[78%] sm:max-w-[65%]', mine && 'items-end')}>
+                  <div
+                    className={cn(
+                      'rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-sm animate-fade-up',
+                      mine ? 'rounded-br-sm bg-brand-800 text-white' : 'rounded-bl-sm border border-line bg-white text-slate-700'
+                    )}
+                  >
+                    {m.text}
+                  </div>
+                  <p className={cn('mt-1 flex items-center gap-1.5 px-1 text-[11px] text-slate-500', mine && 'justify-end')}>
+                    <span>{formatTime(m.at)}</span>
+                    {mine && (
+                      <>
+                        <span aria-hidden="true">·</span>
+                        {readByOther ? (
+                          <span className="inline-flex items-center gap-1 font-semibold text-brand-700">
+                            <Icon name="eye" className="h-3.5 w-3.5" />
+                            Read
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 font-semibold text-slate-500">
+                            <Icon name="check" className="h-3.5 w-3.5" />
+                            Sent
+                          </span>
+                        )}
+                      </>
+                    )}
+                  </p>
                 </div>
-                <p className={cn('mt-1 px-1 text-[11px] text-slate-400', mine && 'text-right')}>{formatTime(m.at)}</p>
+              </div>
+            );
+          })}
+          {sending && (
+            <div className="flex justify-end">
+              <div className="rounded-2xl rounded-br-sm bg-brand-800/70 px-4 py-3">
+                <span className="flex gap-1" aria-hidden="true">
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-white/70" style={{ animationDelay: '0ms' }} />
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-white/70" style={{ animationDelay: '150ms' }} />
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-white/70" style={{ animationDelay: '300ms' }} />
+                </span>
+                <span className="sr-only">Sending your message…</span>
               </div>
             </div>
-          );
-        })}
-        {sending && (
-          <div className="flex justify-end">
-            <div className="rounded-2xl rounded-br-sm bg-brand-800/70 px-4 py-3">
-              <span className="flex gap-1">
-                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-white/70" style={{ animationDelay: '0ms' }} />
-                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-white/70" style={{ animationDelay: '150ms' }} />
-                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-white/70" style={{ animationDelay: '300ms' }} />
-              </span>
-            </div>
-          </div>
+          )}
+          <div ref={bottomRef} />
+        </div>
+
+        {!atBottom && newBelow > 0 && (
+          <button
+            type="button"
+            onClick={jumpToLatest}
+            className="absolute bottom-3 left-1/2 inline-flex min-h-10 -translate-x-1/2 items-center gap-1.5 rounded-full border border-line bg-white px-3.5 text-xs font-semibold text-brand-700 shadow-pop transition hover:bg-brand-50"
+          >
+            <Icon name="chevronDown" className="h-4 w-4" />
+            {newBelow} new {newBelow === 1 ? 'message' : 'messages'}
+          </button>
         )}
-        <div ref={bottomRef} />
       </div>
 
       {/* Composer */}
       <form onSubmit={submit} className="border-t border-line bg-white p-3">
-        {error && <p className="mb-2 text-xs font-medium text-red-600">{error}</p>}
+        {sendError && (
+          <div role="alert" className="mb-2 flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-3.5 py-2.5 text-xs leading-relaxed text-red-700">
+            <Icon name="alert" className="mt-0.5 h-4 w-4 shrink-0" />
+            <span className="flex-1">{sendError}</span>
+            <button
+              type="button"
+              onClick={submit}
+              disabled={sending}
+              className="inline-flex min-h-10 shrink-0 items-center gap-1 font-semibold underline underline-offset-2 disabled:opacity-50"
+            >
+              <Icon name="refresh" className="h-3.5 w-3.5" />
+              Retry
+            </button>
+          </div>
+        )}
+        {error && (
+          <p role="alert" className="mb-2 text-xs font-medium text-red-600">
+            {error}
+          </p>
+        )}
         <div className="flex items-end gap-2">
           <textarea
             value={text}
@@ -150,6 +264,7 @@ export default function ChatWindow({ conversation, currentUserId, onSend, onBack
             rows={1}
             placeholder="Type your message…"
             aria-label="Message"
+            aria-describedby={hintId}
             className="max-h-32 min-h-11 flex-1 resize-none rounded-lg border border-line bg-slate-50 px-3.5 py-3 text-sm leading-relaxed focus:border-brand-400 focus:bg-white focus:ring-2 focus:ring-brand-100 focus:outline-none"
           />
           <button
@@ -161,7 +276,9 @@ export default function ChatWindow({ conversation, currentUserId, onSend, onBack
             <Icon name="send" className="h-5 w-5" />
           </button>
         </div>
-        <p className="mt-1.5 text-[11px] text-slate-400">Enter to send · Shift + Enter for a new line</p>
+        <p id={hintId} className="mt-1.5 text-[11px] text-slate-500">
+          Enter to send · Shift + Enter for a new line
+        </p>
       </form>
     </div>
   );

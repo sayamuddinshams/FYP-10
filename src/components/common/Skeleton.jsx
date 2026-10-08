@@ -6,7 +6,7 @@ export function Skeleton({ className = '', ...rest }) {
 
 export function PropertyCardSkeleton() {
   return (
-    <div className="overflow-hidden rounded-xl border border-line bg-white">
+    <div className="overflow-hidden rounded-2xl border border-line bg-white">
       <Skeleton className="h-48 w-full rounded-none" />
       <div className="space-y-3 p-4">
         <Skeleton className="h-4 w-24" />

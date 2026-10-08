@@ -1,10 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import Avatar from '../common/Avatar';
 import Icon from '../common/icons';
+import { Skeleton } from '../common/Skeleton';
 import { cn, timeAgo } from '../../utils/format';
 
 export default function ConversationList({ conversations = [], activeId, onSelect, loading = false }) {
   const [query, setQuery] = useState('');
+  const inputRef = useRef(null);
 
   const filtered = useMemo(() => {
     if (!query.trim()) return conversations;
@@ -12,12 +14,18 @@ export default function ConversationList({ conversations = [], activeId, onSelec
     return conversations.filter((c) => [c.other?.name, c.property?.title, c.lastMessage?.text].join(' ').toLowerCase().includes(q));
   }, [conversations, query]);
 
+  function clearSearch() {
+    setQuery('');
+    inputRef.current?.focus();
+  }
+
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="border-b border-line p-3.5">
         <div className="relative">
-          <Icon name="search" className="pointer-events-none absolute top-1/2 left-3 h-4.5 w-4.5 -translate-y-1/2 text-slate-400" />
+          <Icon name="search" className="pointer-events-none absolute top-1/2 left-3 h-4.5 w-4.5 -translate-y-1/2 text-slate-500" />
           <input
+            ref={inputRef}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search conversations"
@@ -25,30 +33,57 @@ export default function ConversationList({ conversations = [], activeId, onSelec
             className="h-10 w-full rounded-lg border border-line bg-slate-50 pr-3 pl-10 text-sm focus:border-brand-400 focus:bg-white focus:ring-2 focus:ring-brand-100 focus:outline-none"
           />
         </div>
+        {query.trim() && (
+          <p className="mt-2 text-xs text-slate-500" aria-live="polite">
+            {filtered.length} of {conversations.length} {conversations.length === 1 ? 'conversation' : 'conversations'} match.
+          </p>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto thin-scrollbar">
         {loading && (
           <div className="space-y-3 p-3">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="flex gap-3">
-                <div className="skeleton h-10 w-10 rounded-full" />
+              <div key={i} className="flex items-center gap-3">
+                <Skeleton className="h-10 w-10 rounded-full" />
                 <div className="flex-1 space-y-2 py-1">
-                  <div className="skeleton h-3.5 w-1/2" />
-                  <div className="skeleton h-3 w-4/5" />
+                  <Skeleton className="h-3.5 w-1/2" />
+                  <Skeleton className="h-3 w-4/5" />
                 </div>
               </div>
             ))}
           </div>
         )}
 
-        {!loading && filtered.length === 0 && (
+        {!loading && conversations.length === 0 && (
           <div className="px-5 py-12 text-center">
-            <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-slate-400">
-              <Icon name="chat" className="h-5 w-5" />
+            <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-brand-50 text-brand-700">
+              <Icon name="inbox" className="h-5 w-5" />
             </div>
-            <p className="text-sm font-medium text-slate-700">No conversations yet</p>
-            <p className="mt-1 text-xs leading-relaxed text-slate-400">Message an owner from any property page to start a conversation.</p>
+            <p className="text-sm font-semibold text-slate-800">No conversations yet</p>
+            <p className="mt-1 text-xs leading-relaxed text-slate-500">
+              Message an owner from any property page to start a conversation.
+            </p>
+          </div>
+        )}
+
+        {!loading && conversations.length > 0 && filtered.length === 0 && (
+          <div className="px-5 py-12 text-center">
+            <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+              <Icon name="search" className="h-5 w-5" />
+            </div>
+            <p className="text-sm font-semibold text-slate-800">No conversations match</p>
+            <p className="mt-1 text-xs leading-relaxed text-slate-500">
+              Try a different name, property or phrase.
+            </p>
+            <button
+              type="button"
+              onClick={clearSearch}
+              className="mt-4 inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-line bg-white px-3.5 text-sm font-semibold text-brand-700 transition hover:border-brand-300 hover:bg-brand-50"
+            >
+              <Icon name="x" className="h-4 w-4" />
+              Clear search
+            </button>
           </div>
         )}
 
@@ -60,6 +95,7 @@ export default function ConversationList({ conversations = [], activeId, onSelec
                 key={c.id}
                 type="button"
                 onClick={() => onSelect(c)}
+                aria-current={active ? 'true' : undefined}
                 className={cn(
                   'flex w-full gap-3 border-b border-line px-4 py-3.5 text-left transition',
                   active ? 'bg-brand-50/70' : 'hover:bg-slate-50'
@@ -67,18 +103,26 @@ export default function ConversationList({ conversations = [], activeId, onSelec
               >
                 <div className="relative shrink-0">
                   <Avatar name={c.other?.name} size="md" />
-                  {c.unread > 0 && <span className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-red-500" />}
+                  {c.unread > 0 && <span className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-red-500" aria-hidden="true" />}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-baseline justify-between gap-2">
-                    <p className={cn('truncate text-sm', c.unread ? 'font-bold text-slate-900' : 'font-medium text-slate-800')}>{c.other?.name}</p>
-                    <span className="shrink-0 text-[11px] text-slate-400">{c.lastMessage ? timeAgo(c.lastMessage.at) : ''}</span>
+                    <p className={cn('truncate text-sm', c.unread ? 'font-bold text-slate-900' : 'font-medium text-slate-800')}>
+                      {c.other?.name}
+                    </p>
+                    <span className="shrink-0 text-[11px] text-slate-500">{c.lastMessage ? timeAgo(c.lastMessage.at) : ''}</span>
                   </div>
-                  <p className="truncate text-xs text-slate-400">{c.property?.title}</p>
+                  <p className="truncate text-xs text-slate-500">{c.property?.title}</p>
                   <p className={cn('mt-0.5 truncate text-[13px]', c.unread ? 'font-medium text-slate-700' : 'text-slate-500')}>
                     {c.lastMessage ? c.lastMessage.text : 'No messages yet'}
                   </p>
                 </div>
+                {c.unread > 0 && (
+                  <span className="mt-1 flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-brand-900 px-1.5 text-[10px] font-bold text-white">
+                    {c.unread}
+                    <span className="sr-only"> unread</span>
+                  </span>
+                )}
               </button>
             );
           })}

@@ -35,6 +35,20 @@
   --color-muted-ink: #5a6779;
   --color-line: #e4e9f1;
 
+  /* Semantic status tokens — always use these instead of ad-hoc palette colors. */
+  --color-success: #047857;
+  --color-success-soft: #ecfdf5;
+  --color-success-line: #a7f3d0;
+  --color-warning: #b45309;
+  --color-warning-soft: #fffbeb;
+  --color-warning-line: #fde68a;
+  --color-danger: #dc2626;
+  --color-danger-soft: #fef2f2;
+  --color-danger-line: #fecaca;
+  --color-info: #1d4ed8;
+  --color-info-soft: #eff6ff;
+  --color-info-line: #bfdbfe;
+
   /* Elevation scale */
   --shadow-soft: 0 1px 2px rgba(16, 25, 43, 0.04), 0 2px 8px -2px rgba(16, 25, 43, 0.06);
   --shadow-card: 0 1px 2px rgba(16, 25, 43, 0.04), 0 8px 24px -8px rgba(16, 25, 43, 0.1);
@@ -197,6 +211,40 @@
   ::selection {
     background: var(--color-brand-900);
     color: #fff;
+  }
+  /* Pointer affordance (Tailwind v4 preflight leaves buttons as default cursor). */
+  a,
+  button:not(:disabled),
+  select:not(:disabled),
+  summary,
+  [role='button']:not([aria-disabled='true']),
+  label[for],
+  input[type='checkbox']:not(:disabled),
+  input[type='radio']:not(:disabled) {
+    cursor: pointer;
+  }
+  button:disabled,
+  select:disabled,
+  [role='button'][aria-disabled='true'] {
+    cursor: not-allowed;
+  }
+  /* Hidden until focused via skip link. */
+  .skip-link {
+    position: fixed;
+    top: 0.5rem;
+    left: 0.5rem;
+    z-index: 100;
+    transform: translateY(-160%);
+    border-radius: 0.75rem;
+    background: var(--color-brand-900);
+    padding: 0.65rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #fff;
+    transition: transform 0.18s ease-out;
+  }
+  .skip-link:focus-visible {
+    transform: none;
   }
 }
 

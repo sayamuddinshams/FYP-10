@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import Avatar from '../common/Avatar';
 import Icon from '../common/icons';
@@ -58,6 +58,13 @@ export default function Header() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [search, setSearch] = useState({ label: '', district: '', city: '', area: '', type: '' });
 
+  const searchPanelRef = useRef(null);
+  const drawerRef = useRef(null);
+  const burgerRef = useRef(null);
+  const searchToggleRef = useRef(null);
+  const searchWasOpen = useRef(false);
+  const drawerWasOpen = useRef(false);
+
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
     onScroll();
@@ -69,6 +76,68 @@ export default function Header() {
     setMobileOpen(false);
     setSearchOpen(false);
   }, [location.pathname]);
+
+  // Search panel: focus the field on open, hand focus back to the toggle on close.
+  useEffect(() => {
+    if (searchOpen) {
+      searchWasOpen.current = true;
+      searchPanelRef.current?.querySelector('input, select')?.focus();
+    } else if (searchWasOpen.current) {
+      searchWasOpen.current = false;
+      searchToggleRef.current?.focus();
+    }
+  }, [searchOpen]);
+
+  // Mobile drawer: Escape closes, focus moves in, Tab cycles, focus returns to the toggle.
+  useEffect(() => {
+    if (!mobileOpen) {
+      if (drawerWasOpen.current) burgerRef.current?.focus();
+      drawerWasOpen.current = false;
+      return undefined;
+    }
+    drawerWasOpen.current = true;
+    const panel = drawerRef.current;
+    const focusables = () =>
+      Array.from(panel?.querySelectorAll('a[href], button:not([disabled])') || []).filter(
+        (el) => el.offsetParent !== null
+      );
+    focusables()[0]?.focus();
+
+    const onKey = (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setMobileOpen(false);
+        return;
+      }
+      if (e.key !== 'Tab') return;
+      const list = focusables();
+      if (!list.length) return;
+      const first = list[0];
+      const last = list[list.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [mobileOpen]);
+
+  // Search closes on Escape without stealing focus from the drawer.
+  useEffect(() => {
+    if (!searchOpen) return undefined;
+    const onKey = (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setSearchOpen(false);
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [searchOpen]);
 
   function goSearch() {
     const params = new URLSearchParams();
@@ -107,7 +176,7 @@ export default function Header() {
           }
           navigate(user.role === 'owner' ? '/owner/notifications' : user.role === 'admin' ? '/admin/notifications' : '/tenant/notifications');
         }}
-        aria-label="Notifications"
+        aria-label={unread > 0 ? `Notifications, ${unread} unread` : 'Notifications'}
         className="relative rounded-xl p-2 text-slate-500 transition-all duration-200 hover:-translate-y-px hover:bg-brand-50 hover:text-brand-700"
       >
         <Icon name="bell" className="h-5 w-5" />
@@ -118,7 +187,7 @@ export default function Header() {
         )}
       </button>
 
-      <ProfileMenu user={user} onLogout={handleLogout} />
+      <ProfileDropdown user={user} onLogout={handleLogout} />
     </div>
   ) : (
     <div className="flex items-center gap-2">
@@ -155,7 +224,7 @@ export default function Header() {
             <span className="block text-[19px] font-extrabold tracking-tight text-brand-950">
               Rent<span className="text-primary">Link</span>
             </span>
-            <span className="mt-0.5 block text-[10px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
+            <span className="mt-0.5 block text-[10px] font-semibold tracking-[0.18em] text-slate-500 uppercase">
               Gilgit-Baltistan
             </span>
           </span>
@@ -192,10 +261,12 @@ export default function Header() {
         {/* Actions */}
         <div className="flex items-center gap-1.5 sm:gap-2">
           <button
+            ref={searchToggleRef}
             type="button"
             onClick={() => setSearchOpen((v) => !v)}
             aria-label="Search properties"
             aria-expanded={searchOpen}
+            aria-controls="header-search"
             className={cn(
               'rounded-xl p-2 transition-all duration-200 hover:-translate-y-px',
               searchOpen ? 'bg-brand-50 text-brand-700' : 'text-slate-500 hover:bg-brand-50 hover:text-brand-700'
@@ -207,7 +278,7 @@ export default function Header() {
           <button
             type="button"
             onClick={() => onGuarded('/tenant/saved', 'Sign in to view your saved properties.')}
-            aria-label="Favorites"
+            aria-label="Saved properties"
             className="hidden rounded-xl p-2 text-slate-500 transition-all duration-200 hover:-translate-y-px hover:bg-brand-50 hover:text-brand-700 sm:block"
           >
             <Icon name="heart" className="h-5 w-5" />
@@ -216,10 +287,12 @@ export default function Header() {
           <span className="hidden xl:block">{avatarMenu}</span>
 
           <button
+            ref={burgerRef}
             type="button"
             onClick={() => setMobileOpen((v) => !v)}
             aria-label="Open navigation menu"
             aria-expanded={mobileOpen}
+            aria-controls="mobile-nav"
             className="rounded-xl border border-line bg-white p-2 text-slate-600 shadow-soft transition-all duration-200 hover:border-brand-200 hover:bg-brand-50 hover:text-brand-700 xl:hidden"
           >
             <Icon name={mobileOpen ? 'x' : 'menu'} className="h-5 w-5" />
@@ -229,14 +302,24 @@ export default function Header() {
 
       {/* Search bar */}
       <div
+        id="header-search"
+        ref={searchPanelRef}
         className={cn(
-          'overflow-hidden border-t border-line/70 bg-white/98 backdrop-blur-md transition-all duration-300',
-          searchOpen ? 'max-h-64 opacity-100' : 'max-h-0 opacity-0'
+          // `invisible` keeps the collapsed panel out of the tab order and a11y tree.
+          'overflow-hidden border-t border-line/70 bg-white/98 backdrop-blur-md transition-[max-height,opacity,visibility] duration-300',
+          searchOpen ? 'visible max-h-64 opacity-100' : 'invisible max-h-0 opacity-0'
         )}
       >
         <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              goSearch();
+            }}
+            className="flex flex-col gap-2.5 sm:flex-row sm:items-center"
+          >
             <LocationAutocomplete
+              ariaLabel="Search location"
               className="flex-1"
               inputClassName="h-12"
               value={search.label}
@@ -264,11 +347,11 @@ export default function Header() {
                 </option>
               ))}
             </select>
-            <Button size="lg" onClick={goSearch} className="sm:w-auto">
+            <Button type="submit" size="lg" className="sm:w-auto">
               <Icon name="search" className="h-4.5 w-4.5" />
               Search
             </Button>
-          </div>
+          </form>
         </div>
       </div>
 
@@ -276,9 +359,15 @@ export default function Header() {
       <div className={cn('fixed inset-0 z-50 xl:hidden', mobileOpen ? '' : 'pointer-events-none')} aria-hidden={!mobileOpen}>
         <div onClick={() => setMobileOpen(false)} className={cn('absolute inset-0 bg-slate-950/45 backdrop-blur-sm transition-opacity', mobileOpen ? 'opacity-100' : 'opacity-0')} />
         <div
+          id="mobile-nav"
+          ref={drawerRef}
+          role="dialog"
+          aria-modal={mobileOpen || undefined}
+          aria-label="Navigation menu"
           className={cn(
-            'absolute inset-y-0 right-0 flex w-80 max-w-[88%] flex-col bg-white shadow-pop transition-transform duration-300',
-            mobileOpen ? 'translate-x-0' : 'translate-x-full'
+            // `invisible` removes the closed drawer from the tab order and a11y tree.
+            'absolute inset-y-0 right-0 flex w-80 max-w-[88%] flex-col bg-white shadow-pop transition-[transform,visibility] duration-300',
+            mobileOpen ? 'visible translate-x-0' : 'invisible translate-x-full'
           )}
         >
           <div className="flex items-center justify-between border-b border-line px-5 py-4">
@@ -286,7 +375,7 @@ export default function Header() {
               <LogoMark size="sm" />
               <span className="text-base font-extrabold tracking-tight text-brand-950">RentLink</span>
             </div>
-            <button type="button" onClick={() => setMobileOpen(false)} aria-label="Close menu" className="rounded-lg p-2 text-slate-400 hover:bg-slate-100">
+            <button type="button" onClick={() => setMobileOpen(false)} aria-label="Close menu" className="rounded-lg p-2 text-slate-500 hover:bg-slate-100">
               <Icon name="x" className="h-5 w-5" />
             </button>
           </div>
@@ -352,9 +441,9 @@ export default function Header() {
                 <Avatar name={user.name} size="sm" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold text-slate-900">{user.name}</p>
-                  <p className="truncate text-xs text-slate-400">{user.email}</p>
+                  <p className="truncate text-xs text-slate-500">{user.email}</p>
                 </div>
-                <button type="button" onClick={handleLogout} aria-label="Log out" className="rounded-lg p-2 text-slate-400 hover:bg-red-50 hover:text-red-600">
+                <button type="button" onClick={handleLogout} aria-label="Log out" className="rounded-lg p-2 text-slate-500 hover:bg-red-50 hover:text-red-600">
                   <Icon name="logout" className="h-5 w-5" />
                 </button>
               </div>
@@ -374,10 +463,6 @@ export default function Header() {
       </div>
     </header>
   );
-}
-
-function ProfileMenu({ user, onLogout }) {
-  return <ProfileDropdown user={user} onLogout={onLogout} />;
 }
 
 function ProfileDropdown({ user, onLogout }) {
@@ -410,14 +495,14 @@ function ProfileDropdown({ user, onLogout }) {
         className="flex items-center gap-1.5 rounded-xl p-1 transition-all duration-200 hover:bg-slate-100"
       >
         <Avatar name={user.name} size="sm" />
-        <Icon name="chevronDown" className={cn('hidden h-4 w-4 text-slate-400 transition-transform duration-200 sm:block', open && 'rotate-180')} />
+        <Icon name="chevronDown" className={cn('hidden h-4 w-4 text-slate-500 transition-transform duration-200 sm:block', open && 'rotate-180')} />
       </button>
 
       {open && (
         <div className="absolute right-0 z-50 mt-2 w-60 overflow-hidden rounded-2xl border border-line bg-white py-1.5 shadow-pop animate-pop">
           <div className="border-b border-line px-4 py-3">
             <p className="truncate text-sm font-semibold text-slate-900">{user.name}</p>
-            <p className="truncate text-xs text-slate-400">{user.email}</p>
+            <p className="truncate text-xs text-slate-500">{user.email}</p>
           </div>
           <button
             type="button"
@@ -427,7 +512,7 @@ function ProfileDropdown({ user, onLogout }) {
             }}
             className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm text-slate-700 transition hover:bg-brand-50 hover:text-brand-800"
           >
-            <Icon name="grid" className="h-4 w-4 text-slate-400" />
+            <Icon name="grid" className="h-4 w-4 text-slate-500" />
             My Dashboard
           </button>
           <button
@@ -438,7 +523,7 @@ function ProfileDropdown({ user, onLogout }) {
             }}
             className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm text-slate-700 transition hover:bg-brand-50 hover:text-brand-800"
           >
-            <Icon name="user" className="h-4 w-4 text-slate-400" />
+            <Icon name="user" className="h-4 w-4 text-slate-500" />
             Profile
           </button>
           <button
@@ -449,7 +534,7 @@ function ProfileDropdown({ user, onLogout }) {
             }}
             className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm text-slate-700 transition hover:bg-brand-50 hover:text-brand-800"
           >
-            <Icon name="settings" className="h-4 w-4 text-slate-400" />
+            <Icon name="settings" className="h-4 w-4 text-slate-500" />
             Settings
           </button>
           <div className="my-1.5 h-px bg-line" />

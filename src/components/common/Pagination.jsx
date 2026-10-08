@@ -16,7 +16,8 @@ export default function Pagination({ page = 1, pages = 1, onChange, className = 
         type="button"
         onClick={() => onChange(page - 1)}
         disabled={page === 1}
-        className="h-9 rounded-lg border border-line bg-white px-3 text-sm font-medium text-slate-600 transition hover:border-brand-300 hover:text-brand-700 disabled:pointer-events-none disabled:opacity-40"
+        aria-label="Previous page"
+        className="h-10 rounded-lg border border-line bg-white px-3.5 text-sm font-medium text-slate-600 transition hover:border-brand-300 hover:text-brand-700 disabled:pointer-events-none disabled:opacity-40"
       >
         Previous
       </button>
@@ -26,8 +27,9 @@ export default function Pagination({ page = 1, pages = 1, onChange, className = 
           type="button"
           onClick={() => onChange(p)}
           aria-current={p === page ? 'page' : undefined}
+          aria-label={`Page ${p}${p === page ? ', current page' : ''}`}
           className={cn(
-            'h-9 min-w-9 rounded-lg border px-3 text-sm font-medium transition',
+            'h-10 min-w-10 rounded-lg border px-3 text-sm font-medium transition',
             p === page ? 'border-brand-800 bg-brand-800 text-white' : 'border-line bg-white text-slate-600 hover:border-brand-300 hover:text-brand-700'
           )}
         >
@@ -38,7 +40,8 @@ export default function Pagination({ page = 1, pages = 1, onChange, className = 
         type="button"
         onClick={() => onChange(page + 1)}
         disabled={page === pages}
-        className="h-9 rounded-lg border border-line bg-white px-3 text-sm font-medium text-slate-600 transition hover:border-brand-300 hover:text-brand-700 disabled:pointer-events-none disabled:opacity-40"
+        aria-label="Next page"
+        className="h-10 rounded-lg border border-line bg-white px-3.5 text-sm font-medium text-slate-600 transition hover:border-brand-300 hover:text-brand-700 disabled:pointer-events-none disabled:opacity-40"
       >
         Next
       </button>

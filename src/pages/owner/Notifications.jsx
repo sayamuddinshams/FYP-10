@@ -134,6 +134,13 @@ export default function Notifications() {
           value={tab}
           onChange={setTab}
         />
+        <p className="mt-2 text-xs text-slate-500" aria-live="polite">
+          {loading && !data
+            ? 'Loading notifications…'
+            : error && !data
+              ? 'Notifications could not be loaded.'
+              : `${rows.length} ${rows.length === 1 ? 'notification' : 'notifications'} shown · ${unreadCount} unread`}
+        </p>
       </div>
 
       {error && !data && <ErrorState message={error} onRetry={reload} />}
@@ -179,11 +186,11 @@ export default function Notifications() {
                             New
                           </span>
                         )}
-                        <span className="ml-auto text-xs text-slate-400">{timeAgo(note.at)}</span>
+                        <span className="ml-auto text-xs text-slate-500">{timeAgo(note.at)}</span>
                       </span>
                       <span className="mt-1 block text-sm leading-relaxed text-slate-600">{note.body}</span>
                       <span className="mt-1.5 flex flex-wrap items-center gap-3 text-xs">
-                        <span className="font-medium text-slate-400">{meta.group}</span>
+                        <span className="font-medium text-slate-500">{meta.group}</span>
                         {note.link && (
                           <span className="inline-flex items-center gap-1 font-semibold text-brand-700 transition group-hover:text-brand-900">
                             Open
@@ -198,7 +205,7 @@ export default function Notifications() {
                         type="button"
                         onClick={() => markRead(note)}
                         aria-label={`Mark "${note.title}" as read`}
-                        className="mt-1 hidden h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-line text-slate-400 transition hover:border-brand-300 hover:text-brand-700 sm:flex"
+                        className="mt-1 hidden h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-line text-slate-500 transition hover:border-brand-300 hover:text-brand-700 sm:flex"
                       >
                         <Icon name="check" className="h-4 w-4" />
                       </button>

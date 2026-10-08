@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useModals } from '../context/ModalContext';
 import { PageLoader } from '../components/common/Spinner';
@@ -12,7 +12,7 @@ function dashboardPath(role) {
   return '/tenant/dashboard';
 }
 
-function SignInRequired({ message, onSignIn }) {
+function SignInRequired({ message, onSignIn, onBrowse }) {
   return (
     <div className="flex min-h-[70vh] flex-col items-center justify-center px-6 text-center animate-fade-up">
       <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-50 text-brand-700">
@@ -24,7 +24,7 @@ function SignInRequired({ message, onSignIn }) {
         <Button size="lg" onClick={onSignIn}>
           Login / Sign Up
         </Button>
-        <Button size="lg" variant="outline" onClick={() => window.location.assign('/browse')}>
+        <Button size="lg" variant="outline" onClick={onBrowse}>
           Keep browsing
         </Button>
       </div>
@@ -39,6 +39,7 @@ function SignInRequired({ message, onSignIn }) {
 export default function RequireAuth({ role, allowedRoles, children, message }) {
   const { user, initializing } = useAuth();
   const { openAuth } = useModals();
+  const navigate = useNavigate();
   const [prompted, setPrompted] = useState(false);
 
   useEffect(() => {
@@ -55,6 +56,7 @@ export default function RequireAuth({ role, allowedRoles, children, message }) {
       <SignInRequired
         message={message || 'This area is only available to signed-in members. Sign in to manage your visits, messages and saved properties.'}
         onSignIn={() => openAuth('login')}
+        onBrowse={() => navigate('/browse')}
       />
     );
   }

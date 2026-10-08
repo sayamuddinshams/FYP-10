@@ -1,28 +1,70 @@
+import { useId, useState } from 'react';
 import Icon from '../common/icons';
 import MultiSelect from './MultiSelect';
 import { PROPERTY_TYPES, PRICE_RANGES } from '../../utils/constants';
 import { LOCATIONS, DISTRICTS, getCities, getAreas } from '../../data/locations';
 import { cn, formatPrice } from '../../utils/format';
 
+/**
+ * Number of active filter dimensions (mirrors the FilterChips row).
+ * Used for the mobile filter trigger badge.
+ */
+export function countActiveFilters(filters) {
+  if (!filters) return 0;
+  return (
+    (filters.types || []).length +
+    (filters.districts || []).length +
+    (filters.cities || []).length +
+    (filters.areas || []).length +
+    (filters.minPrice || filters.maxPrice ? 1 : 0) +
+    (filters.bedrooms ? 1 : 0) +
+    (filters.bathrooms ? 1 : 0) +
+    (filters.furnished ? 1 : 0) +
+    (filters.availability ? 1 : 0) +
+    (filters.verifiedOnly ? 1 : 0)
+  );
+}
+
+/** Collapsible filter group — exposes aria-expanded / aria-controls on the toggle. */
 function Section({ title, children }) {
+  const [open, setOpen] = useState(true);
+  const contentId = useId();
   return (
     <section className="border-b border-line py-5 first:pt-0 last:border-0 last:pb-0">
-      <h3 className="mb-3 text-xs font-bold tracking-[0.1em] text-slate-500 uppercase">{title}</h3>
-      {children}
+      <h3>
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-controls={contentId}
+          onClick={() => setOpen((v) => !v)}
+          className="flex w-full items-center justify-between gap-3 rounded-lg py-1 text-left transition hover:text-brand-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
+        >
+          <span className="text-xs font-bold tracking-[0.1em] text-slate-500 uppercase">{title}</span>
+          <Icon
+            name="chevronDown"
+            aria-hidden="true"
+            className={cn('h-4 w-4 shrink-0 text-slate-500 transition-transform duration-200', open ? '' : '-rotate-90')}
+          />
+        </button>
+      </h3>
+      <div id={contentId} hidden={!open} className="mt-3">
+        {children}
+      </div>
     </section>
   );
 }
 
 function Segment({ options, value, onChange }) {
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap gap-2" role="group">
       {options.map((opt) => (
         <button
           key={opt.value}
           type="button"
+          aria-pressed={value === opt.value}
           onClick={() => onChange(opt.value)}
           className={cn(
-            'min-w-11 rounded-lg border px-3 py-1.5 text-sm font-medium transition',
+            'min-h-10 min-w-11 rounded-full border px-3 py-1.5 text-sm font-medium transition',
             value === opt.value
               ? 'border-brand-800 bg-brand-800 text-white'
               : 'border-line bg-white text-slate-600 hover:border-brand-300 hover:text-brand-700'
@@ -61,8 +103,9 @@ export default function PropertyFilters({ filters, onChange, onReset }) {
   const set = (patch) => onChange({ ...patch, page: 1 });
 
   return (
-    <div className="rounded-xl border border-line bg-white p-5">
-      <div className="mb-4 flex items-center justify-between gap-3 border-b border-line pb-4">
+    <div className="rounded-2xl border border-line bg-white p-5 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:thin-scrollbar">
+      {/* Sticky on desktop so "Reset all" stays reachable while the panel scrolls. */}
+      <div className="mb-4 flex items-center justify-between gap-3 border-b border-line bg-white pb-4 lg:sticky lg:top-0 lg:z-10 lg:-mx-5 lg:-mt-5 lg:px-5 lg:pt-5">
         <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
           <Icon name="filter" className="h-4.5 w-4.5 text-brand-700" />
           Filters
@@ -70,7 +113,7 @@ export default function PropertyFilters({ filters, onChange, onReset }) {
         <button
           type="button"
           onClick={onReset}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 transition hover:text-red-600"
+          className="inline-flex min-h-10 items-center gap-1.5 text-xs font-semibold text-slate-500 transition hover:text-red-600"
         >
           <Icon name="refresh" className="h-3.5 w-3.5" />
           Reset all
@@ -111,7 +154,7 @@ export default function PropertyFilters({ filters, onChange, onReset }) {
       <Section title="Price range (per month)">
         <div className="grid grid-cols-2 gap-2.5">
           <label className="block">
-            <span className="mb-1 block text-xs text-slate-400">Min</span>
+            <span className="mb-1 block text-xs text-slate-500">Min</span>
             <input
               type="number"
               min="0"
@@ -119,11 +162,11 @@ export default function PropertyFilters({ filters, onChange, onReset }) {
               value={filters.minPrice ?? ''}
               onChange={(e) => set({ minPrice: e.target.value })}
               placeholder="0"
-              className="h-10 w-full rounded-lg border border-line px-3 text-sm focus:border-brand-400 focus:ring-2 focus:ring-brand-100 focus:outline-none"
+              className="h-10 w-full rounded-xl border border-line px-3 text-sm focus:border-brand-400 focus:ring-2 focus:ring-brand-100 focus:outline-none"
             />
           </label>
           <label className="block">
-            <span className="mb-1 block text-xs text-slate-400">Max</span>
+            <span className="mb-1 block text-xs text-slate-500">Max</span>
             <input
               type="number"
               min="0"
@@ -131,7 +174,7 @@ export default function PropertyFilters({ filters, onChange, onReset }) {
               value={filters.maxPrice ?? ''}
               onChange={(e) => set({ maxPrice: e.target.value })}
               placeholder="Any"
-              className="h-10 w-full rounded-lg border border-line px-3 text-sm focus:border-brand-400 focus:ring-2 focus:ring-brand-100 focus:outline-none"
+              className="h-10 w-full rounded-xl border border-line px-3 text-sm focus:border-brand-400 focus:ring-2 focus:ring-brand-100 focus:outline-none"
             />
           </label>
         </div>
@@ -142,6 +185,7 @@ export default function PropertyFilters({ filters, onChange, onReset }) {
               <button
                 key={range.label}
                 type="button"
+                aria-pressed={active}
                 onClick={() =>
                   set({
                     minPrice: range.min || '',
@@ -149,7 +193,7 @@ export default function PropertyFilters({ filters, onChange, onReset }) {
                   })
                 }
                 className={cn(
-                  'rounded-md border px-2 py-1 text-[11px] font-medium transition',
+                  'min-h-10 rounded-full border px-3 py-1 text-xs font-medium transition',
                   active ? 'border-brand-700 bg-brand-50 text-brand-800' : 'border-line text-slate-500 hover:border-brand-300'
                 )}
               >
@@ -201,12 +245,12 @@ export default function PropertyFilters({ filters, onChange, onReset }) {
 
       <Section title="Availability">
         <label className="block">
-          <span className="mb-1.5 block text-xs text-slate-400">Available on or before</span>
+          <span className="mb-1.5 block text-xs text-slate-500">Available on or before</span>
           <input
             type="date"
             value={filters.availability || ''}
             onChange={(e) => set({ availability: e.target.value })}
-            className="h-10 w-full rounded-lg border border-line px-3 text-sm text-slate-700 focus:border-brand-400 focus:ring-2 focus:ring-brand-100 focus:outline-none"
+            className="h-10 w-full rounded-xl border border-line px-3 text-sm text-slate-700 focus:border-brand-400 focus:ring-2 focus:ring-brand-100 focus:outline-none"
           />
         </label>
       </Section>
@@ -221,12 +265,12 @@ export default function PropertyFilters({ filters, onChange, onReset }) {
           />
           <span className="text-sm text-slate-600">
             <span className="block font-medium text-slate-800">Verified owners only</span>
-            <span className="block text-xs text-slate-400">Listings from identity-verified owners</span>
+            <span className="block text-xs text-slate-500">Listings from identity-verified owners</span>
           </span>
         </label>
       </Section>
 
-      <div className="mt-5 rounded-lg bg-slate-50 p-3.5 text-xs leading-relaxed text-slate-500">
+      <div className="mt-5 rounded-xl bg-slate-50 p-3.5 text-xs leading-relaxed text-slate-500">
         <p className="font-semibold text-slate-600">Need something specific?</p>
         <p className="mt-1">Refine by district, city and locality — for example Jutial, Karimabad or Sadpara.</p>
       </div>
@@ -262,8 +306,9 @@ export function FilterChips({ filters, onChange }) {
         <button
           key={chip.label}
           type="button"
+          aria-label={`Remove filter: ${chip.label}`}
           onClick={() => onChange({ ...chip.patch, page: 1 })}
-          className="group inline-flex items-center gap-1.5 rounded-full border border-brand-100 bg-brand-50 py-1.5 pr-2.5 pl-3 text-xs font-medium text-brand-800 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+          className="group inline-flex min-h-10 items-center gap-1.5 rounded-full border border-brand-100 bg-brand-50 py-1.5 pr-2.5 pl-3 text-xs font-medium text-brand-800 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
         >
           {chip.label}
           <Icon name="x" className="h-3.5 w-3.5" />
@@ -287,9 +332,9 @@ export function FilterChips({ filters, onChange }) {
             page: 1,
           })
         }
-        className="text-xs font-semibold text-slate-500 underline-offset-4 transition hover:text-red-600 hover:underline"
+        className="inline-flex min-h-10 items-center text-xs font-semibold text-slate-500 underline-offset-4 transition hover:text-red-600 hover:underline"
       >
-        Clear all
+        Clear all filters
       </button>
     </div>
   );

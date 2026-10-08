@@ -1,12 +1,15 @@
-import { useId, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import Button from '../../components/common/Button';
 import Icon from '../../components/common/icons';
 import { Select } from '../../components/common/Input';
 import PageHeader from '../../components/dashboard/PageHeader';
+import { PageLoader } from '../../components/common/Spinner';
 import { cn } from '../../utils/format';
 import { useDocumentTitle } from '../../hooks';
+import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { useModals } from '../../context/ModalContext';
+import userService from '../../services/userService';
 
 /** Accessible switch built from a styled checkbox button. */
 function Toggle({ checked, onChange, label, description, disabled = false }) {
@@ -29,6 +32,7 @@ function Toggle({ checked, onChange, label, description, disabled = false }) {
         onClick={() => onChange(!checked)}
         className={cn(
           'relative mt-0.5 inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors duration-200',
+          'after:absolute after:-inset-2 after:content-[""]',
           'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500',
           checked ? 'bg-brand-900' : 'bg-slate-200',
           disabled && 'cursor-not-allowed opacity-50'
@@ -68,22 +72,70 @@ const INITIAL_SETTINGS = {
   loginAlerts: true,
 };
 
+/** Reads the real browser/OS from the user agent — no invented device names. */
+function detectThisDevice() {
+  if (typeof navigator === 'undefined') return 'This browser';
+  const ua = navigator.userAgent;
+  const browser = /Edg\//.test(ua)
+    ? 'Edge'
+    : /OPR\//.test(ua)
+      ? 'Opera'
+      : /Firefox\//.test(ua)
+        ? 'Firefox'
+        : /Chrome\//.test(ua)
+          ? 'Chrome'
+          : /Safari\//.test(ua)
+            ? 'Safari'
+            : 'Browser';
+  const os = /Windows/.test(ua)
+    ? 'Windows'
+    : /Mac OS/.test(ua)
+      ? 'macOS'
+      : /Android/.test(ua)
+        ? 'Android'
+        : /iPhone|iPad/.test(ua)
+          ? 'iOS'
+          : /Linux/.test(ua)
+            ? 'Linux'
+            : '';
+  return os ? `${browser} · ${os}` : browser;
+}
+
 export default function Settings() {
   useDocumentTitle('Settings');
+  const { user } = useAuth();
   const toast = useToast();
   const { confirm } = useModals();
 
-  const [settings, setSettings] = useState(INITIAL_SETTINGS);
+  const [settings, setSettings] = useState(() => ({ ...INITIAL_SETTINGS, ...(user?.appSettings || {}) }));
   const [dirty, setDirty] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  // Load any stored settings once the profile is available.
+  useEffect(() => {
+    setSettings({ ...INITIAL_SETTINGS, ...(user?.appSettings || {}) });
+    setDirty(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
+  if (!user) return <PageLoader label="Loading your settings…" />;
 
   function set(key, value) {
     setSettings((s) => ({ ...s, [key]: value }));
     setDirty(true);
   }
 
-  function handleSave() {
-    setDirty(false);
-    toast.success('Settings saved.');
+  async function handleSave() {
+    setSaving(true);
+    try {
+      await userService.updateProfile(user.id, { appSettings: settings });
+      setDirty(false);
+      toast.success('Settings saved.');
+    } catch (err) {
+      toast.error(err?.message || 'Could not save your settings. Please try again.');
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function handleSignOutOthers() {
@@ -115,10 +167,15 @@ export default function Settings() {
         title="Settings"
         subtitle="Manage notifications, privacy, security and your account."
         actions={
-          <Button disabled={!dirty} onClick={handleSave}>
-            <Icon name="check" className="h-4 w-4" />
-            Save settings
-          </Button>
+          <>
+            <span role="status" aria-live="polite" className="sr-only">
+              {dirty ? 'You have unsaved changes.' : 'All changes saved.'}
+            </span>
+            <Button disabled={!dirty || saving} loading={saving} onClick={handleSave}>
+              <Icon name="check" className="h-4 w-4" />
+              Save settings
+            </Button>
+          </>
         }
       />
 
@@ -201,18 +258,20 @@ export default function Settings() {
               </span>
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-slate-800">This device</p>
-                <p className="truncate text-xs text-slate-500">Chrome · Windows — signed in now</p>
+                <p className="truncate text-xs text-slate-500">{detectThisDevice()} — signed in now</p>
               </div>
             </div>
             <span className="inline-flex shrink-0 items-center gap-1.5 text-xs font-semibold text-emerald-600">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
+              <Icon name="check" className="h-4 w-4" />
               Active
             </span>
           </div>
-          <div className="flex items-center justify-between gap-4 py-3.5">
+          <div className="flex flex-col gap-4 py-3.5 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-slate-800">2 other sessions</p>
-              <p className="mt-0.5 text-xs text-slate-500">Two other devices are currently signed in to your account.</p>
+              <p className="text-sm font-semibold text-slate-800">Other devices</p>
+              <p className="mt-0.5 text-xs leading-relaxed text-slate-500">
+                If you are signed in anywhere else, ending those sessions will sign you out there immediately.
+              </p>
             </div>
             <Button variant="danger" size="sm" className="shrink-0" onClick={handleSignOutOthers}>
               <Icon name="logout" className="h-4 w-4" />

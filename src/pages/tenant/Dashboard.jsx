@@ -4,10 +4,17 @@ import Avatar from '../../components/common/Avatar';
 import Button from '../../components/common/Button';
 import Icon from '../../components/common/icons';
 import PropertyCard from '../../components/property/PropertyCard';
+import PageHeader from '../../components/dashboard/PageHeader';
 import StatCard from '../../components/dashboard/StatCard';
 import { VisitStatusBadge } from '../../components/common/Badge';
 import { ErrorState } from '../../components/common/Feedback';
-import { Skeleton, StatSkeleton, PropertyGridSkeleton, RowSkeleton } from '../../components/common/Skeleton';
+import {
+  Skeleton,
+  StatSkeleton,
+  PropertyCardSkeleton,
+  RowSkeleton,
+} from '../../components/common/Skeleton';
+import { PageLoader } from '../../components/common/Spinner';
 import { cn, formatDate, greeting, timeAgo } from '../../utils/format';
 import { useAsync, useDocumentTitle } from '../../hooks';
 import { useAuth } from '../../context/AuthContext';
@@ -41,7 +48,7 @@ function Section({ title, to, toLabel = 'View all', className = '', children }) 
         {to && (
           <Link
             to={to}
-            className="inline-flex items-center gap-1 text-sm font-semibold text-brand-700 transition hover:text-brand-900"
+            className="inline-flex min-h-10 items-center gap-1 text-sm font-semibold text-brand-700 transition hover:text-brand-900"
           >
             {toLabel}
             <Icon name="arrowRight" className="h-3.5 w-3.5" />
@@ -56,7 +63,7 @@ function Section({ title, to, toLabel = 'View all', className = '', children }) 
 function SectionEmpty({ icon, title, message, actionLabel, onAction }) {
   return (
     <div className="flex flex-col items-center justify-center rounded-xl bg-slate-50/70 px-6 py-10 text-center">
-      <span className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-white text-slate-400 ring-1 ring-line">
+      <span className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-white text-slate-500 ring-1 ring-line">
         <Icon name={icon} className="h-5 w-5" />
       </span>
       <p className="text-sm font-semibold text-slate-800">{title}</p>
@@ -66,6 +73,58 @@ function SectionEmpty({ icon, title, message, actionLabel, onAction }) {
           {actionLabel}
         </Button>
       )}
+    </div>
+  );
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="animate-fade-up">
+      {/* Header */}
+      <div className="mb-7">
+        <Skeleton className="h-8 w-64 max-w-full" />
+        <Skeleton className="mt-3 h-4 w-96 max-w-full" />
+      </div>
+
+      {/* Stat strip */}
+      <div className="mb-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <StatSkeleton key={i} />
+        ))}
+      </div>
+
+      {/* Content grid */}
+      <div className="grid gap-5 lg:grid-cols-5">
+        <section className="rounded-xl border border-line bg-white p-5 sm:p-6 lg:col-span-3">
+          <Skeleton className="mb-5 h-5 w-44" />
+          <div className="grid gap-5 sm:grid-cols-2">
+            <PropertyCardSkeleton />
+            <PropertyCardSkeleton />
+            <PropertyCardSkeleton />
+            <PropertyCardSkeleton />
+          </div>
+        </section>
+        <div className="space-y-5 lg:col-span-2">
+          <section className="rounded-xl border border-line bg-white p-5 sm:p-6">
+            <Skeleton className="mb-5 h-5 w-36" />
+            <RowSkeleton rows={3} />
+          </section>
+          <section className="rounded-xl border border-line bg-white p-5 sm:p-6">
+            <Skeleton className="mb-5 h-5 w-36" />
+            <RowSkeleton rows={4} />
+          </section>
+        </div>
+      </div>
+
+      {/* Recommended */}
+      <section className="mt-5 rounded-xl border border-line bg-white p-5 sm:p-6">
+        <Skeleton className="mb-5 h-5 w-48" />
+        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+          <PropertyCardSkeleton />
+          <PropertyCardSkeleton />
+          <PropertyCardSkeleton />
+        </div>
+      </section>
     </div>
   );
 }
@@ -110,54 +169,49 @@ export default function Dashboard() {
 
   const error = favorites.error || pending.error || approved.error || convos.error || recommended.error;
 
-  if (!user) return null;
+  if (!user) return <PageLoader label="Loading your dashboard…" />;
+
+  const header = (
+    <PageHeader
+      title={`${greeting()}, ${user.name.split(' ')[0]}`}
+      subtitle="Here is what is happening with your property search."
+      actions={
+        <Button variant="outline" onClick={() => navigate('/browse')}>
+          <Icon name="search" className="h-4 w-4" />
+          Browse properties
+        </Button>
+      }
+    />
+  );
 
   if (error) {
     return (
-      <ErrorState
-        message={error}
-        onRetry={() => {
-          favorites.reload();
-          pending.reload();
-          approved.reload();
-          convos.reload();
-          recommended.reload();
-        }}
-      />
+      <div className="animate-fade-up">
+        {header}
+        <ErrorState
+          message={error}
+          onRetry={() => {
+            favorites.reload();
+            pending.reload();
+            approved.reload();
+            convos.reload();
+            recommended.reload();
+          }}
+        />
+      </div>
     );
   }
 
   if (loading) {
-    return (
-      <div className="animate-fade-up space-y-6">
-        <div>
-          <Skeleton className="h-8 w-64 rounded-lg" />
-          <Skeleton className="mt-3 h-4 w-96 max-w-full rounded-lg" />
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <StatSkeleton key={i} />
-          ))}
-        </div>
-        <div className="grid gap-6 lg:grid-cols-2">
-          <PropertyGridSkeleton count={2} />
-          <RowSkeleton rows={3} />
-        </div>
-        <PropertyGridSkeleton count={3} />
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   return (
-    <div className="animate-fade-up space-y-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
-          {greeting()}, {user.name.split(' ')[0]}
-        </h1>
-        <p className="text-sm text-slate-500">Here is what is happening with your property search.</p>
-      </div>
+    <div className="animate-fade-up">
+      {header}
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {/* Stat strip */}
+      <div className="mb-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label="Saved Properties"
           value={savedList.length}
@@ -188,11 +242,12 @@ export default function Dashboard() {
         />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-5">
+      {/* Content grid */}
+      <div className="grid gap-5 lg:grid-cols-5">
         <Section title="Recent Saved Properties" to="/tenant/saved" className="lg:col-span-3">
           {savedList.length === 0 ? (
             <SectionEmpty
-              icon="bookmark"
+              icon="heart"
               title="Nothing saved yet"
               message="Tap the heart on any listing to keep it here for later."
               actionLabel="Browse properties"
@@ -200,14 +255,14 @@ export default function Dashboard() {
             />
           ) : (
             <div className="grid gap-5 sm:grid-cols-2">
-              {savedList.slice(0, 3).map((p) => (
+              {savedList.slice(0, 4).map((p) => (
                 <PropertyCard key={p.id} property={p} compact />
               ))}
             </div>
           )}
         </Section>
 
-        <div className="space-y-6 lg:col-span-2">
+        <div className="space-y-5 lg:col-span-2">
           <Section title="Upcoming Visits" to="/tenant/visits">
             {upcoming.length === 0 ? (
               <SectionEmpty
@@ -241,11 +296,11 @@ export default function Dashboard() {
                       </p>
                       <p className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-medium text-slate-600">
                         <span className="inline-flex items-center gap-1">
-                          <Icon name="calendar" className="h-3.5 w-3.5 text-slate-400" />
+                          <Icon name="calendar" className="h-3.5 w-3.5 shrink-0" />
                           {formatDate(v.date)}
                         </span>
                         <span className="inline-flex items-center gap-1">
-                          <Icon name="clock" className="h-3.5 w-3.5 text-slate-400" />
+                          <Icon name="clock" className="h-3.5 w-3.5 shrink-0" />
                           {v.time}
                         </span>
                       </p>
@@ -277,7 +332,7 @@ export default function Dashboard() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2">
                         <p className="truncate text-sm font-semibold text-slate-800">{c.other?.name || 'Owner'}</p>
-                        <span className="shrink-0 text-[11px] text-slate-400">{timeAgo(c.updatedAt)}</span>
+                        <span className="shrink-0 text-[11px] text-slate-500">{timeAgo(c.updatedAt)}</span>
                       </div>
                       <p className="mt-0.5 flex items-center gap-1.5 truncate text-xs text-slate-500">
                         {c.unread > 0 && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-600" aria-hidden="true" />}
@@ -286,6 +341,7 @@ export default function Dashboard() {
                     </div>
                     {c.unread > 0 && (
                       <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-brand-900 px-1.5 text-[10px] font-bold text-white">
+                        <span className="sr-only">{c.unread} unread </span>
                         {c.unread}
                       </span>
                     )}
@@ -297,23 +353,26 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <Section title="Recommended for You" to="/browse" toLabel="Explore all">
-        {recommendations.length === 0 ? (
-          <SectionEmpty
-            icon="building"
-            title="No recommendations yet"
-            message="Check back soon — we curate listings based on your searches and saved properties."
-            actionLabel="Browse properties"
-            onAction={() => navigate('/browse')}
-          />
-        ) : (
-          <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-            {recommendations.slice(0, 3).map((p) => (
-              <PropertyCard key={p.id} property={p} />
-            ))}
-          </div>
-        )}
-      </Section>
+      {/* Recommended */}
+      <div className="mt-5">
+        <Section title="Recommended for You" to="/browse" toLabel="Explore all">
+          {recommendations.length === 0 ? (
+            <SectionEmpty
+              icon="building"
+              title="No recommendations yet"
+              message="Check back soon — we curate listings based on your searches and saved properties."
+              actionLabel="Browse properties"
+              onAction={() => navigate('/browse')}
+            />
+          ) : (
+            <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+              {recommendations.slice(0, 3).map((p) => (
+                <PropertyCard key={p.id} property={p} />
+              ))}
+            </div>
+          )}
+        </Section>
+      </div>
     </div>
   );
 }

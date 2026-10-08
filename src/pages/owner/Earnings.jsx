@@ -10,6 +10,7 @@ import Button from '../../components/common/Button';
 import Icon from '../../components/common/icons';
 import EmptyState from '../../components/common/EmptyState';
 import { ErrorState } from '../../components/common/Feedback';
+import { StatSkeleton, TableSkeleton } from '../../components/common/Skeleton';
 import { TransactionStatusBadge } from '../../components/common/Badge';
 
 import transactionService from '../../services/transactionService';
@@ -170,12 +171,17 @@ export default function Earnings() {
         }
       />
 
-      {loading && !data && (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="skeleton h-32 rounded-xl" />
-          ))}
-        </div>
+      {loading && !data && !error && (
+        <>
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <StatSkeleton key={i} />
+            ))}
+          </div>
+          <div className="mt-6">
+            <TableSkeleton rows={5} cols={5} />
+          </div>
+        </>
       )}
 
       {error && !data && <ErrorState message={error} onRetry={reload} />}
@@ -202,7 +208,7 @@ export default function Earnings() {
                 />
               ) : (
                 <div className="flex flex-col items-center gap-3 py-6 text-center">
-                  <span className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+                  <span className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-500">
                     <Icon name="coins" className="h-6 w-6" />
                   </span>
                   <p className="max-w-xs text-sm text-slate-500">
@@ -213,34 +219,44 @@ export default function Earnings() {
             </ChartCard>
 
             <ChartCard title="Payment breakdown" subtitle="Where every completed rupee goes">
-              <dl className="divide-y divide-line">
-                {[
-                  ['Gross rental value (completed)', summary?.grossCompleted || 0, 'text-slate-900'],
-                  ['Platform fee at 5%', -(summary?.platformFees || 0), 'text-red-600'],
-                  ['Your take-home earnings', summary?.totalEarnings || 0, 'text-emerald-700'],
-                  ['Still pending clearance', summary?.pendingAmount || 0, 'text-amber-600'],
-                  ['Failed transactions', summary?.failedAmount || 0, 'text-red-600'],
-                ].map(([label, value, tone]) => (
-                  <div key={label} className="flex items-center justify-between gap-4 py-3.5">
-                    <dt className="text-sm text-slate-600">{label}</dt>
-                    <dd className={cn('text-sm font-semibold', tone)}>
-                      {value < 0 ? '− ' : ''}
-                      {formatPrice(Math.abs(value))}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-              <p className="mt-4 rounded-lg bg-slate-50 px-3.5 py-3 text-xs leading-relaxed text-slate-500">
-                Payouts are released every week to your saved payout method. Pending amounts clear as soon as the
-                tenant's stay is confirmed.
-              </p>
+              {transactions.length === 0 ? (
+                <EmptyState
+                  icon="coins"
+                  title="No payments to break down yet"
+                  message="Once a rental payment is processed for one of your listings, the full breakdown appears here."
+                />
+              ) : (
+                <>
+                  <dl className="divide-y divide-line">
+                    {[
+                      ['Gross rental value (completed)', summary?.grossCompleted || 0, 'text-slate-900'],
+                      ['Platform fee at 5%', -(summary?.platformFees || 0), 'text-red-600'],
+                      ['Your take-home earnings', summary?.totalEarnings || 0, 'text-emerald-700'],
+                      ['Still pending clearance', summary?.pendingAmount || 0, 'text-amber-600'],
+                      ['Failed transactions', summary?.failedAmount || 0, 'text-red-600'],
+                    ].map(([label, value, tone]) => (
+                      <div key={label} className="flex items-center justify-between gap-4 py-3.5">
+                        <dt className="text-sm text-slate-600">{label}</dt>
+                        <dd className={cn('text-sm font-semibold', tone)}>
+                          {value < 0 ? '− ' : ''}
+                          {formatPrice(Math.abs(value))}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                  <p className="mt-4 rounded-lg bg-slate-50 px-3.5 py-3 text-xs leading-relaxed text-slate-500">
+                    Payouts are released every week to your saved payout method. Pending amounts clear as soon as the
+                    tenant's stay is confirmed.
+                  </p>
+                </>
+              )}
             </ChartCard>
           </div>
 
           <section>
             <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
               <h2 className="text-base font-semibold tracking-tight text-slate-900">Transactions</h2>
-              <span className="text-xs text-slate-500">
+              <span className="text-xs text-slate-500" aria-live="polite">
                 {formatNumber(rows.length)} of {formatNumber(transactions.length)} shown
               </span>
             </div>

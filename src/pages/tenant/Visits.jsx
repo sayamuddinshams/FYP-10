@@ -8,6 +8,7 @@ import VisitRequestCard from '../../components/property/VisitRequestCard';
 import PageHeader from '../../components/dashboard/PageHeader';
 import { ErrorState } from '../../components/common/Feedback';
 import { RowSkeleton } from '../../components/common/Skeleton';
+import { PageLoader } from '../../components/common/Spinner';
 import { VISIT_STATUSES, VISIT_STATUS_LABELS } from '../../utils/constants';
 import { useAsync, useDocumentTitle } from '../../hooks';
 import { useAuth } from '../../context/AuthContext';
@@ -73,18 +74,22 @@ export default function Visits() {
     }
   }
 
-  if (!user) return null;
+  if (!user) return <PageLoader label="Loading your visit requests…" />;
 
   const error = all.error || visits.error;
+
   if (error) {
     return (
-      <ErrorState
-        message={error}
-        onRetry={() => {
-          all.reload();
-          visits.reload();
-        }}
-      />
+      <div className="animate-fade-up">
+        <PageHeader title="Visit Requests" subtitle="Track your property walkthroughs from request to confirmation." />
+        <ErrorState
+          message={error}
+          onRetry={() => {
+            all.reload();
+            visits.reload();
+          }}
+        />
+      </div>
     );
   }
 
@@ -100,6 +105,13 @@ export default function Visits() {
         ariaLabel="Filter visits by status"
         className="mb-6"
       />
+
+      {!visits.loading && visits.data && list.length > 0 && (
+        <p className="mb-4 text-xs text-slate-500" aria-live="polite">
+          Showing {list.length} {list.length === 1 ? 'visit' : 'visits'}
+          {tab === 'all' ? ' in total' : ` · ${VISIT_STATUS_LABELS[tab]}`}.
+        </p>
+      )}
 
       {visits.loading && !visits.data ? (
         <RowSkeleton rows={4} />

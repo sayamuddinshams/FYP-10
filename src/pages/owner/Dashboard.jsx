@@ -158,27 +158,34 @@ export default function Dashboard() {
       />
 
       {loading && !data && (
-        <div className="space-y-6">
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <>
+          <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
               <StatSkeleton key={i} />
             ))}
           </div>
-          <RowSkeleton rows={3} />
-        </div>
+          <div className="grid gap-5 lg:grid-cols-5">
+            <div className="skeleton h-80 rounded-xl lg:col-span-3" />
+            <div className="skeleton h-80 rounded-xl lg:col-span-2" />
+          </div>
+          <div className="mt-5">
+            <RowSkeleton rows={3} />
+          </div>
+        </>
       )}
 
       {error && !data && <ErrorState message={error} onRetry={reload} />}
 
       {data && !error && (
-        <div className="space-y-6">
+        <>
           {/* Statistics */}
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3" aria-live="polite">
             {stats.map((stat) => (
               <StatCard key={stat.label} {...stat} />
             ))}
           </div>
 
+          <div className="space-y-5">
           {/* Charts */}
           <div className="grid gap-5 lg:grid-cols-5">
             <ChartCard
@@ -191,12 +198,22 @@ export default function Dashboard() {
                 </span>
               }
             >
-              <LineChart
-                data={analytics.ownerViews || []}
-                valueKey="views"
-                height={250}
-                formatValue={(t) => formatNumber(Math.round(t))}
-              />
+              {(analytics.ownerViews || []).length === 0 ? (
+                <EmptyState
+                  icon="chart"
+                  title="No views recorded yet"
+                  message="Daily views across your listings appear here as soon as tenants open them."
+                  actionLabel="Add Property"
+                  onAction={() => navigate('/owner/properties/new')}
+                />
+              ) : (
+                <LineChart
+                  data={analytics.ownerViews || []}
+                  valueKey="views"
+                  height={250}
+                  formatValue={(t) => formatNumber(Math.round(t))}
+                />
+              )}
               <p className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-slate-500">
                 <span className="inline-flex items-center gap-1.5">
                   <span className="h-2 w-2 rounded-full bg-brand-700" /> Views
@@ -214,14 +231,24 @@ export default function Dashboard() {
               title="Listing Performance"
               subtitle="Views by listing this month"
             >
-              <BarChart
-                data={performance}
-                valueKey="views"
-                horizontal
-                color="#385c9a"
-                height={250}
-                formatValue={(t) => formatNumber(Math.round(t))}
-              />
+              {performance.length === 0 ? (
+                <EmptyState
+                  icon="chart"
+                  title="No listing views yet"
+                  message="Once tenants start finding your listings in search, the best performers are ranked here."
+                  actionLabel="Add Property"
+                  onAction={() => navigate('/owner/properties/new')}
+                />
+              ) : (
+                <BarChart
+                  data={performance}
+                  valueKey="views"
+                  horizontal
+                  color="#385c9a"
+                  height={250}
+                  formatValue={(t) => formatNumber(Math.round(t))}
+                />
+              )}
             </ChartCard>
           </div>
 
@@ -367,13 +394,13 @@ export default function Dashboard() {
                       </div>
 
                       <span className="flex w-16 shrink-0 items-center justify-end gap-1.5 text-xs font-medium text-slate-500">
-                        <Icon name="eye" className="h-3.5 w-3.5 text-slate-400" />
+                        <Icon name="eye" className="h-3.5 w-3.5 text-slate-500" />
                         {formatNumber(property.views)}
                       </span>
 
                       <Link
                         to="/owner/properties"
-                        className="shrink-0 rounded-lg border border-line px-2.5 py-1.5 text-xs font-semibold text-brand-700 transition hover:border-brand-300 hover:bg-brand-50"
+                        className="inline-flex min-h-10 shrink-0 items-center rounded-lg border border-line px-3 py-1.5 text-xs font-semibold text-brand-700 transition hover:border-brand-300 hover:bg-brand-50"
                       >
                         Manage
                       </Link>
@@ -383,7 +410,8 @@ export default function Dashboard() {
               )}
             </section>
           </div>
-        </div>
+          </div>
+        </>
       )}
     </div>
   );

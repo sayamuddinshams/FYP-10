@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAsync, useDocumentTitle } from '../../hooks';
 import { useToast } from '../../context/ToastContext';
 import { useModals } from '../../context/ModalContext';
@@ -60,12 +60,14 @@ export default function Properties() {
   useDocumentTitle('Properties');
   const toast = useToast();
   const { confirm } = useModals();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const activeTab = TABS.some((t) => t.value === searchParams.get('status')) ? searchParams.get('status') : 'all';
-  const [decision, setDecision] = useState(null); // { property, mode }
+  const [decision, setDecision] = useState(null); // { property, mode } | { ids, mode }
   const [reason, setReason] = useState('');
   const [busy, setBusy] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
 
   const { data, loading, error, reload } = useAsync(() => propertyService.adminList('all'), []);
 
@@ -88,11 +90,62 @@ export default function Properties() {
     return all.filter((p) => p.status === activeTab);
   }, [all, activeTab]);
 
+  const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
+  const selectedRows = useMemo(() => rows.filter((p) => selectedSet.has(p.id)), [rows, selectedSet]);
+  const allSelected = rows.length > 0 && selectedRows.length === rows.length;
+
   function setTab(tab) {
     const next = new URLSearchParams(searchParams);
     if (tab === 'all') next.delete('status');
     else next.set('status', tab);
+    setSelectedIds([]);
     setSearchParams(next, { replace: true });
+  }
+
+  function toggleSelect(id) {
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  }
+
+  function toggleSelectAll() {
+    setSelectedIds(allSelected ? [] : rows.map((p) => p.id));
+  }
+
+  async function handleBulkApprove() {
+    const targets = selectedRows;
+    if (!targets.length) return;
+    const ok = await confirm({
+      title: `Approve ${targets.length} listing${targets.length === 1 ? '' : 's'}?`,
+      message: `"${targets[0].title}"${targets.length > 1 ? ` and ${targets.length - 1} other listing${targets.length === 2 ? '' : 's'}` : ''} will become publicly visible on RentLink immediately.`,
+      confirmLabel: 'Approve listings',
+      tone: 'success',
+    });
+    if (!ok) return;
+    setBusy(true);
+    try {
+      for (const p of targets) {
+        await propertyService.setListingStatus(p.id, 'approved');
+      }
+      toast.success(`${targets.length} listing${targets.length === 1 ? '' : 's'} approved.`);
+      setSelectedIds([]);
+      reload();
+    } catch (err) {
+      toast.error(err.message, 'Bulk approval failed');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function openBulkReject() {
+    const targets = selectedRows;
+    if (!targets.length) return;
+    const ok = await confirm({
+      title: `Reject ${targets.length} listing${targets.length === 1 ? '' : 's'}?`,
+      message: `${targets.length === 1 ? 'This listing' : `All ${targets.length} selected listings`} will be rejected and hidden from tenants. A reason is required on the next step and owners will see it.`,
+      confirmLabel: 'Continue',
+      tone: 'danger',
+    });
+    if (!ok) return;
+    setDecision({ mode: 'reject', ids: targets.map((t) => t.id) });
   }
 
   async function handleApprove(p) {
@@ -136,10 +189,24 @@ export default function Properties() {
     const trimReason = reason.trim();
     if (!decision || !trimReason) return;
     const meta = MODE_META[decision.mode];
+    const ids = decision.ids || [decision.property.id];
+    const bulk = Boolean(decision.ids);
     setBusy(true);
     try {
-      await propertyService.setListingStatus(decision.property.id, meta.status, trimReason);
-      toast.success(meta.toast);
+      for (const id of ids) {
+        await propertyService.setListingStatus(id, meta.status, trimReason);
+      }
+      if (bulk) {
+        const bulkToasts = {
+          reject: `${ids.length} listings rejected.`,
+          changes: `Changes requested for ${ids.length} listings.`,
+          suspend: `${ids.length} listings suspended.`,
+        };
+        toast.success(bulkToasts[decision.mode]);
+        setSelectedIds([]);
+      } else {
+        toast.success(meta.toast);
+      }
       setDecision(null);
       reload();
     } catch (err) {
@@ -150,6 +217,20 @@ export default function Properties() {
   }
 
   const columns = [
+    {
+      key: 'select',
+      label: 'Select',
+      cellClassName: 'w-10',
+      render: (p) => (
+        <input
+          type="checkbox"
+          checked={selectedSet.has(p.id)}
+          onChange={() => toggleSelect(p.id)}
+          aria-label={`Select ${p.title}`}
+          className="h-4.5 w-4.5 cursor-pointer rounded border-line accent-brand-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
+        />
+      ),
+    },
     {
       key: 'image',
       label: 'Listing',
@@ -210,13 +291,13 @@ export default function Properties() {
     <Dropdown
       ariaLabel={`Actions for ${p.title}`}
       trigger={
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="md">
           Actions
           <Icon name="chevronDown" className="h-4 w-4" />
         </Button>
       }
       items={[
-        { label: 'Review listing', icon: <Icon name="eye" className="h-4 w-4" />, onClick: () => window.location.assign(`/admin/properties/${p.id}/review`) },
+        { label: 'Review listing', icon: <Icon name="eye" className="h-4 w-4" />, onClick: () => navigate(`/admin/properties/${p.id}/review`) },
         ...(p.status === 'approved'
           ? []
           : [{ label: 'Approve', icon: <Icon name="check" className="h-4 w-4" />, onClick: () => handleApprove(p) }]),
@@ -268,10 +349,45 @@ export default function Properties() {
 
       <Tabs
         ariaLabel="Filter listings by status"
-        tabs={TABS.map((t) => ({ ...t, count: counts[t.value] }))}
+        tabs={TABS.map((t) => ({ ...t, count: loading || error ? undefined : counts[t.value] }))}
         value={activeTab}
         onChange={setTab}
       />
+
+      {/* Bulk action bar */}
+      {!loading && !error && rows.length > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line bg-white px-4 py-3">
+          <label className="inline-flex min-h-10 cursor-pointer items-center gap-2.5 text-sm font-medium text-slate-700 select-none">
+            <input
+              type="checkbox"
+              checked={allSelected}
+              onChange={toggleSelectAll}
+              className="h-4.5 w-4.5 rounded border-line accent-brand-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
+            />
+            Select all ({rows.length})
+          </label>
+          <div className="flex flex-wrap items-center gap-2.5" aria-live="polite">
+            {selectedRows.length > 0 && (
+              <>
+                <span className="text-sm font-medium text-slate-600">
+                  {selectedRows.length} selected
+                </span>
+                <Button size="md" variant="success" loading={busy} onClick={handleBulkApprove}>
+                  <Icon name="check" className="h-4 w-4" />
+                  Approve
+                </Button>
+                <Button size="md" variant="danger" loading={busy} onClick={openBulkReject}>
+                  <Icon name="x" className="h-4 w-4" />
+                  Reject
+                </Button>
+                <Button size="md" variant="ghost" disabled={busy} onClick={() => setSelectedIds([])}>
+                  Clear
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {error ? null : (
         <DataTable
@@ -280,20 +396,38 @@ export default function Properties() {
           rowKey="id"
           loading={loading}
           empty={
-            <EmptyState
-              icon="building"
-              title={activeTab === 'all' ? 'No listings yet' : `No ${LISTING_STATUS_LABELS[activeTab]?.toLowerCase() || activeTab} listings`}
-              message="Listings submitted by owners will appear here for moderation."
-            />
+            activeTab === 'all' ? (
+              <EmptyState
+                icon="building"
+                title="No listings yet"
+                message="Listings submitted by owners will appear here for moderation."
+              />
+            ) : (
+              <EmptyState
+                icon="search"
+                title={`No ${LISTING_STATUS_LABELS[activeTab]?.toLowerCase() || activeTab} listings`}
+                message="Nothing in this status right now. Browse another status or clear the filter."
+                actionLabel="Show all listings"
+                onAction={() => setTab('all')}
+                secondaryLabel={counts.all > 0 ? 'Refresh list' : undefined}
+                onSecondary={reload}
+              />
+            )
           }
           actions={actions}
         />
       )}
 
-      <p className="text-xs text-slate-400">
-        Showing {rows.length} of {counts.all} listings ·{' '}
-        {LISTING_STATUS_LABELS[activeTab] ? LISTING_STATUS_LABELS[activeTab] : 'All statuses'} ·{' '}
-        {counts.changes > 0 ? `${counts.changes} awaiting owner changes` : 'No listings awaiting owner changes'}
+      <p className="text-xs text-slate-500" aria-live="polite">
+        {loading
+          ? 'Loading listings…'
+          : error
+            ? ''
+            : `Showing ${rows.length} of ${counts.all} listings · ${
+                LISTING_STATUS_LABELS[activeTab] ? LISTING_STATUS_LABELS[activeTab] : 'All statuses'
+              } · ${
+                counts.changes > 0 ? `${counts.changes} awaiting owner changes` : 'No listings awaiting owner changes'
+              }`}
       </p>
 
       {/* Decision modal */}
@@ -315,7 +449,11 @@ export default function Properties() {
               loading={busy}
               disabled={!reason.trim()}
             >
-              {decision?.mode === 'changes' ? 'Request changes' : decisionMeta?.title}
+              {decision?.mode === 'changes'
+                ? 'Request changes'
+                : decision?.ids
+                  ? `${decisionMeta?.title}${decision.ids.length === 1 ? '' : 's'}`
+                  : decisionMeta?.title}
             </Button>
           </div>
         }
@@ -323,10 +461,23 @@ export default function Properties() {
         {decisionMeta && (
           <form id="decision-form" onSubmit={submitDecision}>
             <div className="mb-4 rounded-xl bg-slate-50 p-4">
-              <p className="text-sm font-semibold text-slate-900">{decision.property.title}</p>
-              <p className="mt-0.5 text-xs text-slate-500">
-                {PROPERTY_TYPE_MAP[decision.property.type] || decision.property.type} · {formatPrice(decision.property.price)}
-              </p>
+              {decision.ids ? (
+                <>
+                  <p className="text-sm font-semibold text-slate-900">
+                    {decision.ids.length} listing{decision.ids.length === 1 ? '' : 's'} selected
+                  </p>
+                  <p className="mt-0.5 text-xs text-slate-500">
+                    The same reason will be applied to every selected listing.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm font-semibold text-slate-900">{decision.property.title}</p>
+                  <p className="mt-0.5 text-xs text-slate-500">
+                    {PROPERTY_TYPE_MAP[decision.property.type] || decision.property.type} · {formatPrice(decision.property.price)}
+                  </p>
+                </>
+              )}
             </div>
             <Textarea
               label={decisionMeta.label}

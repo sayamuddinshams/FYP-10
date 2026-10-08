@@ -1,9 +1,11 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAsync, useDocumentTitle } from '../../hooks';
 import contentService from '../../services/contentService';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
 import Icon from '../../components/common/icons';
+import EmptyState from '../../components/common/EmptyState';
+import { ErrorState } from '../../components/common/Feedback';
 
 const PROGRAMS = [
   {
@@ -34,7 +36,8 @@ const TONE_MAP = {
 
 export default function Collaborations() {
   useDocumentTitle('Collaborations');
-  const { data } = useAsync(() => contentService.partners(), []);
+  const navigate = useNavigate();
+  const { data, loading, error, reload } = useAsync(() => contentService.partners(), []);
   const partners = data || [];
 
   return (
@@ -45,7 +48,7 @@ export default function Collaborations() {
           <div className="grid items-end gap-10 lg:grid-cols-[1.4fr_1fr]">
             <div>
               <p className="text-sm font-semibold tracking-widest text-primary-300 uppercase">Collaborations</p>
-              <h1 className="mt-3 max-w-3xl font-display text-4xl leading-tight font-semibold sm:text-5xl">
+              <h1 className="mt-3 max-w-3xl font-display text-4xl leading-tight font-bold tracking-tight sm:text-5xl">
                 We build better housing markets together.
               </h1>
               <p className="mt-5 max-w-2xl text-lg text-white/70">
@@ -70,8 +73,10 @@ export default function Collaborations() {
 
       {/* Programs */}
       <section className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <h2 className="font-display text-3xl font-semibold text-ink">Ways to work with us</h2>
-        <p className="mt-2 max-w-2xl text-slate-600">
+        <h2 className="font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">
+          Ways to work with us
+        </h2>
+        <p className="mt-2 max-w-2xl text-sm text-slate-600">
           Three structured programmes, each with clear expectations on both sides.
         </p>
 
@@ -82,7 +87,7 @@ export default function Collaborations() {
                 <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-900 text-white">
                   <Icon name={p.icon} className="h-5 w-5" />
                 </span>
-                <h3 className="mt-4 text-xl font-semibold text-ink">{p.title}</h3>
+                <h3 className="mt-4 text-base font-semibold text-ink">{p.title}</h3>
                 <p className="mt-3 text-sm leading-relaxed text-slate-600">{p.text}</p>
               </div>
               <ul className="space-y-3 self-center rounded-xl bg-surface p-5">
@@ -106,7 +111,9 @@ export default function Collaborations() {
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <p className="text-sm font-semibold tracking-widest text-primary uppercase">Our partners</p>
-              <h2 className="mt-2 font-display text-3xl font-semibold text-ink">Organisations we work with</h2>
+              <h2 className="mt-2 font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">
+                Organisations we work with
+              </h2>
             </div>
             <p className="max-w-sm text-sm text-slate-500">
               Each partner is reviewed annually. Their listings and events carry a partner badge on
@@ -115,11 +122,32 @@ export default function Collaborations() {
           </div>
 
           <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {!data &&
+            {loading &&
               Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className="h-48 animate-pulse rounded-2xl border border-line bg-white" />
               ))}
-            {partners.map((partner) => (
+
+            {!loading && error && (
+              <div className="sm:col-span-2 lg:col-span-3">
+                <ErrorState message={error} onRetry={reload} />
+              </div>
+            )}
+
+            {!loading && !error && partners.length === 0 && (
+              <div className="sm:col-span-2 lg:col-span-3">
+                <EmptyState
+                  icon="users"
+                  title="No partners listed yet"
+                  message="Partnerships are published as they are confirmed — check back soon."
+                  actionLabel="Meet the team"
+                  onAction={() => navigate('/team')}
+                />
+              </div>
+            )}
+
+            {!loading &&
+              !error &&
+              partners.map((partner) => (
               <div key={partner.id} className="flex flex-col rounded-2xl border border-line bg-white p-6 transition hover:-translate-y-1 hover:shadow-lift">
                 <div className="flex items-start justify-between gap-3">
                   <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-primary">
@@ -140,14 +168,18 @@ export default function Collaborations() {
         <div className="grid gap-10 lg:grid-cols-[1fr_1.2fr] lg:gap-16">
           <div>
             <p className="text-sm font-semibold tracking-widest text-primary uppercase">Getting started</p>
-            <h2 className="mt-2 font-display text-3xl font-semibold text-ink">How a collaboration begins</h2>
+            <h2 className="mt-2 font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">
+              How a collaboration begins
+            </h2>
             <p className="mt-4 leading-relaxed text-slate-600">
               No long procurement process. We start with a short call, agree what success looks like and
               run a pilot in one district before scaling.
             </p>
-            <Link to="/team" className="mt-6 inline-block">
-              <Button variant="outline">Meet the team</Button>
-            </Link>
+            <div className="mt-6">
+              <Button as={Link} to="/team" variant="outline">
+                Meet the team
+              </Button>
+            </div>
           </div>
 
           <ol className="space-y-5">
@@ -172,18 +204,18 @@ export default function Collaborations() {
       </section>
 
       {/* CTA */}
-      <section className="mx-auto w-full max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
+      <section className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="flex flex-col items-center gap-5 rounded-3xl bg-primary px-6 py-12 text-center text-white sm:px-14">
-          <h2 className="font-display text-3xl font-semibold">Have a partnership in mind?</h2>
-          <p className="max-w-xl text-white/75">
+          <h2 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
+            Have a partnership in mind?
+          </h2>
+          <p className="max-w-xl text-white/85">
             Tell us about your organisation and the problem you are trying to solve. We read every
             message that comes in.
           </p>
-          <a href="mailto:partners@rentlink.pk">
-            <Button size="lg" className="bg-white text-primary hover:bg-brand-50">
-              Start a conversation
-            </Button>
-          </a>
+          <Button as="a" href="mailto:partners@rentlink.pk" size="lg" className="bg-white text-primary hover:bg-brand-50">
+            Start a conversation
+          </Button>
         </div>
       </section>
     </div>

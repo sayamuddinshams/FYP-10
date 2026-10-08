@@ -195,7 +195,7 @@ export default function Profile() {
                 ['Joined', formatDate(user.joinedAt || user.memberSince)],
               ].map(([label, value]) => (
                 <div key={label} className="flex items-start justify-between gap-4">
-                  <dt className="shrink-0 text-xs font-semibold tracking-wide text-slate-400 uppercase">{label}</dt>
+                  <dt className="shrink-0 text-xs font-semibold tracking-wide text-slate-500 uppercase">{label}</dt>
                   <dd className="text-right text-sm break-words text-slate-700">{value}</dd>
                 </div>
               ))}
@@ -279,7 +279,7 @@ export default function Profile() {
                     ['Bio', user.bio || 'No bio added yet.'],
                   ].map(([label, value]) => (
                     <div key={label}>
-                      <dt className="text-xs font-semibold tracking-wide text-slate-400 uppercase">{label}</dt>
+                      <dt className="text-xs font-semibold tracking-wide text-slate-500 uppercase">{label}</dt>
                       <dd className="mt-1 text-sm leading-relaxed text-slate-700">{value}</dd>
                     </div>
                   ))}

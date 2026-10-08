@@ -20,17 +20,24 @@ export default function NotFound() {
         <div className="mx-auto mt-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-primary">
           <Icon name="pin" className="h-7 w-7" />
         </div>
-        <h1 className="mt-6 font-display text-3xl font-semibold text-ink">This address does not exist</h1>
-        <p className="mx-auto mt-3 max-w-md text-slate-600">
+        <h1 className="mt-6 font-display text-4xl font-bold tracking-tight text-ink sm:text-5xl">
+          This address does not exist
+        </h1>
+        <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-slate-600">
           The page you were looking for may have been moved, renamed, or it was never a real listing.
           Let us get you back somewhere useful.
         </p>
 
         <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <Link to="/browse">
-            <Button size="lg">Browse properties</Button>
-          </Link>
-          <Button size="lg" variant="outline" onClick={() => navigate(-1)}>
+          <Button as={Link} to="/" size="lg">
+            <Icon name="home" className="h-4 w-4" />
+            Go to home
+          </Button>
+          <Button as={Link} to="/browse" size="lg" variant="outline">
+            <Icon name="search" className="h-4 w-4" />
+            Browse properties
+          </Button>
+          <Button size="lg" variant="ghost" onClick={() => navigate(-1)}>
             <Icon name="arrowLeft" className="h-4 w-4" />
             Go back
           </Button>
@@ -41,7 +48,7 @@ export default function NotFound() {
             <Link
               key={s.to}
               to={s.to}
-              className="rounded-xl border border-line bg-white p-4 transition hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-lift"
+              className="rounded-2xl border border-line bg-white p-4 transition hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-lift"
             >
               <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-50 text-primary">
                 <Icon name={s.icon} className="h-4.5 w-4.5" />

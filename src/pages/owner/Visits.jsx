@@ -169,10 +169,10 @@ export default function Visits() {
     }
 
     if (visit.status === 'completed') {
-      return <span className="text-[11px] font-medium text-slate-400">Completed · no further actions</span>;
+      return <span className="text-[11px] font-medium text-slate-500">Completed · no further actions</span>;
     }
 
-    return <span className="text-[11px] font-medium text-slate-400">Request closed</span>;
+    return <span className="text-[11px] font-medium text-slate-500">Request closed</span>;
   }
 
   const empty = (
@@ -203,6 +203,13 @@ export default function Visits() {
           value={tab}
           onChange={setTab}
         />
+        <p className="mt-2 text-xs text-slate-500" aria-live="polite">
+          {loading && !data
+            ? 'Loading visit requests…'
+            : error && !data
+              ? 'Visit requests could not be loaded.'
+              : `${rows.length} ${rows.length === 1 ? 'request' : 'requests'} shown${tab !== 'all' ? ` in “${TABS.find((t) => t.value === tab)?.label}”` : ''} · ${counts.all ?? 0} total`}
+        </p>
       </div>
 
       {error && !data && <ErrorState message={error} onRetry={reload} />}

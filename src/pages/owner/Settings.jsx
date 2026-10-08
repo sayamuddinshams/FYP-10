@@ -347,7 +347,7 @@ export default function Settings() {
         </div>
       </section>
 
-      <p className="mt-6 text-center text-xs text-slate-400">
+      <p className="mt-6 text-center text-xs text-slate-500">
         Signed in as {user?.email} · RentLink Owner / Agent portal
       </p>
     </div>

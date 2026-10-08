@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAsync, useDocumentTitle } from '../../hooks';
 import useFavorite from '../../hooks/useFavorite';
 import propertyService from '../../services/propertyService';
@@ -7,13 +7,14 @@ import messageService from '../../services/messageService';
 import { useAuth } from '../../context/AuthContext';
 import { useModals } from '../../context/ModalContext';
 import { useToast } from '../../context/ToastContext';
-import { AMENITY_MAP, propertyTypeLabel } from '../../utils/constants';
+import { AMENITY_MAP, propertyTypeLabel, USER_ROLES } from '../../utils/constants';
 import { formatArea, formatDate, formatPrice } from '../../utils/format';
 import Button from '../../components/common/Button';
 import Badge, { VerificationBadge } from '../../components/common/Badge';
 import Avatar from '../../components/common/Avatar';
-import Icon, { HeartIcon, StarIcon } from '../../components/common/icons';
+import Icon, { HeartIcon } from '../../components/common/icons';
 import { ErrorState } from '../../components/common/Feedback';
+import EmptyState from '../../components/common/EmptyState';
 import { PropertyCardSkeleton, LineSkeleton, Skeleton } from '../../components/common/Skeleton';
 import PropertyGallery from '../../components/property/PropertyGallery';
 import RequestVisitModal from '../../components/property/RequestVisitModal';
@@ -23,12 +24,12 @@ import PropertyCard from '../../components/property/PropertyCard';
 
 function Spec({ icon, label, value }) {
   return (
-    <div className="group flex items-center gap-3 rounded-xl border border-line bg-white p-4 shadow-soft transition-all duration-300 hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-card">
+    <div className="group flex items-center gap-3 rounded-2xl border border-line bg-white p-4 shadow-soft transition-all duration-300 hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-card">
       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[linear-gradient(140deg,#f1f5fb,#e2eaf6)] text-primary-700 shadow-soft transition-transform duration-300 group-hover:scale-105">
         <Icon name={icon} className="h-5 w-5" />
       </span>
       <div className="min-w-0">
-        <p className="text-xs text-slate-400">{label}</p>
+        <p className="text-xs text-slate-500">{label}</p>
         <p className="truncate text-sm font-semibold text-slate-800">{value}</p>
       </div>
     </div>
@@ -54,9 +55,10 @@ export default function PropertyDetails() {
   const [visitOpen, setVisitOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [messaging, setMessaging] = useState(false);
+  const navigate = useNavigate();
 
   const { data: property, loading, error, reload } = useAsync(() => propertyService.getById(id), [id]);
-  const { data: related, loading: relatedLoading } = useAsync(
+  const { data: related, loading: relatedLoading, error: relatedError, reload: reloadRelated } = useAsync(
     () => propertyService.getRelated(id, 3),
     [id, property?.updatedAt]
   );
@@ -91,7 +93,7 @@ export default function PropertyDetails() {
         tenantId: user.id,
       });
       const inbox = user.role === 'owner' ? '/owner/messages' : '/tenant/messages';
-      window.location.assign(inbox);
+      navigate(inbox);
     } catch (err) {
       toast.error(err?.message || 'Unable to open the conversation.');
       setMessaging(false);
@@ -147,10 +149,10 @@ export default function PropertyDetails() {
 
   return (
     <div className="bg-surface">
-      <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-7xl px-4 pt-6 pb-20 sm:px-6 lg:px-8 lg:pb-8">
         {/* Breadcrumb + actions */}
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-2 text-xs text-slate-400">
+          <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-2 text-xs text-slate-500">
             <Link to="/" className="transition hover:text-brand-700">Home</Link>
             <Icon name="chevronRight" className="h-3.5 w-3.5" />
             <Link to="/browse" className="transition hover:text-brand-700">Browse</Link>
@@ -158,11 +160,11 @@ export default function PropertyDetails() {
             <span className="truncate font-medium text-slate-600">{property.title}</span>
           </nav>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => setShareOpen(true)}>
+            <Button variant="outline" size="md" onClick={() => setShareOpen(true)}>
               <Icon name="share" className="h-4 w-4" />
               Share
             </Button>
-            <Button variant={favorited ? 'primary' : 'outline'} size="sm" onClick={onFavorite} aria-pressed={favorited}>
+            <Button variant={favorited ? 'primary' : 'outline'} size="md" onClick={onFavorite} aria-pressed={favorited}>
               <HeartIcon filled={favorited} className="h-4 w-4" />
               {favorited ? 'Saved' : 'Save'}
             </Button>
@@ -188,36 +190,23 @@ export default function PropertyDetails() {
                   {property.status === 'approved' && <Badge tone="success">Listed and verified</Badge>}
                 </div>
 
-                <h1 className="mt-3 font-display text-2xl leading-snug font-semibold text-ink sm:text-3xl">
+                <h1 className="mt-3 font-display text-2xl leading-snug font-bold tracking-tight text-ink sm:text-3xl">
                   {property.title}
                 </h1>
 
                 <p className="mt-2 flex items-center gap-1.5 text-sm text-slate-500">
-                  <Icon name="pin" className="h-4 w-4 shrink-0 text-primary-300" />
+                  <Icon name="pin" className="h-4 w-4 shrink-0 text-primary-600" />
                   {property.area}, {property.city}, {property.district}
                 </p>
 
-                <div className="mt-4 flex flex-wrap items-end justify-between gap-4 border-t border-line pt-4">
-                  <div>
-                    <p className="text-[2rem] leading-none font-extrabold tracking-tight text-brand-950 tabular-nums">
-                      {formatPrice(property.price)}
-                      <span className="ml-1.5 text-sm font-semibold tracking-wide text-slate-400">/month</span>
-                    </p>
-                    <p className="mt-1.5 text-xs text-slate-400">
-                      Security deposit equals one month rent · 5% platform fee applies on completed rentals
-                    </p>
-                  </div>
-                  {property.rating > 0 && (
-                    <div className="flex items-center gap-2">
-                      <div className="flex gap-0.5 text-amber-400">
-                        {[1, 2, 3, 4, 5].map((s) => (
-                          <StarIcon key={s} filled={s <= Math.round(property.rating)} className="h-4 w-4" />
-                        ))}
-                      </div>
-                      <span className="text-sm font-semibold text-slate-700">{property.rating.toFixed(1)}</span>
-                      <span className="text-xs text-slate-400">({property.reviewCount} reviews)</span>
-                    </div>
-                  )}
+                <div className="mt-4 border-t border-line pt-4">
+                  <p className="text-[2rem] leading-none font-extrabold tracking-tight text-brand-950 tabular-nums">
+                    {formatPrice(property.price)}
+                    <span className="ml-1.5 text-sm font-semibold tracking-wide text-slate-500">/month</span>
+                  </p>
+                  <p className="mt-1.5 text-xs text-slate-500">
+                    Security deposit equals one month rent · 5% platform fee applies on completed rentals
+                  </p>
                 </div>
               </div>
             </div>
@@ -231,21 +220,21 @@ export default function PropertyDetails() {
 
             {/* Description */}
             <section className="rounded-2xl border border-line bg-white p-5 shadow-soft sm:p-6">
-              <h2 className="font-display text-xl font-semibold text-ink">About this property</h2>
-              <p className="mt-3 text-[15px] leading-relaxed whitespace-pre-line text-slate-600">
+              <h2 className="text-lg sm:text-xl font-semibold tracking-tight text-ink">About this property</h2>
+              <p className="mt-3 text-sm leading-relaxed whitespace-pre-line text-slate-600">
                 {property.description}
               </p>
             </section>
 
             {/* Amenities */}
             <section className="rounded-2xl border border-line bg-white p-5 shadow-soft sm:p-6">
-              <h2 className="font-display text-xl font-semibold text-ink">What this place offers</h2>
+              <h2 className="text-lg sm:text-xl font-semibold tracking-tight text-ink">What this place offers</h2>
               {amenityLabels.length ? (
                 <ul className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                   {amenityLabels.map((a) => (
                     <li
                       key={a}
-                      className="flex items-center gap-2.5 rounded-xl border border-line/70 bg-surface px-3 py-2.5 text-sm text-slate-700 transition-colors duration-200 hover:border-emerald-200 hover:bg-emerald-50/50"
+                      className="flex items-center gap-2.5 rounded-full border border-line/70 bg-surface px-3.5 py-2.5 text-sm text-slate-700 transition-colors duration-200 hover:border-emerald-200 hover:bg-emerald-50/50"
                     >
                       <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
                         <Icon name="check" className="h-3.5 w-3.5" strokeWidth={2.5} />
@@ -262,7 +251,7 @@ export default function PropertyDetails() {
             {/* Location */}
             <section className="rounded-2xl border border-line bg-white p-5 shadow-soft sm:p-6">
               <div className="flex items-center justify-between gap-3">
-                <h2 className="font-display text-xl font-semibold text-ink">Location</h2>
+                <h2 className="text-lg sm:text-xl font-semibold tracking-tight text-ink">Location</h2>
                 <a
                   href={`https://www.google.com/maps/search/${encodeURIComponent(`${property.area}, ${property.city}, ${property.district}, Gilgit-Baltistan`)}`}
                   target="_blank"
@@ -273,7 +262,7 @@ export default function PropertyDetails() {
                 </a>
               </div>
 
-              <div className="relative mt-4 overflow-hidden rounded-xl border border-line bg-surface">
+              <div className="relative mt-4 overflow-hidden rounded-2xl border border-line bg-surface">
                 {/* Stylised static map panel (no external map SDK required) */}
                 <div className="relative h-56 sm:h-64">
                   <svg viewBox="0 0 600 260" className="absolute inset-0 h-full w-full" aria-hidden="true">
@@ -302,6 +291,7 @@ export default function PropertyDetails() {
                 <Fact label="City / Town" value={property.city} />
                 <Fact label="Locality" value={property.area} />
                 <Fact label="Full address" value={property.address} />
+                <Fact label="Furnishing" value={property.furnishing || '—'} />
                 <Fact label="Available from" value={formatDate(property.availableFrom)} />
                 <Fact label="Listed on" value={formatDate(property.createdAt)} />
               </dl>
@@ -309,29 +299,6 @@ export default function PropertyDetails() {
 
             {/* Reviews */}
             <ReviewsSection reviews={property.reviews} rating={property.rating} reviewCount={property.reviewCount} />
-
-            {/* Related */}
-            <section>
-              <div className="mb-4 flex items-end justify-between gap-3">
-                <h2 className="font-display text-xl font-semibold text-ink">Similar properties</h2>
-                <Link to="/browse" className="text-sm font-semibold text-primary hover:underline">
-                  View all →
-                </Link>
-              </div>
-              {relatedLoading ? (
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                  {Array.from({ length: 3 }).map((_, i) => (
-                    <PropertyCardSkeleton key={i} />
-                  ))}
-                </div>
-              ) : (
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                  {(related || []).map((p) => (
-                    <PropertyCard key={p.id} property={p} />
-                  ))}
-                </div>
-              )}
-            </section>
           </div>
 
           {/* Sidebar */}
@@ -347,25 +314,28 @@ export default function PropertyDetails() {
                   <Avatar name={owner.name || 'Owner'} size="lg" />
                   <div className="min-w-0">
                     <p className="truncate font-semibold text-slate-900">{owner.name || 'Property owner'}</p>
-                    <p className="text-xs text-slate-400">
-                      {owner.memberSince ? `Member since ${formatDate(owner.memberSince)}` : 'Verified listing agent'}
-                    </p>
+                    <p className="text-xs text-slate-500">{USER_ROLES[owner.role] || 'Owner / Agent'}</p>
                   </div>
                 </div>
 
                 <dl className="mt-4 space-y-2 text-sm">
-                  <div className="flex items-center justify-between gap-3">
-                    <dt className="text-slate-500">Response time</dt>
-                    <dd className="font-medium text-slate-700">Within a few hours</dd>
-                  </div>
-                  <div className="flex items-center justify-between gap-3">
-                    <dt className="text-slate-500">Phone</dt>
-                    <dd className="font-medium text-slate-700">{owner.phone || '+92 5811 000000'}</dd>
-                  </div>
-                  <div className="flex items-center justify-between gap-3">
-                    <dt className="text-slate-500">Listings</dt>
-                    <dd className="font-medium text-slate-700">Active on RentLink</dd>
-                  </div>
+                  {owner.memberSince && (
+                    <div className="flex items-center justify-between gap-3">
+                      <dt className="text-slate-500">Member since</dt>
+                      <dd className="font-medium text-slate-700">{formatDate(owner.memberSince)}</dd>
+                    </div>
+                  )}
+                  {owner.phone && (
+                    <div className="flex items-center justify-between gap-3">
+                      <dt className="text-slate-500">Phone</dt>
+                      <dd className="font-medium text-slate-700">{owner.phone}</dd>
+                    </div>
+                  )}
+                  {!owner.memberSince && !owner.phone && (
+                    <p className="text-sm text-slate-500">
+                      The owner has not shared additional contact details.
+                    </p>
+                  )}
                 </dl>
 
                 <div className="mt-5 space-y-2.5">
@@ -420,28 +390,71 @@ export default function PropertyDetails() {
             </div>
           </aside>
         </div>
+
+        {/* Related listings — full-width row below the two-column layout */}
+        <section className="mt-10">
+          <div className="mb-4 flex items-end justify-between gap-3">
+            <h2 className="text-lg sm:text-xl font-semibold tracking-tight text-ink">Similar properties</h2>
+            <Link to="/browse" className="inline-flex min-h-10 items-center text-sm font-semibold text-primary hover:underline">
+              View all →
+            </Link>
+          </div>
+          {relatedLoading ? (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <PropertyCardSkeleton key={i} />
+              ))}
+            </div>
+          ) : relatedError ? (
+            <ErrorState message={relatedError} onRetry={reloadRelated} />
+          ) : (related || []).length === 0 ? (
+            <EmptyState
+              icon="search"
+              title="No similar properties yet"
+              message="We could not find listings like this one at the moment."
+              actionLabel="Browse all properties"
+              onAction={() => navigate('/browse')}
+            />
+          ) : (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {(related || []).map((p) => (
+                <PropertyCard key={p.id} property={p} />
+              ))}
+            </div>
+          )}
+        </section>
       </div>
 
       {/* Sticky mobile action bar */}
-      <div className="sticky bottom-0 z-40 border-t border-line bg-white/95 px-4 py-3 backdrop-blur lg:hidden">
-        <div className="flex items-center gap-3">
-          <div className="min-w-0 flex-1">
-            <p className="text-lg leading-tight font-bold text-brand-900">{formatPrice(property.price)}</p>
-            <p className="text-xs text-slate-400">per month</p>
+      <div
+        role="region"
+        aria-label="Property actions"
+        className="sticky bottom-0 z-40 border-t border-line bg-white/95 px-4 pt-3 pb-[calc(0.75rem_+_env(safe-area-inset-bottom))] backdrop-blur lg:hidden"
+      >
+        <div className="flex flex-col gap-2.5">
+          <div className="flex items-baseline gap-1.5">
+            <p className="text-lg leading-tight font-bold text-brand-900 tabular-nums">{formatPrice(property.price)}</p>
+            <p className="text-xs text-slate-500">per month</p>
           </div>
-          <Button variant="outline" size="sm" onClick={onMessageOwner} loading={messaging} className="shrink-0">
-            <Icon name="chat" className="h-4 w-4" />
-            Message
-          </Button>
-          <Button size="sm" onClick={() => setVisitOpen(true)} className="shrink-0">
-            <Icon name="calendar" className="h-4 w-4" />
-            Request Visit
-          </Button>
+          <div className="flex gap-2.5">
+            <Button variant="outline" size="md" onClick={onMessageOwner} loading={messaging} className="min-w-0 flex-1">
+              <Icon name="chat" className="h-4 w-4 shrink-0" />
+              Message
+            </Button>
+            <Button size="md" onClick={() => setVisitOpen(true)} className="min-w-0 flex-1">
+              <Icon name="calendar" className="h-4 w-4 shrink-0" />
+              Request Visit
+            </Button>
+          </div>
         </div>
       </div>
 
       <RequestVisitModal open={visitOpen} onClose={() => setVisitOpen(false)} property={property} />
-      <ShareModal open={shareOpen} onClose={() => setShareOpen(false)} property={property} />
+      <ShareModal
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        title={`Check out "${property.title}" on RentLink`}
+      />
     </div>
   );
 }

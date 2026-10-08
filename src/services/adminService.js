@@ -22,12 +22,12 @@ const adminService = {
     const fees = completedTransactions.reduce((a, t) => a + Math.round(t.amount * 0.05), 0);
 
     return {
-      totalUsers: users.filter((u) => u.role === 'tenant').length + 1320,
-      totalOwners: users.filter((u) => u.role === 'owner').length + 96,
-      totalProperties: properties.length + 264,
+      totalUsers: users.filter((u) => u.role === 'tenant').length,
+      totalOwners: users.filter((u) => u.role === 'owner').length,
+      totalProperties: properties.length,
       pendingProperties: pending.length,
-      activeListings: approved.length + 198,
-      visitRequests: db.visits.length + 158,
+      activeListings: approved.length,
+      visitRequests: db.visits.length,
       platformRevenue: fees,
       grossValue: revenue,
       openReports: db.reports.filter((r) => r.status === 'open').length,

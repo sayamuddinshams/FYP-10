@@ -7,6 +7,7 @@ import PageHeader from '../../components/dashboard/PageHeader';
 import EmptyState from '../../components/common/EmptyState';
 import { ErrorState } from '../../components/common/Feedback';
 import { PropertyGridSkeleton } from '../../components/common/Skeleton';
+import { PageLoader } from '../../components/common/Spinner';
 import { PROPERTY_TYPES } from '../../utils/constants';
 import { useAsync, useDebounce, useDocumentTitle, useStoreVersion } from '../../hooks';
 import { useAuth } from '../../context/AuthContext';
@@ -56,23 +57,27 @@ export default function Saved() {
     setType('');
   }
 
-  if (!user) return null;
-
-  if (error) {
-    return <ErrorState message={error} onRetry={reload} />;
-  }
+  if (!user) return <PageLoader label="Loading your saved properties…" />;
 
   return (
     <div className="animate-fade-up">
       <PageHeader
         title="Saved Properties"
-        subtitle={loading && !data ? 'Loading your shortlist…' : `You have ${favorites.length} saved ${favorites.length === 1 ? 'property' : 'properties'}.`}
+        subtitle={
+          error
+            ? 'Your shortlist of properties you want to revisit.'
+            : loading && !data
+              ? 'Loading your shortlist…'
+              : `You have ${favorites.length} saved ${favorites.length === 1 ? 'property' : 'properties'}.`
+        }
       />
 
-      {favorites.length > 0 && (
+      {error && <ErrorState message={error} onRetry={reload} />}
+
+      {!error && favorites.length > 0 && (
         <div className="mb-6 flex flex-col gap-3 rounded-xl border border-line bg-white p-4 sm:flex-row sm:items-center">
           <div className="relative flex-1">
-            <Icon name="search" className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <Icon name="search" className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-slate-500" />
             <Input
               aria-label="Search saved properties"
               placeholder="Search by title or location…"
@@ -98,7 +103,7 @@ export default function Saved() {
             <button
               type="button"
               onClick={clearFilters}
-              className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+              className="inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
             >
               <Icon name="x" className="h-3.5 w-3.5" />
               Clear
@@ -107,9 +112,16 @@ export default function Saved() {
         </div>
       )}
 
-      {loading && !data ? (
-        <PropertyGridSkeleton count={6} />
-      ) : favorites.length === 0 ? (
+      {!error && hasFilters && favorites.length > 0 && (
+        <p className="mb-4 text-xs text-slate-500" aria-live="polite">
+          Showing {filtered.length} of {favorites.length} saved {favorites.length === 1 ? 'property' : 'properties'}.
+        </p>
+      )}
+
+      {!error &&
+        (loading && !data ? (
+          <PropertyGridSkeleton count={6} />
+        ) : favorites.length === 0 ? (
         <div className="rounded-xl border border-line bg-white">
           <EmptyState
             icon="bookmark"
@@ -135,7 +147,7 @@ export default function Saved() {
             <PropertyCard key={p.id} property={p} />
           ))}
         </div>
-      )}
+      ))}
     </div>
   );
 }

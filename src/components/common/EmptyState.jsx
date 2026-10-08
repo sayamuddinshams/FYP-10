@@ -1,4 +1,5 @@
 import Button from './Button';
+import Icon from './icons';
 import { cn } from '../../utils/format';
 
 const icons = {
@@ -46,8 +47,8 @@ export default function EmptyState({
 }) {
   return (
     <div className={cn('flex flex-col items-center justify-center px-6 py-16 text-center animate-fade-up', className)}>
-      <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
-        {icons[icon] || icons.search}
+      <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-700">
+        {icons[icon] || <Icon name={icon} className="h-6 w-6" strokeWidth={1.6} />}
       </div>
       <h3 className="text-base font-semibold text-slate-900">{title}</h3>
       {message && <p className="mt-1.5 max-w-sm text-sm leading-relaxed text-slate-500">{message}</p>}

@@ -217,7 +217,7 @@ export function DonutChart({ data = [], size = 190, thickness = 22, className = 
             </span>
             <span className="font-semibold text-slate-900">
               {formatNumber(d.value)}
-              <span className="ml-1.5 text-xs font-normal text-slate-400">
+              <span className="ml-1.5 text-xs font-normal text-slate-500">
                 {Math.round((Number(d.value || 0) / total) * 100)}%
               </span>
             </span>
@@ -235,7 +235,7 @@ function colorForIndex(i) {
 
 function ChartEmpty({ height = H }) {
   return (
-    <div className="flex items-center justify-center rounded-lg bg-slate-50 text-sm text-slate-400" style={{ height }}>
+    <div className="flex items-center justify-center rounded-lg bg-slate-50 text-sm text-slate-500" style={{ height }}>
       No data to display yet
     </div>
   );

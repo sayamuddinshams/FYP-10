@@ -45,7 +45,7 @@ export default function StatCard({ label, value, suffix = '', prefix = '', hint,
   return (
     <div
       className={cn(
-        'group relative overflow-hidden rounded-2xl border border-line bg-white p-5 shadow-soft transition-all duration-300',
+        'group relative overflow-hidden rounded-xl border border-line bg-white p-5 shadow-soft transition-all duration-300',
         'hover:-translate-y-1 hover:border-brand-200 hover:shadow-lift',
         className
       )}
@@ -56,7 +56,7 @@ export default function StatCard({ label, value, suffix = '', prefix = '', hint,
       />
       <div className="relative flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="truncate text-xs font-semibold tracking-wider text-slate-400 uppercase">{label}</p>
+          <p className="truncate text-xs font-semibold tracking-wider text-slate-500 uppercase">{label}</p>
           <p className="mt-2 text-2xl leading-none font-extrabold tracking-tight text-slate-900 tabular-nums sm:text-[1.7rem]">
             {prefix}
             {display}
@@ -94,7 +94,7 @@ export default function StatCard({ label, value, suffix = '', prefix = '', hint,
             {trend.label}
           </span>
         )}
-        {hint && <span className="truncate text-slate-400">{hint}</span>}
+        {hint && <span className="truncate text-slate-500">{hint}</span>}
       </div>
     </div>
   );

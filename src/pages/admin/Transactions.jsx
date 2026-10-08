@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useAsync, useDocumentTitle } from '../../hooks';
 import { formatDate, formatNumber, formatPrice } from '../../utils/format';
+import { PLATFORM_FEE_RATE } from '../../utils/constants';
 import transactionService from '../../services/transactionService';
 import PageHeader from '../../components/dashboard/PageHeader';
 import StatCard from '../../components/dashboard/StatCard';
@@ -28,6 +29,7 @@ export default function Transactions() {
 
   const txns = useMemo(() => list.data || [], [list.data]);
   const s = summary.data;
+  const feePercent = Math.round((s?.rate ?? PLATFORM_FEE_RATE) * 100);
 
   return (
     <div className="space-y-6">
@@ -63,6 +65,13 @@ export default function Transactions() {
         onChange={setFilter}
       />
 
+      {!list.loading && !list.error && (
+        <p role="status" aria-live="polite" className="text-sm text-slate-600">
+          Showing {formatNumber(txns.length)} transaction{txns.length === 1 ? '' : 's'}
+          {filter === 'all' ? '' : ` with ${filter} status`}.
+        </p>
+      )}
+
       {list.error ? (
         <ErrorState message={list.error} onRetry={list.reload} />
       ) : (
@@ -74,7 +83,7 @@ export default function Transactions() {
               render: (t) => (
                 <div>
                   <p className="font-mono text-xs font-semibold tracking-tight text-slate-800">{t.id}</p>
-                  <p className="mt-0.5 text-xs text-slate-400">{formatDate(t.date)}</p>
+                  <p className="mt-0.5 text-xs text-slate-500">{formatDate(t.date)}</p>
                 </div>
               ),
             },
@@ -94,7 +103,7 @@ export default function Transactions() {
               render: (t) => (
                 <span className="text-sm text-slate-700">
                   {formatPrice(t.platformFee)}
-                  <span className="ml-1 text-xs text-slate-400">(5%)</span>
+                  <span className="ml-1 text-xs text-slate-500">({feePercent}%)</span>
                 </span>
               ),
               hideOnMobile: true,
@@ -124,13 +133,14 @@ export default function Transactions() {
           <div className="text-sm leading-relaxed text-slate-600">
             <p className="font-semibold text-slate-900">How platform fees work</p>
             <p className="mt-1">
-              RentLink collects a flat <span className="font-semibold text-slate-800">5% platform fee</span> on every completed
-              rental payment. The owner receives the remaining <span className="font-semibold text-slate-800">95%</span>, and fees
-              for pending transactions are settled when the payment clears. Failed transactions generate no fee income.
+              RentLink collects a flat <span className="font-semibold text-slate-800">{feePercent}% platform fee</span> on every
+              completed rental payment. The owner receives the remaining{' '}
+              <span className="font-semibold text-slate-800">{100 - feePercent}%</span>, and fees for pending transactions are
+              settled when the payment clears. Failed transactions generate no fee income.
             </p>
           </div>
           <div className="shrink-0 rounded-lg bg-slate-50 px-4 py-3 text-center">
-            <p className="text-xs font-semibold tracking-wide text-slate-400 uppercase">Total records</p>
+            <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase">Total records</p>
             <p className="mt-0.5 text-xl font-bold text-slate-900">{formatNumber(s?.count || 0)}</p>
           </div>
         </div>
