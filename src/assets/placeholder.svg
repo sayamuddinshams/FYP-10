@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="Property image placeholder">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#12294a"/>
+      <stop offset="100%" stop-color="#2e4a7d"/>
+    </linearGradient>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#e2eaf6"/>
+      <stop offset="100%" stop-color="#c5d5ed"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#bg)"/>
+  <rect x="0" y="330" width="800" height="270" fill="#0b1a30" opacity="0.35"/>
+  <path d="M0 400 L160 250 L260 350 L360 210 L500 400 Z" fill="url(#sky)" opacity="0.5"/>
+  <path d="M340 400 L520 260 L640 360 L800 240 L800 400 Z" fill="url(#sky)" opacity="0.35"/>
+  <g transform="translate(300 300)" opacity="0.95">
+    <path d="M100 30 L190 96 L172 96 L172 170 L128 170 L128 118 L72 118 L72 170 L28 170 L28 96 L10 96 Z" fill="#ffffff"/>
+    <rect x="86" y="132" width="28" height="38" fill="#12294a"/>
+  </g>
+  <text x="400" y="530" text-anchor="middle" font-family="Inter, sans-serif" font-size="24" fill="#e2eaf6" opacity="0.85">RentLink</text>
+</svg>

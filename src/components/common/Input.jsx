@@ -1,0 +1,173 @@
+import { useId } from 'react';
+import { cn } from '../../utils/format';
+
+export function FieldLabel({ htmlFor, children, required, hint }) {
+  return (
+    <div className="mb-1.5 flex items-baseline justify-between gap-3">
+      <label htmlFor={htmlFor} className="text-sm font-medium text-slate-700">
+        {children}
+        {required && <span className="ml-0.5 text-red-500" aria-hidden="true">*</span>}
+      </label>
+      {hint && <span className="text-xs text-slate-400">{hint}</span>}
+    </div>
+  );
+}
+
+export function FieldError({ id, children }) {
+  if (!children) return null;
+  return (
+    <p id={id} role="alert" className="mt-1.5 flex items-start gap-1.5 text-xs font-medium text-red-600">
+      <svg viewBox="0 0 20 20" fill="currentColor" className="mt-0.5 h-3.5 w-3.5 shrink-0">
+        <path
+          fillRule="evenodd"
+          d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-11.25a.75.75 0 00-1.5 0v.5a.75.75 0 001.5 0v-.5zM10 9a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 9z"
+          clipRule="evenodd"
+        />
+      </svg>
+      {children}
+    </p>
+  );
+}
+
+const baseInput =
+  'w-full rounded-lg border bg-white text-sm text-slate-900 placeholder:text-slate-400 transition-colors duration-150 ' +
+  'focus:border-brand-400 focus:ring-2 focus:ring-brand-100 focus:outline-none disabled:bg-slate-50 disabled:text-slate-400';
+
+function stateClass(error) {
+  return error ? 'border-red-300 focus:border-red-400 focus:ring-red-100' : 'border-line';
+}
+
+export function Input({ label, error, hint, required, id, className = '', inputClassName = '', rightIcon, ...rest }) {
+  const autoId = useId();
+  const inputId = id || autoId;
+  const errorId = `${inputId}-error`;
+  return (
+    <div className={cn('w-full', className)}>
+      {label && (
+        <FieldLabel htmlFor={inputId} required={required} hint={hint}>
+          {label}
+        </FieldLabel>
+      )}
+      <div className="relative">
+        <input
+          id={inputId}
+          required={required}
+          aria-invalid={error ? 'true' : undefined}
+          aria-describedby={error ? errorId : undefined}
+          className={cn(baseInput, 'h-11 px-3.5', rightIcon && 'pr-11', stateClass(error), inputClassName)}
+          {...rest}
+        />
+        {rightIcon}
+      </div>
+      <FieldError id={errorId}>{error}</FieldError>
+    </div>
+  );
+}
+
+export function Textarea({ label, error, hint, required, id, rows = 4, className = '', ...rest }) {
+  const autoId = useId();
+  const inputId = id || autoId;
+  const errorId = `${inputId}-error`;
+  return (
+    <div className={cn('w-full', className)}>
+      {label && (
+        <FieldLabel htmlFor={inputId} required={required} hint={hint}>
+          {label}
+        </FieldLabel>
+      )}
+      <textarea
+        id={inputId}
+        rows={rows}
+        required={required}
+        aria-invalid={error ? 'true' : undefined}
+        aria-describedby={error ? errorId : undefined}
+        className={cn(baseInput, 'px-3.5 py-2.5 leading-relaxed', stateClass(error))}
+        {...rest}
+      />
+      <FieldError id={errorId}>{error}</FieldError>
+    </div>
+  );
+}
+
+export function Select({ label, error, hint, required, id, children, className = '', selectClassName = '', placeholder, ...rest }) {
+  const autoId = useId();
+  const inputId = id || autoId;
+  const errorId = `${inputId}-error`;
+  return (
+    <div className={cn('w-full', className)}>
+      {label && (
+        <FieldLabel htmlFor={inputId} required={required} hint={hint}>
+          {label}
+        </FieldLabel>
+      )}
+      <div className="relative">
+        <select
+          id={inputId}
+          required={required}
+          aria-invalid={error ? 'true' : undefined}
+          aria-describedby={error ? errorId : undefined}
+          className={cn(baseInput, 'h-11 appearance-none pr-9 pl-3.5', stateClass(error), selectClassName)}
+          {...rest}
+        >
+          {placeholder && (
+            <option value="" disabled>
+              {placeholder}
+            </option>
+          )}
+          {children}
+        </select>
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 20 20"
+          fill="none"
+          className="pointer-events-none absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-slate-400"
+        >
+          <path d="M6 8l4 4 4-4" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </div>
+      <FieldError id={errorId}>{error}</FieldError>
+    </div>
+  );
+}
+
+export function Checkbox({ label, id, className = '', ...rest }) {
+  const autoId = useId();
+  const inputId = id || autoId;
+  return (
+    <div className={cn('flex items-start gap-2.5', className)}>
+      <input
+        id={inputId}
+        type="checkbox"
+        className="mt-0.5 h-4.5 w-4.5 shrink-0 cursor-pointer rounded border-line text-brand-700 accent-brand-700 focus:ring-brand-300"
+        {...rest}
+      />
+      {label && (
+        <label htmlFor={inputId} className="cursor-pointer text-sm text-slate-600 select-none">
+          {label}
+        </label>
+      )}
+    </div>
+  );
+}
+
+export function Radio({ label, description, id, checked, className = '', ...rest }) {
+  const autoId = useId();
+  const inputId = id || autoId;
+  return (
+    <div className={cn('flex items-start gap-2.5', className)}>
+      <input
+        id={inputId}
+        type="radio"
+        checked={checked}
+        className="mt-1 h-4 w-4 shrink-0 cursor-pointer border-line text-brand-700 accent-brand-700 focus:ring-brand-300"
+        {...rest}
+      />
+      <label htmlFor={inputId} className="cursor-pointer select-none">
+        <span className="block text-sm font-medium text-slate-800">{label}</span>
+        {description && <span className="mt-0.5 block text-xs text-slate-500">{description}</span>}
+      </label>
+    </div>
+  );
+}
+
+export default Input;
