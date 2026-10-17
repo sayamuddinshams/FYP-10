@@ -79,7 +79,7 @@ function SectionEmpty({ icon, title, message, actionLabel, onAction }) {
 
 function DashboardSkeleton() {
   return (
-    <div className="animate-fade-up">
+    <div>
       {/* Header */}
       <div className="mb-7">
         <Skeleton className="h-8 w-64 max-w-full" />
@@ -186,7 +186,7 @@ export default function Dashboard() {
 
   if (error) {
     return (
-      <div className="animate-fade-up">
+      <div>
         {header}
         <ErrorState
           message={error}
@@ -207,7 +207,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="animate-fade-up">
+    <div>
       {header}
 
       {/* Stat strip */}

@@ -115,7 +115,7 @@ export default function Notifications() {
             return (
               <li
                 key={n.id}
-                className={`group relative flex items-start gap-3.5 rounded-xl border bg-white p-4 transition animate-fade-up ${
+                className={`group relative flex items-start gap-3.5 rounded-xl border bg-white p-4 transition ${
                   n.read ? 'border-line' : 'border-brand-200 shadow-sm'
                 }`}
               >

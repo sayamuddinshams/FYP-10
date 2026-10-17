@@ -312,7 +312,7 @@ export default function Browse() {
               <>
                 <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
                   {items.map((p, i) => (
-                    <div key={p.id} className="animate-fade-up" style={{ animationDelay: `${Math.min(i, 6) * 45}ms` }}>
+                    <div key={p.id}>
                       <PropertyCard property={p} />
                     </div>
                   ))}

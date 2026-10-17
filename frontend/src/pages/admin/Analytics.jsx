@@ -81,9 +81,9 @@ export default function Analytics() {
     };
   }, [a]);
 
-  function chartBlock(title, subtitle, dataset, children, delay = 0) {
+  function chartBlock(title, subtitle, dataset, children) {
     return (
-      <div className="animate-fade-up" style={{ animationDelay: `${delay}ms` }}>
+      <div>
         <ChartCard title={title} subtitle={subtitle}>
           {loading ? (
             <LineSkeleton />
@@ -172,7 +172,7 @@ export default function Analytics() {
             ))}
             {chartBlock('Property Growth', insights.properties, a?.propertyGrowth, (
               <BarChart data={a?.propertyGrowth || []} valueKey="properties" />
-            ), 60)}
+            ))}
           </div>
 
           <div className="grid gap-5 md:grid-cols-2">
@@ -181,7 +181,7 @@ export default function Analytics() {
             ))}
             {chartBlock('Popular Locations', insights.locations, a?.popularLocations, (
               <BarChart data={a?.popularLocations || []} valueKey="value" horizontal />
-            ), 60)}
+            ))}
           </div>
 
           <div className="grid gap-5 md:grid-cols-2">
@@ -192,7 +192,7 @@ export default function Analytics() {
             ))}
             {chartBlock('Visit Requests', insights.visits, a?.visitRequests, (
               <BarChart data={a?.visitRequests || []} valueKey="value" color="#0284c7" />
-            ), 60)}
+            ))}
           </div>
 
           <div className="grid gap-5 md:grid-cols-2">
@@ -201,7 +201,7 @@ export default function Analytics() {
             ))}
             {chartBlock('Platform Fees', insights.fees, a?.platformFees, (
               <LineChart data={a?.platformFees || []} valueKey="value" color="#f59e0b" formatValue={formatCompact} />
-            ), 60)}
+            ))}
           </div>
         </>
       )}

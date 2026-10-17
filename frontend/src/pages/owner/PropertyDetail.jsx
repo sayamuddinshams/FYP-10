@@ -213,7 +213,7 @@ export default function PropertyDetail() {
   ];
 
   return (
-    <div className="animate-fade-up">
+    <div>
       <PageHeader
         title={property.title}
         subtitle={`${property.area}, ${property.city}, ${property.district}`}

@@ -4,15 +4,13 @@ import { useAsync, useDocumentTitle } from '../../hooks';
 import propertyService from '../../services/propertyService';
 import { PROPERTY_TYPES } from '../../utils/constants';
 import { POPULAR_LOCATIONS } from '../../data/locations';
-import MotionButton from '../../components/common/MotionButton';
+import Button from '../../components/common/Button';
 import Icon from '../../components/common/icons';
-import MotionReveal from '../../components/common/MotionReveal';
 import PropertyCard from '../../components/property/PropertyCard';
 import LocationAutocomplete from '../../components/property/LocationAutocomplete';
 import EmptyState from '../../components/common/EmptyState';
 import { ErrorState } from '../../components/common/Feedback';
 import { PropertyCardSkeleton } from '../../components/common/Skeleton';
-import { motion } from 'motion/react';
 import HeroCarousel from '../../components/common/HeroCarousel';
 
 const CTA_IMAGE =
@@ -142,10 +140,10 @@ function LocationSearchBox() {
             <option value="40000-70000">Rs 40,000 – 70,000</option>
             <option value="70000-9999999">Rs 70,000+</option>
           </select>
-          <MotionButton type="submit" size="lg" className="sm:px-8">
+          <Button type="submit" size="lg" className="sm:px-8">
             <Icon name="search" className="h-4 w-4" />
             Search
-          </MotionButton>
+          </Button>
         </div>
       </form>
 
@@ -210,11 +208,7 @@ export default function Home() {
         <div aria-hidden="true" className="bg-hero-pattern absolute inset-0 opacity-40" />
 
         <div className="relative mx-auto w-full max-w-7xl px-4 pt-20 pb-24 sm:px-6 lg:px-8 lg:pt-28 lg:pb-32">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300, duration: 0.8 }}
-          >
+          <div>
             <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-semibold tracking-wide text-white/85 shadow-soft backdrop-blur-md">
               <span className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
@@ -223,12 +217,7 @@ export default function Home() {
               <Icon name="pin" className="h-3.5 w-3.5" />
               Gilgit-Baltistan, Pakistan
             </span>
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300, delay: 0.1, duration: 0.8 }}
-              className="mt-7 font-display text-[2.75rem] leading-[1.06] font-semibold tracking-tight sm:text-6xl lg:text-[4.5rem]"
-            >
+            <h1 className="mt-7 font-display text-[2.75rem] leading-[1.06] font-semibold tracking-tight sm:text-6xl lg:text-[4.5rem]">
               Find a place that{' '}
               <span className="relative inline-block">
                 <span className="text-gradient-light italic">feels like home</span>
@@ -248,26 +237,16 @@ export default function Home() {
                 </svg>
               </span>
               .
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300, delay: 0.2, duration: 0.8 }}
-              className="mt-6 max-w-2xl text-lg leading-relaxed text-white/75"
-            >
+            </h1>
+            <p className="mt-6 max-w-2xl text-lg leading-relaxed text-white/75">
               Discover houses, apartments, rooms, hostels, offices and commercial spaces across
               Gilgit-Baltistan.
-            </motion.p>
-          </motion.div>
+            </p>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300, delay: 0.3, duration: 0.8 }}
-            className="mt-10"
-          >
+          <div className="mt-10">
             <LocationSearchBox />
-          </motion.div>
+          </div>
 
           {/* Stats strip */}
           {statsError ? (
@@ -278,25 +257,13 @@ export default function Home() {
               onRetry={reloadStats}
             />
           ) : (
-            <motion.dl
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300, delay: 0.4, duration: 0.8 }}
-              className="mt-12 grid max-w-3xl grid-cols-2 gap-x-6 gap-y-8 border-t border-white/15 pt-8 sm:grid-cols-3"
-              aria-live="polite"
-            >
+            <dl className="mt-12 grid max-w-3xl grid-cols-2 gap-x-6 gap-y-8 border-t border-white/15 pt-8 sm:grid-cols-3" aria-live="polite">
               {[
                 { label: 'Live listings', value: s.total, icon: 'building' },
                 { label: 'Districts with listings', value: s.districts, icon: 'pin' },
                 { label: 'Property types listed', value: s.types, icon: 'grid' },
               ].map((stat, i) => (
-                <motion.div
-                  key={stat.label}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ type: 'spring', damping: 25, stiffness: 300, delay: 0.4 + i * 0.08, duration: 0.6 }}
-                  className="flex items-start gap-3"
-                >
+                <div key={stat.label} className="flex items-start gap-3">
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/10 text-brand-200 ring-1 ring-white/15">
                     <Icon name={stat.icon} className="h-4 w-4" />
                   </span>
@@ -315,9 +282,9 @@ export default function Home() {
                       )}
                     </dd>
                   </div>
-                </motion.div>
+                </div>
               ))}
-            </motion.dl>
+            </dl>
           )}
         </div>
 
@@ -327,19 +294,19 @@ export default function Home() {
 
       {/* Featured properties */}
       <section className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <MotionReveal>
+        <div>
           <SectionHeading
             kicker="Handpicked for you"
             title="Featured properties"
             description="Recently verified listings from trusted owners across the region."
             action={
-              <MotionButton as={Link} to="/browse" variant="outline" size="md">
+              <Button as={Link} to="/browse" variant="outline" size="md">
                 Browse all properties
                 <Icon name="arrowRight" className="h-4 w-4" />
-              </MotionButton>
+              </Button>
             }
           />
-        </MotionReveal>
+        </div>
 
         <p className="sr-only" aria-live="polite">
           {featuredLoading
@@ -374,9 +341,9 @@ export default function Home() {
           {!featuredLoading &&
             !featuredError &&
             featuredList.map((p, i) => (
-              <MotionReveal key={p.id} delay={i * 70}>
+              <div key={p.id}>
                 <PropertyCard property={p} />
-              </MotionReveal>
+              </div>
             ))}
         </div>
       </section>
@@ -388,17 +355,17 @@ export default function Home() {
           className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_45%_60%_at_50%_0%,rgba(46,74,125,.06),transparent_70%)]"
         />
         <div className="relative mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-          <MotionReveal stagger={70}>
+          <div>
             <SectionHeading
               align="center"
               kicker="Browse by type"
               title="Whatever you are looking for, it starts here"
               description="Six property categories, one trusted marketplace."
             />
-          </MotionReveal>
+          </div>
           <div className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
             {PROPERTY_TYPES.map((t, i) => (
-              <MotionReveal key={t.value} delay={i * 60}>
+              <div key={t.value}>
                 <Link
                   to={`/browse?type=${t.value}`}
                   className="group relative flex h-full flex-col items-center gap-3 overflow-hidden rounded-2xl border border-line bg-white p-6 text-center shadow-soft transition-all duration-300 hover:-translate-y-1.5 hover:border-brand-200 hover:shadow-lift"
@@ -421,7 +388,7 @@ export default function Home() {
                     )}
                   </span>
                 </Link>
-              </MotionReveal>
+              </div>
             ))}
           </div>
         </div>
@@ -429,24 +396,24 @@ export default function Home() {
 
       {/* Popular locations */}
       <section className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <MotionReveal>
+        <div>
           <SectionHeading
             kicker="Explore the region"
             title="Popular locations"
             description="The places people search for most, from Gilgit to Ghanche."
             action={
-              <MotionButton as={Link} to="/browse" variant="link">
+              <Button as={Link} to="/browse" variant="link">
                 View all locations
                 <Icon name="arrowRight" className="h-4 w-4" />
-              </MotionButton>
+              </Button>
             }
           />
-        </MotionReveal>
+        </div>
         <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
           {POPULAR_LOCATIONS.map((loc, i) => {
             const count = stats?.byDistrict?.[loc.district] || 0;
             return (
-            <MotionReveal key={loc.name} delay={i * 50}>
+            <div key={loc.name}>
               <Link
                 to={`/browse?location=${encodeURIComponent(loc.name)}`}
                 className="group relative flex h-44 items-end overflow-hidden rounded-2xl border border-line shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-lift sm:h-48"
@@ -474,7 +441,7 @@ export default function Home() {
                   </p>
                 </div>
               </Link>
-            </MotionReveal>
+            </div>
             );
           })}
         </div>
@@ -488,7 +455,7 @@ export default function Home() {
         />
         <div aria-hidden="true" className="bg-grid-lines absolute inset-0 opacity-60" />
         <div className="relative mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-          <MotionReveal>
+          <div>
             <div className="max-w-2xl">
               <span className="inline-flex items-center gap-2 text-xs font-bold tracking-[0.22em] text-brand-300 uppercase">
                 <span className="h-px w-8 bg-gradient-to-r from-brand-300 to-transparent" />
@@ -501,7 +468,7 @@ export default function Home() {
                 Four steps between you and the right place: no brokers, no guesswork.
               </p>
             </div>
-          </MotionReveal>
+          </div>
 
           <div className="relative mt-14">
             {/* Connecting line on large screens */}
@@ -511,7 +478,7 @@ export default function Home() {
             />
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {HOW_IT_WORKS.map((step, i) => (
-                <MotionReveal key={step.step} delay={i * 90}>
+                <div key={step.step}>
                   <div className="group relative h-full rounded-2xl border border-white/10 bg-white/[0.04] p-7 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1.5 hover:border-brand-400/40 hover:bg-white/[0.07] hover:shadow-pop">
                     <div className="flex items-center justify-between">
                       <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-[linear-gradient(140deg,#2e4a7d,#4b74b4)] text-white shadow-[0_8px_20px_-8px_rgba(46,74,125,.8)] transition-transform duration-300 group-hover:-translate-y-0.5">
@@ -527,7 +494,7 @@ export default function Home() {
                     <h3 className="mt-5 text-base font-semibold text-white">{step.title}</h3>
                     <p className="mt-2 text-sm leading-relaxed text-white/70">{step.text}</p>
                   </div>
-                </MotionReveal>
+                </div>
               ))}
             </div>
           </div>
@@ -537,7 +504,7 @@ export default function Home() {
       {/* Trust */}
       <section className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="grid items-start gap-12 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
-          <MotionReveal>
+          <div>
             <div>
               <span className="inline-flex items-center gap-2 text-xs font-bold tracking-[0.22em] text-primary uppercase">
                 <span className="h-px w-8 bg-gradient-to-r from-primary-600 to-primary-300" />
@@ -551,17 +518,17 @@ export default function Home() {
                 visit carries a history you can rely on.
               </p>
               <div className="mt-7">
-                <MotionButton as={Link} to="/about" size="lg">
+                <Button as={Link} to="/about" size="lg">
                   Learn more about us
                   <Icon name="arrowRight" className="h-4 w-4" />
-                </MotionButton>
+                </Button>
               </div>
             </div>
-          </MotionReveal>
+          </div>
 
           <div className="grid gap-5 sm:grid-cols-2">
             {TRUST_POINTS.map((point, i) => (
-              <MotionReveal key={point.title} delay={i * 70}>
+              <div key={point.title}>
                 <div className="group h-full rounded-2xl border border-line bg-white p-7 shadow-soft transition-all duration-300 hover:-translate-y-1 hover:border-brand-200 hover:shadow-lift">
                   <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-[linear-gradient(140deg,#f1f5fb,#e2eaf6)] text-primary shadow-soft transition-all duration-300 group-hover:bg-[linear-gradient(140deg,#2e4a7d,#4b74b4)] group-hover:text-white group-hover:shadow-lift">
                     <Icon name={point.icon} className="h-5 w-5" />
@@ -569,7 +536,7 @@ export default function Home() {
                   <h3 className="mt-5 text-base font-semibold text-ink">{point.title}</h3>
                   <p className="mt-2 text-sm leading-relaxed text-slate-600">{point.text}</p>
                 </div>
-              </MotionReveal>
+              </div>
             ))}
           </div>
         </div>
@@ -579,7 +546,7 @@ export default function Home() {
       <section className="border-y border-line bg-surface">
         <div className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
           <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_1fr]">
-            <MotionReveal>
+            <div>
               <div>
                 <span className="inline-flex items-center gap-2 text-xs font-bold tracking-[0.22em] text-primary uppercase">
                   <span className="h-px w-8 bg-gradient-to-r from-primary-600 to-primary-300" />
@@ -594,19 +561,19 @@ export default function Home() {
                   in search.
                 </p>
                 <div className="mt-7 flex flex-wrap gap-3">
-                  <MotionButton as={Link} to="/owner/properties/new" size="lg">
+                  <Button as={Link} to="/owner/properties/new" size="lg">
                     <Icon name="plus" className="h-4 w-4" />
                     List your property
-                  </MotionButton>
-                  <MotionButton as={Link} to="/story" size="lg" variant="outline">
+                  </Button>
+                  <Button as={Link} to="/story" size="lg" variant="outline">
                     How listing works
                     <Icon name="arrowRight" className="h-4 w-4" />
-                  </MotionButton>
+                  </Button>
                 </div>
               </div>
-            </MotionReveal>
+            </div>
 
-            <MotionReveal delay={90}>
+            <div>
               <ul className="space-y-4 rounded-2xl border border-line bg-white p-6 shadow-soft sm:p-7">
                 {[
                   ['edit', 'Guided listing form', 'Photos, rent, amenities and availability collected step by step: no blank boxes.'],
@@ -624,14 +591,14 @@ export default function Home() {
                   </li>
                 ))}
               </ul>
-            </MotionReveal>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Final CTA */}
       <section className="mx-auto w-full max-w-7xl px-4 pt-16 pb-16 sm:px-6 lg:px-8">
-        <MotionReveal>
+        <div>
           <div className="relative overflow-hidden rounded-3xl shadow-pop">
             <img
               src={CTA_IMAGE}
@@ -660,11 +627,11 @@ export default function Home() {
                 renters who are ready to move.
               </p>
               <div className="mt-9 flex flex-wrap justify-center gap-3">
-                <MotionButton as={Link} to="/browse" size="lg" className="min-w-48">
+                <Button as={Link} to="/browse" size="lg" className="min-w-48">
                   <Icon name="search" className="h-4 w-4" />
                   Browse properties
-                </MotionButton>
-                <MotionButton
+                </Button>
+                <Button
                   as={Link}
                   to="/about"
                   size="lg"
@@ -673,11 +640,11 @@ export default function Home() {
                 >
                   Learn how it works
                   <Icon name="arrowRight" className="h-4 w-4" />
-                </MotionButton>
+                </Button>
               </div>
             </div>
           </div>
-        </MotionReveal>
+        </div>
       </section>
     </div>
   );

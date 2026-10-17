@@ -261,7 +261,7 @@ export default function Properties() {
   );
 
   return (
-    <div className="animate-fade-up">
+    <div>
       <PageHeader
         title="My Properties"
         subtitle="Manage every listing you own: drafts, listings under review and live properties."

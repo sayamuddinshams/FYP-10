@@ -70,7 +70,7 @@ export default function Notifications() {
 
   if (error) {
     return (
-      <div className="animate-fade-up">
+      <div>
         <PageHeader
           title="Notifications"
           subtitle="Updates about your visits, messages and saved properties."
@@ -81,7 +81,7 @@ export default function Notifications() {
   }
 
   return (
-    <div className="animate-fade-up">
+    <div>
       <PageHeader
         title="Notifications"
         subtitle={

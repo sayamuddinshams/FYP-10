@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { AnimatePresence, motion } from 'motion/react';
 import Avatar from '../common/Avatar';
 import Icon from '../common/icons';
 import Button from '../common/Button';
@@ -10,9 +9,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useModals } from '../../context/ModalContext';
 import { useToast } from '../../context/ToastContext';
 import { useUnreadNotifications } from '../../hooks';
-import { useReducedMotion } from '../../hooks/useReducedMotion';
 import { cn } from '../../utils/format';
-import { variants, quickSpring } from '../../utils/motion';
 
 const NAV_LINKS = [
   { to: '/', label: 'Home', end: true },
@@ -55,7 +52,6 @@ export default function Header() {
   const navigate = useNavigate();
   const location = useLocation();
   const unread = useUnreadNotifications();
-  const prefersReducedMotion = useReducedMotion();
 
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -68,10 +64,6 @@ export default function Header() {
   const searchToggleRef = useRef(null);
   const searchWasOpen = useRef(false);
   const drawerWasOpen = useRef(false);
-
-  // Shared tap feedback, disabled when the user prefers reduced motion.
-  const tap = prefersReducedMotion ? undefined : { scale: 0.94 };
-  const tapSoft = prefersReducedMotion ? undefined : { scale: 0.97 };
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -173,13 +165,9 @@ export default function Header() {
     navigate('/');
   }
 
-  const searchPanelTransition = prefersReducedMotion
-    ? { duration: 0 }
-    : { duration: 0.3, ease: [0.22, 1, 0.36, 1] };
-
   const avatarMenu = isAuthenticated ? (
     <div className="flex items-center gap-1">
-      <motion.button
+      <button
         type="button"
         onClick={() => {
           if (!isAuthenticated) {
@@ -189,8 +177,7 @@ export default function Header() {
           navigate(user.role === 'owner' ? '/owner/notifications' : user.role === 'admin' ? '/admin/notifications' : '/tenant/notifications');
         }}
         aria-label={unread > 0 ? `Notifications, ${unread} unread` : 'Notifications'}
-        whileTap={tap}
-        className="relative rounded-xl p-2 text-slate-500 transition-all duration-200 hover:-translate-y-px hover:bg-brand-50 hover:text-brand-700"
+        className="relative rounded-xl p-2 text-slate-500 transition-all duration-200 active:scale-95 hover:-translate-y-px hover:bg-brand-50 hover:text-brand-700"
       >
         <Icon name="bell" className="h-5 w-5" />
         {unread > 0 && (
@@ -198,21 +185,20 @@ export default function Header() {
             {unread > 9 ? '9+' : unread}
           </span>
         )}
-      </motion.button>
+      </button>
 
-      <ProfileDropdown user={user} onLogout={handleLogout} tap={tap} />
+      <ProfileDropdown user={user} onLogout={handleLogout} />
     </div>
   ) : (
     <div className="flex items-center gap-2">
-      <motion.button
+      <button
         type="button"
         onClick={() => onGuarded('/tenant/notifications', 'Sign in to view notifications.')}
         aria-label="Notifications"
-        whileTap={tap}
-        className="hidden rounded-xl p-2 text-slate-500 transition-all duration-200 hover:-translate-y-px hover:bg-brand-50 hover:text-brand-700 sm:block"
+        className="hidden rounded-xl p-2 text-slate-500 transition-all duration-200 active:scale-95 hover:-translate-y-px hover:bg-brand-50 hover:text-brand-700 sm:block"
       >
         <Icon name="bell" className="h-5 w-5" />
-      </motion.button>
+      </button>
       <Button size="sm" onClick={() => openAuth('login')}>
         Login / Sign Up
       </Button>
@@ -264,10 +250,8 @@ export default function Header() {
                 <>
                   {link.label}
                   {isActive && (
-                    <motion.span
-                      layoutId="header-nav-underline"
+                    <span
                       className="absolute inset-x-3.5 -bottom-px h-0.5 rounded-full bg-[linear-gradient(90deg,#2e4a7d,#4b74b4)]"
-                      transition={prefersReducedMotion ? { duration: 0 } : quickSpring}
                     />
                   )}
                 </>
@@ -278,236 +262,213 @@ export default function Header() {
 
         {/* Actions */}
         <div className="flex items-center gap-1.5 sm:gap-2">
-          <motion.button
+          <button
             ref={searchToggleRef}
             type="button"
             onClick={() => setSearchOpen((v) => !v)}
             aria-label="Search properties"
             aria-expanded={searchOpen}
             aria-controls="header-search"
-            whileTap={tap}
             className={cn(
-              'rounded-xl p-2 transition-all duration-200 hover:-translate-y-px',
+              'rounded-xl p-2 transition-all duration-200 active:scale-95 hover:-translate-y-px',
               searchOpen ? 'bg-brand-50 text-brand-700' : 'text-slate-500 hover:bg-brand-50 hover:text-brand-700'
             )}
           >
             <Icon name="search" className="h-5 w-5" />
-          </motion.button>
+          </button>
 
-          <motion.button
+          <button
             type="button"
             onClick={() => onGuarded('/tenant/saved', 'Sign in to view your saved properties.')}
             aria-label="Saved properties"
-            whileTap={tap}
-            className="hidden rounded-xl p-2 text-slate-500 transition-all duration-200 hover:-translate-y-px hover:bg-brand-50 hover:text-brand-700 sm:block"
+            className="hidden rounded-xl p-2 text-slate-500 transition-all duration-200 active:scale-95 hover:-translate-y-px hover:bg-brand-50 hover:text-brand-700 sm:block"
           >
             <Icon name="heart" className="h-5 w-5" />
-          </motion.button>
+          </button>
 
           <span className="hidden xl:block">{avatarMenu}</span>
 
-          <motion.button
+          <button
             ref={burgerRef}
             type="button"
             onClick={() => setMobileOpen((v) => !v)}
             aria-label="Open navigation menu"
             aria-expanded={mobileOpen}
             aria-controls="mobile-nav"
-            whileTap={tap}
-            className="rounded-xl border border-line bg-white p-2 text-slate-600 shadow-soft transition-all duration-200 hover:border-brand-200 hover:bg-brand-50 hover:text-brand-700 xl:hidden"
+            className="rounded-xl border border-line bg-white p-2 text-slate-600 shadow-soft transition-all duration-200 active:scale-95 hover:border-brand-200 hover:bg-brand-50 hover:text-brand-700 xl:hidden"
           >
             <Icon name={mobileOpen ? 'x' : 'menu'} className="h-5 w-5" />
-          </motion.button>
+          </button>
         </div>
       </div>
 
       {/* Search bar */}
-      <AnimatePresence initial={false}>
-        {searchOpen && (
-          <motion.div
-            key="header-search"
-            id="header-search"
-            ref={searchPanelRef}
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={searchPanelTransition}
-            className="overflow-hidden border-t border-line/70 bg-white/98 backdrop-blur-md"
-          >
-            <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  goSearch();
-                }}
-                className="flex flex-col gap-2.5 sm:flex-row sm:items-center"
+      {searchOpen && (
+        <div
+          id="header-search"
+          ref={searchPanelRef}
+          className="animate-fade-in overflow-hidden border-t border-line/70 bg-white/98 backdrop-blur-md"
+        >
+          <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                goSearch();
+              }}
+              className="flex flex-col gap-2.5 sm:flex-row sm:items-center"
+            >
+              <LocationAutocomplete
+                ariaLabel="Search location"
+                className="flex-1"
+                inputClassName="h-12"
+                value={search.label}
+                placeholder="Search “Jutial”, “Karimabad”, “Sadpara”…"
+                onSelect={(item) =>
+                  setSearch({
+                    label: item.kind === 'text' ? item.label : item.area || item.city || item.district,
+                    district: item.district || '',
+                    city: item.city || '',
+                    area: item.area || '',
+                    type: search.type,
+                  })
+                }
+              />
+              <select
+                value={search.type}
+                onChange={(e) => setSearch((p) => ({ ...p, type: e.target.value }))}
+                aria-label="Property type"
+                className="h-12 rounded-xl border border-line bg-white px-3.5 text-sm text-slate-700 shadow-soft focus:border-brand-400 focus:ring-2 focus:ring-brand-100 focus:outline-none"
               >
-                <LocationAutocomplete
-                  ariaLabel="Search location"
-                  className="flex-1"
-                  inputClassName="h-12"
-                  value={search.label}
-                  placeholder="Search “Jutial”, “Karimabad”, “Sadpara”…"
-                  onSelect={(item) =>
-                    setSearch({
-                      label: item.kind === 'text' ? item.label : item.area || item.city || item.district,
-                      district: item.district || '',
-                      city: item.city || '',
-                      area: item.area || '',
-                      type: search.type,
-                    })
-                  }
-                />
-                <select
-                  value={search.type}
-                  onChange={(e) => setSearch((p) => ({ ...p, type: e.target.value }))}
-                  aria-label="Property type"
-                  className="h-12 rounded-xl border border-line bg-white px-3.5 text-sm text-slate-700 shadow-soft focus:border-brand-400 focus:ring-2 focus:ring-brand-100 focus:outline-none"
-                >
-                  <option value="">All property types</option>
-                  {PROPERTY_TYPES.map((t) => (
-                    <option key={t.value} value={t.value}>
-                      {t.label}
-                    </option>
-                  ))}
-                </select>
-                <Button type="submit" size="lg" className="sm:w-auto">
-                  <Icon name="search" className="h-4.5 w-4.5" />
-                  Search
-                </Button>
-              </form>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                <option value="">All property types</option>
+                {PROPERTY_TYPES.map((t) => (
+                  <option key={t.value} value={t.value}>
+                    {t.label}
+                  </option>
+                ))}
+              </select>
+              <Button type="submit" size="lg" className="sm:w-auto">
+                <Icon name="search" className="h-4.5 w-4.5" />
+                Search
+              </Button>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Mobile drawer */}
-      <AnimatePresence>
-        {mobileOpen && (
-          <div className="fixed inset-0 z-50 xl:hidden">
-            <motion.div
-              key="mobile-backdrop"
-              onClick={() => setMobileOpen(false)}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: prefersReducedMotion ? 0 : 0.2, ease: 'easeOut' }}
-              className="absolute inset-0 bg-slate-950/45 backdrop-blur-sm"
-            />
-            <motion.div
-              key="mobile-panel"
-              id="mobile-nav"
-              ref={drawerRef}
-              role="dialog"
-              aria-modal="true"
-              aria-label="Navigation menu"
-              initial={prefersReducedMotion ? { x: 0, opacity: 1 } : { x: '100%' }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={prefersReducedMotion ? { x: 0, opacity: 1 } : { x: '100%' }}
-              transition={prefersReducedMotion ? { duration: 0 } : { type: 'spring', damping: 30, stiffness: 320 }}
-              className="absolute inset-y-0 right-0 flex w-80 max-w-[88%] flex-col bg-white shadow-pop"
-            >
-              <div className="flex items-center justify-between border-b border-line px-5 py-4">
-                <div className="flex items-center gap-2.5">
-                  <LogoMark size="sm" />
-                  <span className="text-base font-extrabold tracking-tight text-brand-950">RentLink</span>
-                </div>
-                <button type="button" onClick={() => setMobileOpen(false)} aria-label="Close menu" className="rounded-lg p-2 text-slate-500 transition active:scale-95 hover:bg-slate-100">
-                  <Icon name="x" className="h-5 w-5" />
-                </button>
+      {mobileOpen && (
+        <div className="fixed inset-0 z-50 xl:hidden">
+          <div
+            onClick={() => setMobileOpen(false)}
+            className="animate-fade-in absolute inset-0 bg-slate-950/45 backdrop-blur-sm transition-opacity"
+          />
+          <div
+            id="mobile-nav"
+            ref={drawerRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Navigation menu"
+            className="animate-slide-right absolute inset-y-0 right-0 flex w-80 max-w-[88%] flex-col bg-white shadow-pop"
+          >
+            <div className="flex items-center justify-between border-b border-line px-5 py-4">
+              <div className="flex items-center gap-2.5">
+                <LogoMark size="sm" />
+                <span className="text-base font-extrabold tracking-tight text-brand-950">RentLink</span>
               </div>
+              <button type="button" onClick={() => setMobileOpen(false)} aria-label="Close menu" className="rounded-lg p-2 text-slate-500 transition active:scale-95 hover:bg-slate-100">
+                <Icon name="x" className="h-5 w-5" />
+              </button>
+            </div>
 
-              <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4" aria-label="Mobile">
-                {NAV_LINKS.map((link) => (
-                  <NavLink
-                    key={link.to}
-                    to={link.to}
-                    end={link.end}
-                    className={({ isActive }) =>
-                      cn(
-                        'block rounded-xl px-3.5 py-3 text-sm font-medium transition-all duration-200 active:scale-[0.98]',
-                        isActive ? 'bg-brand-50 text-brand-800 shadow-soft' : 'text-slate-600 hover:bg-slate-50'
-                      )
-                    }
-                  >
-                    {link.label}
+            <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4" aria-label="Mobile">
+              {NAV_LINKS.map((link) => (
+                <NavLink
+                  key={link.to}
+                  to={link.to}
+                  end={link.end}
+                  className={({ isActive }) =>
+                    cn(
+                      'block rounded-xl px-3.5 py-3 text-sm font-medium transition-all duration-200 active:scale-[0.98]',
+                      isActive ? 'bg-brand-50 text-brand-800 shadow-soft' : 'text-slate-600 hover:bg-slate-50'
+                    )
+                  }
+                >
+                  {link.label}
+                </NavLink>
+              ))}
+
+              <div className="my-3 h-px bg-line" />
+
+              {isAuthenticated ? (
+                <>
+                  <NavLink to={dashboardPath(user.role)} className="block rounded-xl px-3.5 py-3 text-sm font-medium text-slate-600 transition active:scale-[0.98] hover:bg-slate-50">
+                    My Dashboard
                   </NavLink>
-                ))}
-
-                <div className="my-3 h-px bg-line" />
-
-                {isAuthenticated ? (
-                  <>
-                    <NavLink to={dashboardPath(user.role)} className="block rounded-xl px-3.5 py-3 text-sm font-medium text-slate-600 transition active:scale-[0.98] hover:bg-slate-50">
-                      My Dashboard
-                    </NavLink>
-                    <NavLink to="/tenant/saved" className="block rounded-xl px-3.5 py-3 text-sm font-medium text-slate-600 transition active:scale-[0.98] hover:bg-slate-50">
-                      Saved Properties
-                    </NavLink>
-                    <NavLink
-                      to={user.role === 'owner' ? '/owner/notifications' : user.role === 'admin' ? '/admin/notifications' : '/tenant/notifications'}
-                      className="flex items-center justify-between rounded-xl px-3.5 py-3 text-sm font-medium text-slate-600 transition active:scale-[0.98] hover:bg-slate-50"
-                    >
-                      Notifications
-                      {unread > 0 && <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white">{unread}</span>}
-                    </NavLink>
-                    <NavLink
-                      to={user.role === 'owner' ? '/owner/profile' : user.role === 'admin' ? '/admin/profile' : '/tenant/profile'}
-                      className="block rounded-xl px-3.5 py-3 text-sm font-medium text-slate-600 transition active:scale-[0.98] hover:bg-slate-50"
-                    >
-                      Profile
-                    </NavLink>
-                  </>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMobileOpen(false);
-                      openAuth('login');
-                    }}
-                    className="w-full rounded-xl px-3.5 py-3 text-left text-sm font-medium text-slate-600 transition active:scale-[0.98] hover:bg-slate-50"
-                  >
+                  <NavLink to="/tenant/saved" className="block rounded-xl px-3.5 py-3 text-sm font-medium text-slate-600 transition active:scale-[0.98] hover:bg-slate-50">
                     Saved Properties
-                  </button>
-                )}
-              </nav>
-
-              <div className="border-t border-line p-4">
-                {isAuthenticated ? (
-                  <div className="flex items-center gap-3">
-                    <Avatar name={user.name} size="sm" />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-slate-900">{user.name}</p>
-                      <p className="truncate text-xs text-slate-500">{user.email}</p>
-                    </div>
-                    <button type="button" onClick={handleLogout} aria-label="Log out" className="rounded-lg p-2 text-slate-500 transition active:scale-95 hover:bg-red-50 hover:text-red-600">
-                      <Icon name="logout" className="h-5 w-5" />
-                    </button>
-                  </div>
-                ) : (
-                  <Button
-                    fullWidth
-                    onClick={() => {
-                      setMobileOpen(false);
-                      openAuth('login');
-                    }}
+                  </NavLink>
+                  <NavLink
+                    to={user.role === 'owner' ? '/owner/notifications' : user.role === 'admin' ? '/admin/notifications' : '/tenant/notifications'}
+                    className="flex items-center justify-between rounded-xl px-3.5 py-3 text-sm font-medium text-slate-600 transition active:scale-[0.98] hover:bg-slate-50"
                   >
-                    Login / Sign Up
-                  </Button>
-                )}
-              </div>
-            </motion.div>
+                    Notifications
+                    {unread > 0 && <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white">{unread}</span>}
+                  </NavLink>
+                  <NavLink
+                    to={user.role === 'owner' ? '/owner/profile' : user.role === 'admin' ? '/admin/profile' : '/tenant/profile'}
+                    className="block rounded-xl px-3.5 py-3 text-sm font-medium text-slate-600 transition active:scale-[0.98] hover:bg-slate-50"
+                  >
+                    Profile
+                  </NavLink>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileOpen(false);
+                    openAuth('login');
+                  }}
+                  className="w-full rounded-xl px-3.5 py-3 text-left text-sm font-medium text-slate-600 transition active:scale-[0.98] hover:bg-slate-50"
+                >
+                  Saved Properties
+                </button>
+              )}
+            </nav>
+
+            <div className="border-t border-line p-4">
+              {isAuthenticated ? (
+                <div className="flex items-center gap-3">
+                  <Avatar name={user.name} size="sm" />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-slate-900">{user.name}</p>
+                    <p className="truncate text-xs text-slate-500">{user.email}</p>
+                  </div>
+                  <button type="button" onClick={handleLogout} aria-label="Log out" className="rounded-lg p-2 text-slate-500 transition active:scale-95 hover:bg-red-50 hover:text-red-600">
+                    <Icon name="logout" className="h-5 w-5" />
+                  </button>
+                </div>
+              ) : (
+                <Button
+                  fullWidth
+                  onClick={() => {
+                    setMobileOpen(false);
+                    openAuth('login');
+                  }}
+                >
+                  Login / Sign Up
+                </Button>
+              )}
+            </div>
           </div>
-        )}
-      </AnimatePresence>
+        </div>
+      )}
     </header>
   );
 }
 
-function ProfileDropdown({ user, onLogout, tap }) {
+function ProfileDropdown({ user, onLogout }) {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
-  const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
     const onDoc = (e) => {
@@ -524,7 +485,7 @@ function ProfileDropdown({ user, onLogout, tap }) {
 
   return (
     <div className="relative" data-menu-root>
-      <motion.button
+      <button
         type="button"
         onClick={(e) => {
           e.stopPropagation();
@@ -532,75 +493,68 @@ function ProfileDropdown({ user, onLogout, tap }) {
         }}
         aria-label="Open profile menu"
         aria-expanded={open}
-        whileTap={tap}
-        className="flex items-center gap-1.5 rounded-xl p-1 transition-all duration-200 hover:bg-slate-100"
+        className="flex items-center gap-1.5 rounded-xl p-1 transition-all duration-200 active:scale-95 hover:bg-slate-100"
       >
         <Avatar name={user.name} size="sm" />
         <Icon name="chevronDown" className={cn('hidden h-4 w-4 text-slate-500 transition-transform duration-200 sm:block', open && 'rotate-180')} />
-      </motion.button>
+      </button>
 
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            key="profile-menu"
-            initial={prefersReducedMotion ? { opacity: 1, scale: 1 } : variants.pop.initial}
-            animate={variants.pop.animate}
-            exit={prefersReducedMotion ? { opacity: 1, scale: 1 } : variants.pop.exit}
-            transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.18, ease: [0.34, 1.56, 0.64, 1] }}
-            className="absolute right-0 z-50 mt-2 w-60 origin-top-right overflow-hidden rounded-2xl border border-line bg-white py-1.5 shadow-pop"
+      {open && (
+        <div
+          id="profile-menu"
+          className="animate-pop absolute right-0 z-50 mt-2 w-60 origin-top-right overflow-hidden rounded-2xl border border-line bg-white py-1.5 shadow-pop"
+        >
+          <div className="border-b border-line px-4 py-3">
+            <p className="truncate text-sm font-semibold text-slate-900">{user.name}</p>
+            <p className="truncate text-xs text-slate-500">{user.email}</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setOpen(false);
+              navigate(dashboardPath(user.role));
+            }}
+            className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm text-slate-700 transition hover:bg-brand-50 hover:text-brand-800"
           >
-            <div className="border-b border-line px-4 py-3">
-              <p className="truncate text-sm font-semibold text-slate-900">{user.name}</p>
-              <p className="truncate text-xs text-slate-500">{user.email}</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                setOpen(false);
-                navigate(dashboardPath(user.role));
-              }}
-              className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm text-slate-700 transition hover:bg-brand-50 hover:text-brand-800"
-            >
-              <Icon name="grid" className="h-4 w-4 text-slate-500" />
-              My Dashboard
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setOpen(false);
-                navigate(user.role === 'owner' ? '/owner/profile' : user.role === 'admin' ? '/admin/profile' : '/tenant/profile');
-              }}
-              className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm text-slate-700 transition hover:bg-brand-50 hover:text-brand-800"
-            >
-              <Icon name="user" className="h-4 w-4 text-slate-500" />
-              Profile
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setOpen(false);
-                navigate(user.role === 'owner' ? '/owner/settings' : user.role === 'admin' ? '/admin/settings' : '/tenant/settings');
-              }}
-              className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm text-slate-700 transition hover:bg-brand-50 hover:text-brand-800"
-            >
-              <Icon name="settings" className="h-4 w-4 text-slate-500" />
-              Settings
-            </button>
-            <div className="my-1.5 h-px bg-line" />
-            <button
-              type="button"
-              onClick={() => {
-                setOpen(false);
-                onLogout();
-              }}
-              className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm text-red-600 transition hover:bg-red-50"
-            >
-              <Icon name="logout" className="h-4 w-4" />
-              Log out
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            <Icon name="grid" className="h-4 w-4 text-slate-500" />
+            My Dashboard
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setOpen(false);
+              navigate(user.role === 'owner' ? '/owner/profile' : user.role === 'admin' ? '/admin/profile' : '/tenant/profile');
+            }}
+            className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm text-slate-700 transition hover:bg-brand-50 hover:text-brand-800"
+          >
+            <Icon name="user" className="h-4 w-4 text-slate-500" />
+            Profile
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setOpen(false);
+              navigate(user.role === 'owner' ? '/owner/settings' : user.role === 'admin' ? '/admin/settings' : '/tenant/settings');
+            }}
+            className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm text-slate-700 transition hover:bg-brand-50 hover:text-brand-800"
+          >
+            <Icon name="settings" className="h-4 w-4 text-slate-500" />
+            Settings
+          </button>
+          <div className="my-1.5 h-px bg-line" />
+          <button
+            type="button"
+            onClick={() => {
+              setOpen(false);
+              onLogout();
+            }}
+            className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm text-red-600 transition hover:bg-red-50"
+          >
+            <Icon name="logout" className="h-4 w-4" />
+            Log out
+          </button>
+        </div>
+      )}
     </div>
   );
 }

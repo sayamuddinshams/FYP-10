@@ -4,7 +4,6 @@ import TenantLayout from '../layouts/TenantLayout';
 import OwnerLayout from '../layouts/OwnerLayout';
 import AdminLayout from '../layouts/AdminLayout';
 import RequireAuth from './RequireAuth';
-import PageTransition from '../components/common/PageTransition';
 
 import Home from '../pages/public/Home';
 import Browse from '../pages/public/Browse';
@@ -53,11 +52,22 @@ import AdminSettings from '../pages/admin/Settings';
 
 import NotFound from '../pages/public/NotFound';
 
+/**
+ * Application Routing Table
+ * -------------------------
+ * Maps URL paths to page components, structured into four main domains:
+ *  1. Public Routes: Accessible to any visitor (Home, Browse, Details, About, etc.)
+ *  2. Tenant Routes: Protected space for renters to track visits, saved homes, and messages
+ *  3. Owner Routes: Protected space for landlords/property managers to list and manage properties
+ *  4. Admin Routes: Protected back-office for platform oversight, moderation, reports, and analytics
+ */
 export default function AppRoutes() {
   return (
-    <PageTransition>
-      <Routes>
-        <Route element={<PublicLayout />}>
+    <Routes>
+      {/* ========================================================================= */}
+      {/* 1. PUBLIC ROUTES (Wrapped in PublicLayout with header, navigation & footer) */}
+      {/* ========================================================================= */}
+      <Route element={<PublicLayout />}>
         <Route index element={<Home />} />
         <Route path="browse" element={<Browse />} />
         <Route path="property/:id" element={<PropertyDetails />} />
@@ -68,9 +78,13 @@ export default function AppRoutes() {
         <Route path="advertisements" element={<Advertisements />} />
         <Route path="privacy" element={<Privacy />} />
         <Route path="terms" element={<Terms />} />
+        {/* Catch-all route for invalid or missing URLs */}
         <Route path="*" element={<NotFound />} />
       </Route>
 
+      {/* ========================================================================= */}
+      {/* 2. TENANT ROUTES (Requires authentication; accessible to tenants & owners)  */}
+      {/* ========================================================================= */}
       <Route
         path="tenant"
         element={
@@ -89,6 +103,9 @@ export default function AppRoutes() {
         <Route index element={<Navigate to="/tenant/dashboard" replace />} />
       </Route>
 
+      {/* ========================================================================= */}
+      {/* 3. OWNER / LANDLORD ROUTES (Requires role="owner")                          */}
+      {/* ========================================================================= */}
       <Route
         path="owner"
         element={
@@ -111,6 +128,9 @@ export default function AppRoutes() {
         <Route index element={<Navigate to="/owner/dashboard" replace />} />
       </Route>
 
+      {/* ========================================================================= */}
+      {/* 4. PLATFORM ADMIN ROUTES (Requires role="admin")                           */}
+      {/* ========================================================================= */}
       <Route
         path="admin"
         element={
@@ -135,6 +155,5 @@ export default function AppRoutes() {
         <Route index element={<Navigate to="/admin/dashboard" replace />} />
       </Route>
     </Routes>
-  </PageTransition>
   );
 }

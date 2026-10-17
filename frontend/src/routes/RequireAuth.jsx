@@ -14,7 +14,7 @@ function dashboardPath(role) {
 
 function SignInRequired({ message, onSignIn, onBrowse }) {
   return (
-    <div className="flex min-h-[70vh] flex-col items-center justify-center px-6 text-center animate-fade-up">
+    <div className="flex min-h-[70vh] flex-col items-center justify-center px-6 text-center">
       <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-50 text-brand-700">
         <Icon name="key" className="h-8 w-8" />
       </div>

@@ -166,7 +166,7 @@ export default function Settings() {
   }
 
   return (
-    <div className="animate-fade-up">
+    <div>
       <PageHeader
         title="Settings"
         subtitle="Control how your listings behave, what you get notified about, and how you are paid."

@@ -6,7 +6,7 @@ export default function Messages() {
   useDocumentTitle('Messages');
 
   return (
-    <div className="animate-fade-up">
+    <div>
       <PageHeader
         title="Messages"
         subtitle="Every conversation with tenants: visits, offers and questions about your listings."

@@ -80,7 +80,7 @@ export default function Dashboard() {
       ) : (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4">
           {statCards.map((card, i) => (
-            <div key={card.label} className="animate-fade-up" style={{ animationDelay: `${i * 50}ms` }}>
+            <div key={card.label}>
               <StatCard {...card} />
             </div>
           ))}
@@ -101,28 +101,28 @@ export default function Dashboard() {
           <ErrorState message={chartsError} onRetry={analytics.reload} />
         ) : (
           <div className="grid gap-5 md:grid-cols-2">
-            <div className="animate-fade-up">
+            <div>
               <ChartCard title="User Growth" subtitle="Registered tenants over the last six months">
                 {chartBody(chartsLoading, a?.userGrowth, () => (
                   <LineChart data={a.userGrowth} valueKey="users" />
                 ))}
               </ChartCard>
             </div>
-            <div className="animate-fade-up" style={{ animationDelay: '60ms' }}>
+            <div>
               <ChartCard title="Property Growth" subtitle="Listings added per month">
                 {chartBody(chartsLoading, a?.propertyGrowth, () => (
                   <BarChart data={a.propertyGrowth} valueKey="properties" />
                 ))}
               </ChartCard>
             </div>
-            <div className="animate-fade-up" style={{ animationDelay: '120ms' }}>
+            <div>
               <ChartCard title="Listing Status" subtitle="Distribution of all listings by moderation status">
                 {chartBody(chartsLoading, a?.listingStatus, () => (
                   <DonutChart data={a.listingStatus} />
                 ))}
               </ChartCard>
             </div>
-            <div className="animate-fade-up" style={{ animationDelay: '180ms' }}>
+            <div>
               <ChartCard title="Visit Requests" subtitle="Visit volume per month">
                 {chartBody(chartsLoading, a?.visitRequests, () => (
                   <BarChart data={a.visitRequests} valueKey="value" />

@@ -106,7 +106,7 @@ export default function AdminProfile() {
   ];
 
   return (
-    <div className="animate-fade-up">
+    <div>
       <PageHeader
         title="Profile"
         subtitle="Your administrator account on RentLink."
@@ -155,7 +155,7 @@ export default function AdminProfile() {
             </dl>
           </div>
 
-          <div className="rounded-xl border border-brand-100 bg-brand-50 p-5 animate-fade-up">
+          <div className="rounded-xl border border-brand-100 bg-brand-50 p-5">
             <div className="flex items-start gap-3">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-700 text-white">
                 <Icon name="shield" className="h-5 w-5" />

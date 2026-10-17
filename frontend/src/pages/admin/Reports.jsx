@@ -197,7 +197,7 @@ export default function Reports() {
           {filtered.map((r) => {
             const type = TYPE_META[r.type] || { label: r.type, tone: 'neutral', icon: 'flag' };
             return (
-              <article key={r.id} className="rounded-xl border border-line bg-white p-5 animate-fade-up">
+              <article key={r.id} className="rounded-xl border border-line bg-white p-5">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500">

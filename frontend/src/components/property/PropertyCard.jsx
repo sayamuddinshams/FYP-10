@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
 import ImageWithFallback from '../common/ImageWithFallback';
 import Avatar from '../common/Avatar';
@@ -7,13 +6,10 @@ import Icon, { HeartIcon } from '../common/icons';
 import useFavorite from '../../hooks/useFavorite';
 import { formatPrice, cn } from '../../utils/format';
 import { LISTING_STATUS_LABELS, USER_ROLES, propertyTypeLabel } from '../../utils/constants';
-import { useReducedMotion } from '../../hooks/useReducedMotion';
-import { quickSpring } from '../../utils/motion';
 
 export default function PropertyCard({ property, className = '', compact = false }) {
   const { favorited, toggle } = useFavorite(property.id);
   const [popping, setPopping] = useState(false);
-  const prefersReducedMotion = useReducedMotion();
 
   if (!property) return null;
 
@@ -34,50 +30,21 @@ export default function PropertyCard({ property, className = '', compact = false
     }
   }
 
-  // Card motion variants
-  const cardVariants = prefersReducedMotion
-    ? {
-        initial: { opacity: 1, y: 0, scale: 1 },
-        animate: { opacity: 1, y: 0, scale: 1 },
-        hover: { y: 0, scale: 1 },
-        tap: { scale: 1 },
-      }
-    : {
-        initial: { opacity: 0, y: 20 },
-        animate: { opacity: 1, y: 0 },
-        hover: { y: -6, scale: 1.01, transition: quickSpring },
-        tap: { scale: 0.99, transition: quickSpring },
-      };
-
-  const imageVariants = prefersReducedMotion
-    ? { initial: { scale: 1 }, animate: { scale: 1 }, hover: { scale: 1 } }
-    : {
-        initial: { scale: 1 },
-        animate: { scale: 1 },
-        hover: { scale: 1.05, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } },
-      };
-
   return (
-    <motion.article
+    <article
       className={cn(
-        'group relative flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-white shadow-soft',
+        'group relative flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-white shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-card',
         className
       )}
-      variants={cardVariants}
-      initial="initial"
-      animate="animate"
-      whileHover="hover"
-      whileTap="tap"
-      layout
     >
       <Link to={`/property/${property.id}`} className="relative block aspect-[4/3] overflow-hidden bg-slate-100" aria-label={`View ${property.title}`}>
-        <motion.div variants={imageVariants}>
+        <div className="h-full w-full overflow-hidden transition-transform duration-500 group-hover:scale-105">
           <ImageWithFallback
             src={property.images?.[0]}
             alt={property.title}
             loading="lazy"
           />
-        </motion.div>
+        </div>
         {/* Scrims */}
         <div className="absolute inset-x-0 top-0 h-24 bg-[linear-gradient(180deg,rgba(11,26,48,.45),transparent)]" />
         <div className="absolute inset-x-0 bottom-0 h-20 bg-[linear-gradient(180deg,transparent,rgba(11,26,48,.35))]" />
@@ -102,27 +69,25 @@ export default function PropertyCard({ property, className = '', compact = false
         )}
       </Link>
 
-      <motion.button
+      <button
         type="button"
         onClick={onFavorite}
         aria-pressed={favorited}
         aria-label={favorited ? 'Remove from saved properties' : 'Save property'}
-        className="absolute top-3 right-3 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/95 text-slate-600 shadow-card backdrop-blur-sm"
-        whileTap={{ scale: 0.9 }}
-        whileHover={{ scale: 1.1 }}
-        transition={quickSpring}
+        className="absolute top-3 right-3 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/95 text-slate-600 shadow-card backdrop-blur-sm transition-transform duration-200 active:scale-90 hover:scale-110"
       >
-        <motion.span
-          className="inline-flex"
-          animate={popping && !prefersReducedMotion ? { scale: [1, 1.35, 1] } : { scale: 1 }}
-          transition={{ duration: 0.4, ease: [0.34, 1.56, 0.64, 1] }}
+        <span
+          className={cn(
+            'inline-flex transition-transform duration-300',
+            popping && 'scale-125'
+          )}
         >
           <HeartIcon
             filled={favorited}
             className={cn('h-5 w-5 transition-colors', favorited ? 'text-red-500' : 'text-slate-500')}
           />
-        </motion.span>
-      </motion.button>
+        </span>
+      </button>
 
       <div
         className={
@@ -204,6 +169,6 @@ export default function PropertyCard({ property, className = '', compact = false
           {statusLabel}
         </span>
       )}
-    </motion.article>
+    </article>
   );
 }

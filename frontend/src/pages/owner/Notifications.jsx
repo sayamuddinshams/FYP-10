@@ -106,7 +106,7 @@ export default function Notifications() {
   );
 
   return (
-    <div className="animate-fade-up">
+    <div>
       <PageHeader
         title="Notifications"
         subtitle="Listing decisions, visit requests, messages and payment updates for your properties."
@@ -147,7 +147,7 @@ export default function Notifications() {
       {loading && !data && !error && <RowSkeleton rows={5} />}
 
       {data && !error && (
-        <div key={tab} className="space-y-2.5 animate-fade-up">
+        <div key={tab} className="space-y-2.5">
           {rows.length === 0 ? (
             empty
           ) : (

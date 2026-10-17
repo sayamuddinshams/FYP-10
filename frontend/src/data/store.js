@@ -6,8 +6,15 @@ import { MOCK_NOTIFICATIONS } from './notifications';
 import { MOCK_TRANSACTIONS, MOCK_ADS, MOCK_REPORTS, MOCK_ANALYTICS } from './platform';
 
 /**
- * In-memory database that stands in for the future PostgreSQL backend.
- * Services read/write this store and notify subscribers so the UI stays in sync.
+ * In-Memory Mock Database
+ * -----------------------
+ * RentLink uses this central store to simulate a full backend database (PostgreSQL/Node.js).
+ * All UI actions (adding a listing, booking a visit, sending messages, toggling favorites)
+ * write directly to this `db` object and call `emit()`.
+ *
+ * React components listening via `subscribe()` or the `useStoreVersion()` hook
+ * will automatically re-render when changes occur, providing full real-time reactivity
+ * without requiring an external server during development and evaluation.
  */
 const listeners = new Set();
 

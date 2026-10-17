@@ -1,12 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
 import Modal from './Modal';
 import Button from './Button';
 import Icon from './icons';
 import { Input, Checkbox } from './Input';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { useReducedMotion } from '../../hooks/useReducedMotion';
 import { validateEmail, validatePassword, validateRequired, validateMatch } from '../../utils/validation';
 import authService from '../../services/authService';
 import { DEMO_ACCOUNTS } from '../../data/users';
@@ -59,7 +57,6 @@ export default function AuthModal({ open, mode, intent, onClose, onSwitchMode })
   const [success, setSuccess] = useState('');
 
   const formRef = useRef(null);
-  const prefersReducedMotion = useReducedMotion();
 
   // Reset values, errors and server messages whenever the modal closes or the mode changes.
   useEffect(() => {
@@ -193,16 +190,11 @@ export default function AuthModal({ open, mode, intent, onClose, onSwitchMode })
       description={copy.subtitle}
     >
       <div ref={formRef}>
-        <AnimatePresence mode="wait" initial={false}>
         {mode === 'forgot' && success ? (
-          <motion.div
+          <div
             key="success"
             role="status"
-            initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: -8 }}
-            transition={{ duration: prefersReducedMotion ? 0 : 0.18, ease: [0.22, 1, 0.36, 1] }}
-            className="rounded-xl border border-emerald-100 bg-emerald-50 p-5"
+            className="animate-fade-in rounded-xl border border-emerald-100 bg-emerald-50 p-5"
           >
             <div className="flex items-start gap-3">
               <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white shadow-soft">
@@ -216,17 +208,13 @@ export default function AuthModal({ open, mode, intent, onClose, onSwitchMode })
             <Button variant="outline" fullWidth className="mt-5" onClick={() => onSwitchMode('login')}>
               Back to login
             </Button>
-          </motion.div>
+          </div>
         ) : (
-          <motion.form
+          <form
             key={mode}
             onSubmit={submit}
             noValidate
-            initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: -8 }}
-            transition={{ duration: prefersReducedMotion ? 0 : 0.18, ease: [0.22, 1, 0.36, 1] }}
-            className="space-y-4"
+            className="animate-fade-in space-y-4"
           >
             {banner && (
               <div role="alert" className="animate-fade-in flex items-start gap-2.5 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -426,9 +414,8 @@ export default function AuthModal({ open, mode, intent, onClose, onSwitchMode })
                 </div>
               </div>
             )}
-          </motion.form>
+          </form>
         )}
-        </AnimatePresence>
       </div>
       {intent?.type === 'favorite' && !success && (
         <p className="mt-4 text-center text-xs text-slate-500">Sign in to save this property to your favourites.</p>

@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'motion/react';
 import Avatar from '../common/Avatar';
 import Icon from '../common/icons';
 import Dropdown from '../common/Dropdown';
@@ -9,8 +8,6 @@ import { useAuth } from '../../context/AuthContext';
 import { useModals } from '../../context/ModalContext';
 import { useToast } from '../../context/ToastContext';
 import { useUnreadNotifications } from '../../hooks';
-import { useReducedMotion } from '../../hooks/useReducedMotion';
-import { variants } from '../../utils/motion';
 
 /**
  * Shared shell for tenant / owner / admin dashboards.
@@ -33,7 +30,6 @@ export default function DashboardShell({ navGroups, children, brandLabel }) {
   const drawerWasOpen = useRef(false);
   const hamburgerRef = useRef(null);
   const unread = useUnreadNotifications();
-  const prefersReducedMotion = useReducedMotion();
 
   const baseRole = user?.role === 'owner' ? 'owner' : user?.role === 'admin' ? 'admin' : 'tenant';
   const goProfile = () => navigate(`/${baseRole}/profile`);
@@ -131,12 +127,7 @@ export default function DashboardShell({ navGroups, children, brandLabel }) {
   const nav = (label) => (
     <nav aria-label={label} className="flex-1 space-y-6 overflow-y-auto px-3 py-5 thin-scrollbar">
       {navGroups.map((group, groupIndex) => (
-        <motion.div
-          key={group.title || groupIndex}
-          initial={{ opacity: 0, x: -16 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.4, delay: groupIndex * 0.05, ease: [0.22, 1, 0.36, 1] }}
-        >
+        <div key={group.title || groupIndex}>
           {group.title && (
             <p className="px-3 pb-2 text-[11px] font-semibold tracking-[0.14em] text-zinc-400 uppercase">
               {group.title}
@@ -172,7 +163,7 @@ export default function DashboardShell({ navGroups, children, brandLabel }) {
               </li>
             ))}
           </ul>
-        </motion.div>
+        </div>
       ))}
     </nav>
   );
@@ -195,12 +186,7 @@ export default function DashboardShell({ navGroups, children, brandLabel }) {
   );
 
   const userCard = (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-      className="border-t border-black/[0.06] p-3"
-    >
+    <div className="border-t border-black/[0.06] p-3">
       <Dropdown
         align="left"
         className="w-full"
@@ -222,38 +208,8 @@ export default function DashboardShell({ navGroups, children, brandLabel }) {
           { label: 'Log out', icon: <Icon name="logout" className="h-4 w-4" />, onClick: handleLogout, tone: 'danger' },
         ]}
       />
-    </motion.div>
+    </div>
   );
-
-  const sidebarVariants = prefersReducedMotion
-    ? {
-        initial: { opacity: 1, x: 0 },
-        animate: { opacity: 1, x: 0 },
-        exit: { opacity: 1, x: 0 },
-        transition: { duration: 0.01 },
-      }
-    : {
-        initial: { opacity: 0, x: -40 },
-        animate: { opacity: 1, x: 0, transition: { type: 'spring', damping: 25, stiffness: 300, delay: 0.1 } },
-        exit: { opacity: 0, x: -40, transition: { duration: 0.2, ease: [0.22, 1, 0.36, 1] } },
-      };
-
-  const drawerVariants = prefersReducedMotion
-    ? {
-        initial: { opacity: 1, x: 0 },
-        animate: { opacity: 1, x: 0 },
-        exit: { opacity: 1, x: 0 },
-        transition: { duration: 0.01 },
-      }
-    : {
-        initial: { opacity: 0, x: -320 },
-        animate: { opacity: 1, x: 0, transition: { type: 'spring', damping: 25, stiffness: 300 } },
-        exit: { opacity: 0, x: -320, transition: { duration: 0.2, ease: [0.22, 1, 0.36, 1] } },
-      };
-
-  const overlayVariants = prefersReducedMotion
-    ? { initial: { opacity: 1 }, animate: { opacity: 1 }, exit: { opacity: 1 }, transition: { duration: 0.01 } }
-    : variants.fadeIn;
 
   return (
     <div className="dash-theme min-h-screen bg-[#f4f4f7] text-zinc-900">
@@ -310,21 +266,13 @@ export default function DashboardShell({ navGroups, children, brandLabel }) {
       </aside>
 
       {/* Navigation tree (desktop LG+) */}
-      <AnimatePresence mode="wait">
-        <motion.aside
-          initial="initial"
-          animate="animate"
-          exit="exit"
-          variants={sidebarVariants}
-          className="fixed inset-y-0 left-0 z-20 hidden w-60 flex-col border-r border-black/[0.06] bg-[#f8f8fa]/80 backdrop-blur-sm lg:flex xl:left-[68px]"
-        >
-          <div className="flex min-h-0 flex-1 flex-col">
-            {brandLockup}
-            {nav('Main')}
-            {userCard}
-          </div>
-        </motion.aside>
-      </AnimatePresence>
+      <aside className="fixed inset-y-0 left-0 z-20 hidden w-60 flex-col border-r border-black/[0.06] bg-[#f8f8fa]/80 backdrop-blur-sm lg:flex xl:left-[68px]">
+        <div className="flex min-h-0 flex-1 flex-col">
+          {brandLockup}
+          {nav('Main')}
+          {userCard}
+        </div>
+      </aside>
 
       {/* Mobile header bar */}
       <div className="fixed inset-x-0 top-0 z-40 flex h-16 items-center justify-between border-b border-black/[0.06] bg-white/90 px-5 backdrop-blur-md lg:hidden">
@@ -363,48 +311,36 @@ export default function DashboardShell({ navGroups, children, brandLabel }) {
       </div>
 
       {/* Mobile drawer */}
-      <AnimatePresence>
-        {drawerOpen && (
-          <div className="fixed inset-0 z-50 lg:hidden" aria-hidden={!drawerOpen}>
-            <motion.div
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              variants={overlayVariants}
-              className="absolute inset-0 bg-zinc-950/50"
+      {drawerOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden" aria-hidden={!drawerOpen}>
+          <div
+            className="animate-fade-in absolute inset-0 bg-zinc-950/50 backdrop-blur-xs transition-opacity"
+            onClick={() => setDrawerOpen(false)}
+          />
+          <div
+            id="dashboard-nav"
+            ref={drawerRef}
+            role="dialog"
+            aria-modal={drawerOpen || undefined}
+            aria-label="Navigation menu"
+            className="animate-slide-right absolute inset-y-0 left-0 flex w-72 max-w-[85%] flex-col overflow-hidden bg-white shadow-2xl"
+          >
+            <button
+              type="button"
               onClick={() => setDrawerOpen(false)}
-            />
-            <motion.div
-              id="dashboard-nav"
-              ref={drawerRef}
-              role="dialog"
-              aria-modal={drawerOpen || undefined}
-              aria-label="Navigation menu"
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              variants={drawerVariants}
-              className="absolute inset-y-0 left-0 flex w-72 max-w-[85%] flex-col overflow-hidden bg-white shadow-2xl"
+              aria-label="Close navigation"
+              className="absolute top-4 right-3 z-10 rounded-full p-2 text-zinc-500 transition-all duration-150 active:scale-90 hover:bg-zinc-100 hover:text-zinc-900"
             >
-              <motion.button
-                type="button"
-                onClick={() => setDrawerOpen(false)}
-                aria-label="Close navigation"
-                className="absolute top-4 right-3 z-10 rounded-full p-2 text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-900"
-                whileTap={{ scale: 0.9 }}
-                whileHover={{ scale: 1.1 }}
-              >
-                <Icon name="x" className="h-5 w-5" />
-              </motion.button>
-              <div className="relative flex min-h-0 flex-1 flex-col">
-                {brandLockup}
-                {nav('Main menu')}
-                {userCard}
-              </div>
-            </motion.div>
+              <Icon name="x" className="h-5 w-5" />
+            </button>
+            <div className="relative flex min-h-0 flex-1 flex-col">
+              {brandLockup}
+              {nav('Main menu')}
+              {userCard}
+            </div>
           </div>
-        )}
-      </AnimatePresence>
+        </div>
+      )}
 
       <div className="lg:pl-60 xl:pl-[308px]">
         {/* Top bar (desktop) */}
@@ -458,43 +394,37 @@ export default function DashboardShell({ navGroups, children, brandLabel }) {
             <span className="hidden rounded-full border border-black/[0.06] bg-white px-3 py-1.5 text-xs font-semibold tracking-wide text-zinc-500 capitalize ring-1 ring-black/[0.02] xl:inline-flex">
               {brandLabel} portal
             </span>
-            <motion.button
+            <button
               type="button"
               onClick={() => {
                 if (!user) openAuth('login');
                 else goNotifications();
               }}
               aria-label={unread > 0 ? `Notifications, ${unread} unread` : 'Notifications'}
-              className="relative flex h-10 w-10 items-center justify-center rounded-full text-zinc-500 transition-colors hover:bg-white hover:text-zinc-900"
-              whileTap={{ scale: 0.92 }}
-              whileHover={{ scale: 1.06 }}
+              className="relative flex h-10 w-10 items-center justify-center rounded-full text-zinc-500 transition-all duration-150 active:scale-95 hover:bg-white hover:text-zinc-900"
             >
               <Icon name="bell" className="h-5 w-5" />
               {unread > 0 && (
-                <motion.span
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: 'spring', damping: 15, stiffness: 400 }}
-                  className="absolute top-1 right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-600 px-1 text-[9px] leading-none font-bold text-white ring-2 ring-white"
+                <span
+                  className="animate-pop absolute top-1 right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-600 px-1 text-[9px] leading-none font-bold text-white ring-2 ring-white"
                 >
                   {unread > 9 ? '9+' : unread}
-                </motion.span>
+                </span>
               )}
-            </motion.button>
+            </button>
             <Dropdown
               ariaLabel="Profile menu"
               trigger={
-                <motion.div
-                  className="flex items-center gap-2 rounded-full border border-black/[0.06] bg-white py-1 pr-2 pl-1 shadow-sm"
+                <div
+                  className="flex items-center gap-2 rounded-full border border-black/[0.06] bg-white py-1 pr-2 pl-1 shadow-sm transition-all duration-150 active:scale-95 cursor-pointer"
                   aria-label="Open profile menu"
-                  whileTap={{ scale: 0.96 }}
                 >
                   <Avatar name={user?.name} size="sm" />
                   <span className="hidden max-w-28 truncate text-sm font-semibold text-zinc-800 sm:block">
                     {user?.name?.split(' ')[0] || 'Account'}
                   </span>
                   <Icon name="chevronDown" className="h-4 w-4 text-zinc-400" />
-                </motion.div>
+                </div>
               }
               items={[
                 { label: 'My profile', icon: <Icon name="user" className="h-4 w-4" />, onClick: goProfile },
@@ -511,13 +441,7 @@ export default function DashboardShell({ navGroups, children, brandLabel }) {
           tabIndex={-1}
           className="mx-auto w-full max-w-[1560px] px-4 pt-20 pb-16 focus:outline-none sm:px-6 lg:px-8 lg:pt-8"
         >
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-          >
-            {children}
-          </motion.div>
+          <div>{children}</div>
         </main>
       </div>
     </div>

@@ -92,8 +92,7 @@ export default function Team() {
             (members || []).map((m, i) => (
             <article
               key={m.id}
-              className="group flex flex-col rounded-2xl border border-line bg-white p-6 transition duration-300 hover:-translate-y-1 hover:border-brand-200 hover:shadow-lift animate-fade-up"
-              style={{ animationDelay: `${i * 60}ms` }}
+              className="group flex flex-col rounded-2xl border border-line bg-white p-6 transition duration-300 hover:-translate-y-1 hover:border-brand-200 hover:shadow-lift"
             >
               <div className="flex items-center gap-4">
                 <Avatar name={m.name} size="lg" />

@@ -80,7 +80,7 @@ export default function Visits() {
 
   if (error) {
     return (
-      <div className="animate-fade-up">
+      <div>
         <PageHeader title="Visit Requests" subtitle="Track your property walkthroughs from request to confirmation." />
         <ErrorState
           message={error}
@@ -94,7 +94,7 @@ export default function Visits() {
   }
 
   return (
-    <div className="animate-fade-up">
+    <div>
       <PageHeader title="Visit Requests" subtitle="Track your property walkthroughs from request to confirmation." />
 
       <Tabs

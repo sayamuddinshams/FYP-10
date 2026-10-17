@@ -1,8 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { motion } from 'motion/react';
 import { cn, formatNumber } from '../../utils/format';
-import { useReducedMotion } from '../../hooks/useReducedMotion';
-import { variants, quickSpring } from '../../utils/motion';
 
 /** Animated count-up for dashboard statistics. */
 export function useCountUp(target, duration = 900) {
@@ -44,73 +41,37 @@ const tones = {
 export default function StatCard({ label, value, suffix = '', prefix = '', hint, icon, tone = 'brand', trend, numeric = true, className = '' }) {
   const animated = useCountUp(numeric ? value : 0);
   const display = numeric ? formatNumber(animated) : value;
-  const prefersReducedMotion = useReducedMotion();
-
-  const cardVariants = prefersReducedMotion
-    ? { initial: { opacity: 1, y: 0 }, animate: { opacity: 1, y: 0 }, hover: { y: 0 } }
-    : {
-        initial: { opacity: 0, y: 20 },
-        animate: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } },
-        hover: { y: -4, transition: quickSpring },
-      };
-
-  const iconVariants = prefersReducedMotion
-    ? { initial: { scale: 1 }, animate: { scale: 1 }, hover: { scale: 1 } }
-    : {
-        initial: { scale: 1 },
-        animate: { scale: 1 },
-        hover: { scale: 1.1, rotate: 3, transition: quickSpring },
-      };
-
-  const numberVariants = prefersReducedMotion
-    ? { initial: { opacity: 1 }, animate: { opacity: 1 } }
-    : {
-        initial: { opacity: 0, y: 10 },
-        animate: { opacity: 1, y: 0, transition: { duration: 0.6, delay: 0.1, ease: [0.22, 1, 0.36, 1] } },
-      };
 
   return (
-    <motion.div
+    <div
       className={cn(
-        'group relative overflow-hidden rounded-2xl border border-zinc-200/70 bg-white p-5 shadow-card',
+        'group relative overflow-hidden rounded-2xl border border-zinc-200/70 bg-white p-5 shadow-card transition-all duration-200 hover:-translate-y-1 hover:shadow-lift',
         className
       )}
-      variants={cardVariants}
-      initial="initial"
-      animate="animate"
-      whileHover="hover"
-      layout
     >
       <div className="relative flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate text-[11px] font-semibold tracking-[0.12em] text-zinc-500 uppercase">{label}</p>
-          <motion.p
-            className="mt-2 text-3xl leading-none font-bold tracking-tight text-zinc-900 tabular-nums"
-            variants={numberVariants}
-          >
+          <p className="mt-2 text-3xl leading-none font-bold tracking-tight text-zinc-900 tabular-nums">
             {prefix}
             {display}
             {suffix}
-          </motion.p>
+          </p>
         </div>
         {icon && (
-          <motion.span
-            className={cn('flex h-11 w-11 shrink-0 items-center justify-center rounded-xl', tones[tone])}
-            variants={iconVariants}
-            initial="initial"
-            animate="animate"
-            whileHover="hover"
+          <span
+            className={cn(
+              'flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-transform duration-200 group-hover:scale-105 group-hover:rotate-3',
+              tones[tone]
+            )}
           >
             {icon}
-          </motion.span>
+          </span>
         )}
       </div>
       <div className="relative mt-3 flex items-center gap-2 text-xs">
         {trend && (
-          <motion.span
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.4, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          <span
             className={cn(
               'inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-semibold',
               trend.direction === 'down'
@@ -131,19 +92,14 @@ export default function StatCard({ label, value, suffix = '', prefix = '', hint,
               </svg>
             )}
             {trend.label}
-          </motion.span>
+          </span>
         )}
         {hint && (
-          <motion.span
-            initial={{ opacity: 0, x: 10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.4, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="truncate text-slate-500"
-          >
+          <span className="truncate text-slate-500">
             {hint}
-          </motion.span>
+          </span>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }

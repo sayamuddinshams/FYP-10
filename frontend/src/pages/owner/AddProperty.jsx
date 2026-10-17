@@ -335,7 +335,7 @@ export default function AddProperty() {
   const reviewCheck = validateAll(false);
 
   return (
-    <div className="animate-fade-up">
+    <div>
       <PageHeader
         title="Add a new property"
         subtitle="Six short steps. Your listing is reviewed by our team before it goes live."

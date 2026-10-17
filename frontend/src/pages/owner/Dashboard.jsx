@@ -145,7 +145,7 @@ export default function Dashboard() {
   const firstName = (user.name || '').split(' ')[0];
 
   return (
-    <div className="animate-fade-up">
+    <div>
       <PageHeader
         title={`${greeting()}, ${firstName}`}
         subtitle="Here is how your rental listings are performing across Gilgit-Baltistan today."

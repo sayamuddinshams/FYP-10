@@ -60,7 +60,7 @@ export default function Saved() {
   if (!user) return <PageLoader label="Loading your saved properties…" />;
 
   return (
-    <div className="animate-fade-up">
+    <div>
       <PageHeader
         title="Saved Properties"
         subtitle={

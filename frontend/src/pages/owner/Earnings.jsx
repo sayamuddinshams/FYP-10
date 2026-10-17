@@ -159,7 +159,7 @@ export default function Earnings() {
   );
 
   return (
-    <div className="animate-fade-up">
+    <div>
       <PageHeader
         title="Earnings"
         subtitle="Everything you have earned on RentLink, the fees deducted and what is still clearing."

@@ -287,7 +287,7 @@ export default function Advertisements() {
             const meta = STATUS_META[ad.status] || STATUS_META.draft;
             const ctr = ad.impressions > 0 ? ((ad.clicks / ad.impressions) * 100).toFixed(1) : '0.0';
             return (
-              <article key={ad.id} className="group overflow-hidden rounded-xl border border-line bg-white transition hover:shadow-md animate-fade-up">
+              <article key={ad.id} className="group overflow-hidden rounded-xl border border-line bg-white transition hover:shadow-md">
                 <div className="relative">
                   <ImageWithFallback src={ad.image} alt={ad.title} imgClassName="h-40 w-full" />
                   <div className="absolute top-3 right-3">

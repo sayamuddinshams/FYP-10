@@ -46,7 +46,7 @@ export default function EmptyState({
   className = '',
 }) {
   return (
-    <div className={cn('flex flex-col items-center justify-center px-6 py-16 text-center animate-fade-up', className)}>
+    <div className={cn('flex flex-col items-center justify-center px-6 py-16 text-center', className)}>
       <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-700">
         {icons[icon] || <Icon name={icon} className="h-6 w-6" strokeWidth={1.6} />}
       </div>

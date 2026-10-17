@@ -190,7 +190,7 @@ export default function Visits() {
   );
 
   return (
-    <div className="animate-fade-up">
+    <div>
       <PageHeader
         title="Visit Requests"
         subtitle="Approve, decline or reschedule tenant visits to your listings. Replying quickly keeps your response rate high."
@@ -217,7 +217,7 @@ export default function Visits() {
       {loading && !data && !error && <RowSkeleton rows={4} />}
 
       {data && !error && (
-        <div key={tab} className="space-y-3 animate-fade-up">
+        <div key={tab} className="space-y-3">
           {rows.length === 0 ? (
             empty
           ) : (

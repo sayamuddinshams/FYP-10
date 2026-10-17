@@ -419,7 +419,7 @@ export default function EditProperty() {
   }
 
   return (
-    <div className="animate-fade-up">
+    <div>
       <PageHeader
         title="Edit listing"
         subtitle={property?.title}

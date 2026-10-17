@@ -51,7 +51,7 @@ function Toggle({ checked, onChange, label, description, disabled = false }) {
 
 function SettingsSection({ title, description, children, className = '' }) {
   return (
-    <section className={cn('rounded-xl border border-line bg-white animate-fade-up', className)}>
+    <section className={cn('rounded-xl border border-line bg-white', className)}>
       <div className="border-b border-line px-5 py-4 sm:px-6">
         <h2 className="text-base font-bold tracking-tight text-slate-900">{title}</h2>
         {description && <p className="mt-1 text-sm text-slate-500">{description}</p>}
@@ -162,7 +162,7 @@ export default function Settings() {
   }
 
   return (
-    <div className="animate-fade-up space-y-6">
+    <div className="space-y-6">
       <PageHeader
         title="Settings"
         subtitle="Manage notifications, privacy, security and your account."

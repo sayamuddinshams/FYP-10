@@ -172,7 +172,7 @@ export default function Profile() {
   }
 
   return (
-    <div className="animate-fade-up">
+    <div>
       <PageHeader
         title="Profile"
         subtitle="Manage your personal details, password and account preferences."

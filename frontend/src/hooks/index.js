@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 import { subscribe, getVersion } from '../data/store';
 import notificationService from '../services/notificationService';
 import { useAuth } from '../context/AuthContext';
@@ -40,35 +40,6 @@ export function useMediaQuery(query) {
 /** Re-renders whenever the in-memory store changes. */
 export function useStoreVersion() {
   return useSyncExternalStore(subscribe, getVersion, getVersion);
-}
-
-/** Adds the `is-visible` class once the element scrolls into view. */
-export function useReveal(options = { threshold: 0.15 }) {
-  const ref = useRef(null);
-  useEffect(() => {
-    const node = ref.current;
-    if (!node) return undefined;
-    if (!('IntersectionObserver' in window)) {
-      node.classList.add('is-visible');
-      return undefined;
-    }
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('is-visible');
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      options
-    );
-    const targets = node.classList?.contains('reveal') ? [node] : Array.from(node.querySelectorAll('.reveal'));
-    targets.forEach((t) => observer.observe(t));
-    return () => observer.disconnect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  return ref;
 }
 
 export function useUnreadNotifications() {

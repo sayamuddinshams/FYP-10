@@ -150,7 +150,7 @@ export default function Profile() {
   ];
 
   return (
-    <div className="animate-fade-up">
+    <div>
       <PageHeader
         title="Profile"
         subtitle="How tenants and the RentLink team see you across the platform."
@@ -204,7 +204,7 @@ export default function Profile() {
 
           {/* Verification */}
           {verified ? (
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5 animate-fade-up">
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5">
               <div className="flex items-start gap-3">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white">
                   <Icon name="check" className="h-5 w-5" strokeWidth={2.5} />
@@ -218,7 +218,7 @@ export default function Profile() {
               </div>
             </div>
           ) : (
-            <div className="rounded-xl border border-amber-200 bg-amber-50 p-5 animate-fade-up">
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-5">
               <div className="flex items-start gap-3">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-500 text-white">
                   <Icon name="alert" className="h-5 w-5" />

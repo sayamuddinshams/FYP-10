@@ -138,8 +138,7 @@ export default function Advertisements() {
               return (
                 <article
                   key={ad.id}
-                  className="group flex flex-col overflow-hidden rounded-2xl border border-line bg-white transition duration-300 hover:-translate-y-1 hover:shadow-lift animate-fade-up"
-                  style={{ animationDelay: `${Math.min(i, 6) * 50}ms` }}
+                  className="group flex flex-col overflow-hidden rounded-2xl border border-line bg-white transition duration-300 hover:-translate-y-1 hover:shadow-lift"
                 >
                   <div className="relative h-44 overflow-hidden bg-slate-100">
                     <ImageWithFallback

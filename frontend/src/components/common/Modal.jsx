@@ -1,13 +1,10 @@
 import { useEffect, useId, useRef } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
 import { cn } from '../../utils/format';
-import { useReducedMotion } from '../../hooks/useReducedMotion';
-import { variants } from '../../utils/motion';
 
 /**
- * Accessible modal: escape to close, click-outside to close,
- * background scroll lock and a focus shift into the panel.
- * Uses Framer Motion for smooth enter/exit animations.
+ * Accessible modal built with pure React and Tailwind CSS:
+ * escape to close, click-outside to close, background scroll lock
+ * and a focus shift into the panel.
  */
 export default function Modal({
   open,
@@ -25,7 +22,6 @@ export default function Modal({
   const panelRef = useRef(null);
   const previouslyFocused = useRef(null);
   const descId = useId();
-  const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
     if (!open) return undefined;
@@ -75,86 +71,56 @@ export default function Modal({
     };
   }, [open, onClose]);
 
+  if (!open) return null;
+
   const sizes = { sm: 'max-w-md', md: 'max-w-lg', lg: 'max-w-2xl', xl: 'max-w-4xl', full: 'max-w-6xl' };
 
-  const modalVariants = prefersReducedMotion
-    ? {
-        initial: variants.pop.animate,
-        animate: variants.pop.animate,
-        exit: variants.pop.animate,
-        transition: { duration: 0.01 },
-      }
-    : variants.pop;
-
-  const overlayVariants = prefersReducedMotion
-    ? {
-        initial: { opacity: 1 },
-        animate: { opacity: 1 },
-        exit: { opacity: 1 },
-        transition: { duration: 0.01 },
-      }
-    : variants.fadeIn;
-
   return (
-    <AnimatePresence>
-      {open && (
-        <div className={cn('fixed inset-0 z-[90] flex items-end justify-center overflow-y-auto p-0 sm:items-center sm:p-4', className)}>
-          <motion.div
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            variants={overlayVariants}
-            className="fixed inset-0 bg-slate-950/55 backdrop-blur-[2px]"
-            onClick={closeOnOverlay ? onClose : undefined}
-            aria-hidden="true"
-          />
-          <motion.div
-            ref={panelRef}
-            role="dialog"
-            aria-modal="true"
-            aria-label={title || 'Dialog'}
-            aria-describedby={description ? descId : undefined}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            variants={modalVariants}
-            className={cn(
-              'relative w-full rounded-t-2xl bg-white shadow-2xl ring-1 ring-slate-900/5 sm:rounded-2xl',
-              sizes[size],
-              panelClassName
+    <div className={cn('fixed inset-0 z-[90] flex items-end justify-center overflow-y-auto p-0 sm:items-center sm:p-4', className)}>
+      <div
+        className="animate-fade-in fixed inset-0 bg-slate-950/55 backdrop-blur-[2px] transition-opacity"
+        onClick={closeOnOverlay ? onClose : undefined}
+        aria-hidden="true"
+      />
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title || 'Dialog'}
+        aria-describedby={description ? descId : undefined}
+        className={cn(
+          'animate-pop relative w-full rounded-t-2xl bg-white shadow-2xl ring-1 ring-slate-900/5 sm:rounded-2xl',
+          sizes[size],
+          panelClassName
+        )}
+      >
+        {(title || showClose) && (
+          <div className="flex items-start justify-between gap-4 border-b border-line px-5 py-4 sm:px-6">
+            <div className="min-w-0">
+              {title && <h2 className="text-lg font-semibold tracking-tight text-slate-900">{title}</h2>}
+              {description && (
+                <p id={descId} className="mt-1 text-sm text-slate-500">
+                  {description}
+                </p>
+              )}
+            </div>
+            {showClose && (
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Close dialog"
+                className="-m-1.5 -mt-1 shrink-0 rounded-lg p-1.5 text-slate-500 transition-all duration-150 active:scale-95 hover:bg-slate-100 hover:text-slate-700"
+              >
+                <svg viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5" aria-hidden="true">
+                  <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 101.06-1.06L10 8.94 6.22 5.22z" />
+                </svg>
+              </button>
             )}
-          >
-            {(title || showClose) && (
-              <div className="flex items-start justify-between gap-4 border-b border-line px-5 py-4 sm:px-6">
-                <div className="min-w-0">
-                  {title && <h2 className="text-lg font-semibold tracking-tight text-slate-900">{title}</h2>}
-                  {description && (
-                    <p id={descId} className="mt-1 text-sm text-slate-500">
-                      {description}
-                    </p>
-                  )}
-                </div>
-                {showClose && (
-                  <motion.button
-                    type="button"
-                    onClick={onClose}
-                    aria-label="Close dialog"
-                    className="-m-1.5 -mt-1 shrink-0 rounded-lg p-1.5 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
-                    whileTap={{ scale: 0.9 }}
-                    whileHover={{ scale: 1.1 }}
-                  >
-                    <svg viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5" aria-hidden="true">
-                      <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 101.06-1.06L10 8.94 6.22 5.22z" />
-                    </svg>
-                  </motion.button>
-                )}
-              </div>
-            )}
-            <div className="max-h-[calc(100vh-9rem)] overflow-y-auto px-5 py-5 sm:px-6 thin-scrollbar">{children}</div>
-            {footer && <div className="border-t border-line bg-slate-50/70 px-5 py-4 sm:px-6">{footer}</div>}
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>
+          </div>
+        )}
+        <div className="max-h-[calc(100vh-9rem)] overflow-y-auto px-5 py-5 sm:px-6 thin-scrollbar">{children}</div>
+        {footer && <div className="border-t border-line bg-slate-50/70 px-5 py-4 sm:px-6">{footer}</div>}
+      </div>
+    </div>
   );
 }
