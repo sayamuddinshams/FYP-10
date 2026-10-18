@@ -13,8 +13,8 @@ RentLink is a modern, full-featured rental housing marketplace designed for tena
 ### 2. Installation
 From the project root:
 ```bash
-# Install frontend dependencies
-npm --prefix frontend install
+# Install frontend-3 dependencies
+npm --prefix frontend-3 install
 ```
 
 ### 3. Start Development Server
@@ -22,7 +22,7 @@ From the project root:
 ```bash
 npm run dev
 ```
-> The local development server will start at **http://localhost:5174/**
+> The local development server will start at **http://localhost:5175/** (or port configured in `frontend-3/vite.config.js`).
 
 ### 4. Build for Production
 ```bash
@@ -39,9 +39,9 @@ sq/
 ├── README.md                 # Project documentation & run guide
 ├── backend/                  # Backend directory (prepared for REST/GraphQL API)
 │   └── README.md
-└── frontend/                 # React + Vite application
+└── frontend-3/               # React + Vite application (Alpine Sanctuary Design System)
     ├── index.html            # HTML entry template
-    ├── vite.config.js        # Vite configuration (port 5174, base path)
+    ├── vite.config.js        # Vite configuration (port 5175, base path)
     ├── package.json          # Frontend dependencies & scripts
     └── src/
         ├── App.jsx           # Root provider wrapper (Auth, Toast, Modal)
