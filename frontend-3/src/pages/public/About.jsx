@@ -4,7 +4,7 @@ import { PROPERTY_TYPES } from '../../utils/constants';
 import { DISTRICTS } from '../../data/locations';
 import Button from '../../components/common/Button';
 import Icon from '../../components/common/icons';
-import PublicPageHero from '../../components/public/PublicPageHero';
+import AboutCubesHero from '../../components/about/AboutCubesHero';
 
 const VALUES = [
   {
@@ -65,13 +65,8 @@ export default function About() {
 
   return (
     <div className="bg-[#F8FAFC]">
-      {/* High-Altitude Alpine Hero */}
-      <PublicPageHero
-        eyebrow="Our Mission & Origin"
-        title="Rental housing in Gilgit-Baltistan, finally in one trusted sanctuary."
-        description="RentLink connects verified property owners across the 10 northern districts with families, travelers, and professionals seeking dependable homes in Gilgit-Baltistan."
-        image="https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=1920&q=80"
-      />
+      {/* High-Altitude BackgroundCubesGrid Alpine Hero with Animated Community Pills */}
+      <AboutCubesHero tone="dark" />
 
       {/* Origin Story Section */}
       <section className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
