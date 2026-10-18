@@ -8,6 +8,7 @@ import PropertyCard from '../../components/property/PropertyCard';
 import LocationAutocomplete from '../../components/property/LocationAutocomplete';
 import { PropertyCardSkeleton } from '../../components/common/Skeleton';
 import EmptyState from '../../components/common/EmptyState';
+import PopularLocationsExpand from '../../components/home/PopularLocationsExpand';
 
 const HERO_POSTER =
   'https://lh3.googleusercontent.com/aida-public/AB6AXuAmLKAnVMgYwlQODw7eddXv53dZYfd1wIh1r15wkh0Ml6_FBNFn9db_L95WkKLBUe-06CgSRI5O69KFIaVL2beKQIm4DuIo6jExMe0NO4msJ_bZSM2KyA1eRANg_6s5iRKfxCrYl6AF0Yw8en8G5uHWkDHgLc_2OGlqTnbIQ7mPzLvytTgN9QoQGc59d4JZkgOZlz8E-eUL8bgvq71U2YR-XOafcxboFvYA5pGMc8Ae0uoTlQmJwP_E';
@@ -445,49 +446,26 @@ export default function Home() {
       <section className="max-w-7xl mx-auto px-6 lg:px-12 py-20 w-full">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
           <div>
-            <span className="text-xs font-bold uppercase tracking-widest text-[#D97706]">Explore the region</span>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-xs font-bold uppercase tracking-widest text-[#D97706] mb-2 shadow-xs">
+              <span className="material-symbols-outlined text-[14px]">explore</span>
+              <span>Explore the region</span>
+            </div>
             <h2 className="font-serif text-3xl sm:text-4xl font-bold text-[#1B1B1D] mt-1">Popular locations</h2>
-            <p className="text-sm text-slate-500 mt-1">The places people search for most, from Gilgit to Ghanche.</p>
+            <p className="text-sm text-slate-500 mt-1">Interactive valley panorama inspired by Northern Pakistan's most sought-after mountain destinations.</p>
           </div>
           <Link
             to="/browse"
-            className="inline-flex items-center gap-1 text-sm font-bold text-[#D97706] hover:text-[#904D00] transition-colors group"
+            className="inline-flex items-center gap-1.5 text-sm font-bold text-[#D97706] hover:text-[#904D00] transition-colors group"
           >
-            <span>View all locations</span>
+            <span>View all 10 districts</span>
             <span className="material-symbols-outlined text-[18px] transform group-hover:translate-x-1 transition-transform">
               arrow_forward
             </span>
           </Link>
         </div>
 
-        {/* 10 Regional Destination Cards Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          {POPULAR_LOCATIONS.map((loc) => {
-            const count = stats?.byDistrict?.[loc.district] || 0;
-            return (
-              <Link
-                key={loc.name}
-                to={`/browse?districts=${encodeURIComponent(loc.district)}`}
-                className="group relative rounded-2xl overflow-hidden aspect-[4/5] bg-slate-900 shadow-sm hover:shadow-xl transition-all duration-300"
-              >
-                <img
-                  src={loc.image}
-                  alt={loc.name}
-                  loading="lazy"
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out opacity-85"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0B1320] via-[#0B1320]/30 to-transparent" />
-                <div className="absolute bottom-3 left-3 right-3 text-left">
-                  <h3 className="font-serif text-lg font-bold text-white leading-tight">{loc.name}</h3>
-                  <span className="text-xs font-medium text-[#FFDCC3] flex items-center gap-1 mt-0.5">
-                    <span className="material-symbols-outlined text-[13px] text-[#FE932C]">location_on</span>
-                    {count > 0 ? `${count} listings` : 'Explore valley'}
-                  </span>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
+        {/* Skiper 52 Inspired HoverExpand Interactive Accordion */}
+        <PopularLocationsExpand stats={stats} />
       </section>
 
       {/* ========================================================================= */}
