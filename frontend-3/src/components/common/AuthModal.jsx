@@ -55,17 +55,27 @@ export default function AuthModal({ open, mode, intent, onClose, onSwitchMode })
   const [googlePending, setGooglePending] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [success, setSuccess] = useState('');
+  const [signupMessage, setSignupMessage] = useState('');
+  const [pendingLoginEmail, setPendingLoginEmail] = useState('');
 
   const formRef = useRef(null);
 
   // Reset values, errors and server messages whenever the modal closes or the mode changes.
   useEffect(() => {
-    setForm(INITIAL_FORM);
+    if (mode === 'login' && pendingLoginEmail) {
+      setForm({ ...INITIAL_FORM, email: pendingLoginEmail });
+      setPendingLoginEmail('');
+    } else {
+      setForm(INITIAL_FORM);
+    }
     setErrors({});
     setBanner('');
     setSuccess('');
     setShowPassword(false);
-  }, [open, mode]);
+    if (mode !== 'login') {
+      setSignupMessage('');
+    }
+  }, [open, mode, pendingLoginEmail]);
 
   // Move focus to the first field on open and whenever the mode changes
   // (the shared Modal focuses its close button first — this refines that).
@@ -137,8 +147,11 @@ export default function AuthModal({ open, mode, intent, onClose, onSwitchMode })
         onClose();
       } else if (mode === 'signup') {
         const user = await signup(form);
-        toast.success(`Your ${user.role === 'owner' ? 'owner' : 'tenant'} account is ready.`, 'Account created');
-        onClose();
+        const registeredEmail = form.email;
+        setPendingLoginEmail(registeredEmail);
+        setSignupMessage(`Account created for ${user.name}! Please enter your password to sign in.`);
+        toast.success('Account created! Please enter your password to sign in.', 'Sign In Required');
+        onSwitchMode('login');
       } else {
         const res = await forgotPasswordFlow(form.email);
         setSuccess(res);
@@ -158,18 +171,9 @@ export default function AuthModal({ open, mode, intent, onClose, onSwitchMode })
     return res.message;
   }
 
-  async function google() {
-    setBanner('');
-    setGooglePending(true);
-    try {
-      const user = await loginWithGoogle();
-      toast.success(`Signed in with Google as ${user.name}.`, 'Signed in');
-      onClose();
-    } catch (err) {
-      setBanner(err?.message || 'Google sign-in failed. Please try again.');
-    } finally {
-      setGooglePending(false);
-    }
+  function handleGoogleClick() {
+    toast.info('Google Sign-In will be added in a future update! Please sign in using your email and password for now.', 'Coming Soon');
+    setBanner('Google Sign-In will be added in an upcoming update. Please sign in using your email and password.');
   }
 
   function fillDemo(email) {
@@ -220,6 +224,16 @@ export default function AuthModal({ open, mode, intent, onClose, onSwitchMode })
               <div role="alert" className="animate-fade-in flex items-start gap-2.5 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
                 <Icon name="alert" className="mt-0.5 h-4 w-4 shrink-0" />
                 {banner}
+              </div>
+            )}
+
+            {signupMessage && mode === 'login' && (
+              <div role="status" className="animate-fade-in flex items-start gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 shadow-sm">
+                <Icon name="check" className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+                <div>
+                  <p className="font-semibold text-emerald-900">Account created successfully!</p>
+                  <p className="mt-0.5 text-xs text-emerald-700">{signupMessage}</p>
+                </div>
               </div>
             )}
 
@@ -364,9 +378,19 @@ export default function AuthModal({ open, mode, intent, onClose, onSwitchMode })
                   or continue with
                   <span className="h-px flex-1 bg-slate-200" />
                 </div>
-                <Button type="button" variant="outline" fullWidth onClick={google} loading={googlePending} disabled={submitting}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  fullWidth
+                  onClick={handleGoogleClick}
+                  disabled={submitting}
+                  className="border-slate-200 text-slate-600 hover:border-amber-300 hover:bg-amber-50/40"
+                >
                   <GoogleIcon />
-                  Continue with Google
+                  <span>Continue with Google</span>
+                  <span className="ml-1.5 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold tracking-wider text-amber-800 uppercase">
+                    Coming Soon
+                  </span>
                 </Button>
               </>
             )}

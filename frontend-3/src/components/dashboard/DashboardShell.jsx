@@ -35,11 +35,6 @@ export default function DashboardShell({ navGroups, children, brandLabel }) {
   const goSettings = () => navigate(`/${baseRole}/settings`);
   const goNotifications = () => navigate(`/${baseRole}/notifications`);
 
-  // One icon per nav group for the slim utility rail.
-  const railItems = useMemo(
-    () => navGroups.map((group) => ({ group, item: group.items[0] })).filter((entry) => entry.item),
-    [navGroups]
-  );
   const flatNav = useMemo(
     () => navGroups.flatMap((group) => group.items.map((item) => ({ ...item, group: group.title || '' }))),
     [navGroups]
@@ -47,12 +42,6 @@ export default function DashboardShell({ navGroups, children, brandLabel }) {
   const matches = query.trim()
     ? flatNav.filter((item) => item.label.toLowerCase().includes(query.trim().toLowerCase())).slice(0, 6)
     : [];
-
-  const isGroupActive = (group) =>
-    group.items.some((item) => {
-      const path = String(item.to || '').split(/[?#]/)[0];
-      return location.pathname === path || location.pathname.startsWith(`${path}/`);
-    });
 
   useEffect(() => {
     setDrawerOpen(false);
@@ -226,56 +215,8 @@ export default function DashboardShell({ navGroups, children, brandLabel }) {
         Skip to main content
       </a>
 
-      {/* Slim utility rail (desktop XL+) */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[68px] flex-col items-center justify-between border-r border-slate-800/80 bg-[#0B1320] py-5 xl:flex">
-        <div className="flex flex-col items-center gap-5">
-          <Link
-            to="/"
-            aria-label="RentLink home"
-            className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-500 text-white shadow-md shadow-amber-500/20 transition-transform hover:scale-105"
-          >
-            <span className="material-symbols-outlined text-2xl">landscape</span>
-          </Link>
-          <nav aria-label="Section shortcuts" className="mt-1 flex flex-col items-center gap-2">
-            {railItems.map(({ group, item }) => {
-              const active = isGroupActive(group);
-              return (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  end={item.end}
-                  aria-label={item.label}
-                  title={item.label}
-                  className={cn(
-                    'flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-200',
-                    active
-                      ? 'bg-amber-500/20 text-amber-400 ring-1 ring-amber-500/40'
-                      : 'text-slate-400 hover:bg-slate-800/80 hover:text-white'
-                  )}
-                >
-                  <Icon name={item.icon} className="h-5 w-5" />
-                </NavLink>
-              );
-            })}
-          </nav>
-        </div>
-        <div className="flex flex-col items-center gap-3">
-          <button
-            type="button"
-            onClick={goSettings}
-            aria-label="Settings"
-            className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-700/60 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
-          >
-            <Icon name="settings" className="h-[18px] w-[18px]" />
-          </button>
-          <Link to={`/${baseRole}/profile`} aria-label="Your profile" className="rounded-full ring-2 ring-amber-500/30">
-            <Avatar name={user?.name} size="sm" />
-          </Link>
-        </div>
-      </aside>
-
-      {/* Navigation tree (desktop LG+) */}
-      <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 flex-col border-r border-slate-800/80 bg-[#0B1320] lg:flex xl:left-[68px]">
+      {/* Primary Navigation Sidebar (desktop LG+) */}
+      <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 flex-col border-r border-slate-800/80 bg-[#0B1320] lg:flex">
         <div className="flex min-h-0 flex-1 flex-col">
           {brandLockup}
           {nav('Main')}
@@ -354,7 +295,7 @@ export default function DashboardShell({ navGroups, children, brandLabel }) {
       )}
 
       {/* Main Page Area */}
-      <div className="flex-1 lg:pl-64 xl:pl-[324px]">
+      <div className="flex-1 lg:pl-64">
         {/* Top bar (desktop) */}
         <header className="sticky top-0 z-30 hidden h-16 items-center justify-between gap-4 border-b border-slate-200/80 bg-white/90 px-6 backdrop-blur-xl lg:flex xl:px-8">
           <div className="relative w-full max-w-md">

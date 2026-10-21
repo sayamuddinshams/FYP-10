@@ -81,15 +81,20 @@ export default function Home() {
       {/* 1. HERO SECTION                                                          */}
       {/* ========================================================================= */}
       <section className="relative w-full overflow-hidden bg-[#0B1320] text-white">
-        {/* Scenic Alpine Video Background with Gradient Scrims */}
         <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
+          <img
+            src={HERO_POSTER}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover scale-105 opacity-75"
+            aria-hidden="true"
+          />
           <video
             autoPlay
             loop
             muted
             playsInline
             poster={HERO_POSTER}
-            className="w-full h-full object-cover scale-105 transition-transform duration-1000 ease-out opacity-65"
+            className="relative w-full h-full object-cover scale-105 transition-transform duration-1000 ease-out opacity-65"
           >
             <source src={HERO_VIDEOS[0]} type="video/mp4" />
             <source src={HERO_VIDEOS[1]} type="video/mp4" />
@@ -696,7 +701,7 @@ export default function Home() {
             className="absolute inset-0 w-full h-full bg-cover bg-center mix-blend-overlay opacity-30 pointer-events-none"
             style={{
               backgroundImage:
-                'url("https://lh3.googleusercontent.com/aida-public/AB6AXuB2i0831S2a5iL6ICB8KsmDlbHVqfSuMAlydKwHwBc_bnVndgNL9vO-jIObimvWaMApfkidtsiHr6gA1GlFY0biVw5V-6WBK2BCrywo7dgSmwa-qAO9P73ekr1ru-KqtzCATSFL1DBK2qriUhHRWxV4Dqk7hwoNNxO1rqHJ6A7bumF7_IuR7x-ifh2j-H_voltOPyvvk5JOHwV05k0qjfuTPDsQ7a63cpq5_yiIFobomZKRsDFTnT36")',
+                'url("https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1920&q=80")',
             }}
           />
 

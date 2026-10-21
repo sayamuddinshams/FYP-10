@@ -56,10 +56,9 @@ export function AuthProvider({ children }) {
     return u;
   }, []);
 
-  // Register a new tenant or owner account
+  // Register a new tenant or owner account (requires explicit login afterward)
   const signup = useCallback(async (payload) => {
     const u = await authService.signup(payload);
-    setUser(u);
     return u;
   }, []);
 

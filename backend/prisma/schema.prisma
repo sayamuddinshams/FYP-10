@@ -1,0 +1,217 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id                 String         @id @default(uuid())
+  name               String
+  email              String         @unique
+  passwordHash       String
+  role               String         @default("tenant")      // tenant | owner | admin
+  phone              String?        @default("")
+  district           String?        @default("")
+  city               String?        @default("")
+  area               String?        @default("")
+  address            String?        @default("")
+  avatar             String?
+  bio                String?        @default("")
+  status             String         @default("active")      // active | suspended
+  verification       String         @default("unverified")  // unverified | pending | verified | rejected
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  properties         Property[]
+  tenantVisits       VisitRequest[] @relation("TenantVisits")
+  ownerVisits        VisitRequest[] @relation("OwnerVisits")
+  favorites          Favorite[]
+  notifications      Notification[]
+  sentMessages       Message[]      @relation("SentMessages")
+  conversationsAsP1  Conversation[] @relation("Participant1")
+  conversationsAsP2  Conversation[] @relation("Participant2")
+  tenantTransactions Transaction[]  @relation("TenantTransactions")
+  ownerTransactions  Transaction[]  @relation("OwnerTransactions")
+  filedReports       Report[]       @relation("Reporter")
+  auditLogs          AuditLog[]
+}
+
+model Property {
+  id             String          @id @default(uuid())
+  title          String
+  type           String          // house | apartment | room | hostel | office | commercial
+  description    String
+  price          Int
+  district       String
+  city           String
+  area           String
+  address        String
+  bedrooms       Int             @default(0)
+  bathrooms      Int             @default(0)
+  size           Int             @default(0)
+  furnishing     String          @default("Unfurnished")
+  availableFrom  String          @default("")
+  amenitiesJson  String          @default("[]")          // JSON string: ["water", "electricity"]
+  status         String          @default("pending")     // draft | pending | approved | suspended | rejected
+  views          Int             @default(0)
+  featured       Boolean         @default(false)
+  adminNote      String?         @default("")
+  ownerId        String
+  owner          User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  images         PropertyImage[]
+  visits         VisitRequest[]
+  favorites      Favorite[]
+  transactions   Transaction[]
+  conversations  Conversation[]
+}
+
+model PropertyImage {
+  id         String   @id @default(uuid())
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  url        String
+  order      Int      @default(0)
+  createdAt  DateTime @default(now())
+}
+
+model VisitRequest {
+  id         String   @id @default(uuid())
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  tenantId   String
+  tenant     User     @relation("TenantVisits", fields: [tenantId], references: [id], onDelete: Cascade)
+  ownerId    String
+  owner      User     @relation("OwnerVisits", fields: [ownerId], references: [id], onDelete: Cascade)
+  date       String
+  time       String
+  status     String   @default("pending") // pending | approved | rejected | rescheduled | completed
+  message    String?  @default("")
+  ownerNote  String?  @default("")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Favorite {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, propertyId])
+}
+
+model Conversation {
+  id             String    @id @default(uuid())
+  propertyId     String
+  property       Property  @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  participant1Id String
+  participant1   User      @relation("Participant1", fields: [participant1Id], references: [id], onDelete: Cascade)
+  participant2Id String
+  participant2   User      @relation("Participant2", fields: [participant2Id], references: [id], onDelete: Cascade)
+  updatedAt      DateTime  @updatedAt
+  messages       Message[]
+
+  @@unique([propertyId, participant1Id, participant2Id])
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  text           String
+  read           Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  title     String
+  body      String
+  link      String?  @default("")
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Transaction {
+  id                    String   @id @default(uuid())
+  propertyId            String
+  property              Property @relation(fields: [propertyId], references: [id])
+  tenantId              String
+  tenant                User     @relation("TenantTransactions", fields: [tenantId], references: [id])
+  ownerId               String
+  owner                 User     @relation("OwnerTransactions", fields: [ownerId], references: [id])
+  amount                Int
+  platformFee           Int
+  ownerAmount           Int
+  status                String   @default("pending") // pending | completed | failed
+  payoutStatus          String   @default("pending") // pending | eligible | processed
+  payoutEligibilityDate DateTime
+  date                  String   @default("")
+  createdAt             DateTime @default(now())
+}
+
+model Report {
+  id          String   @id @default(uuid())
+  type        String
+  reporterId  String
+  reporter    User     @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  targetId    String
+  targetLabel String
+  reason      String
+  details     String
+  status      String   @default("open") // open | resolved | removed
+  resolution  String?  @default("")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Advertisement {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  image       String
+  targetType  String   @default("all")
+  target      String   @default("All Gilgit-Baltistan")
+  start       String
+  end         String
+  status      String   @default("active")
+  owner       String   @default("RentLink")
+  impressions Int      @default(0)
+  clicks      Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  adminId    String
+  admin      User     @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  action     String
+  targetType String
+  targetId   String
+  details    String?  @default("")
+  createdAt  DateTime @default(now())
+}
+
+model PlatformSetting {
+  id                   String   @id @default("global")
+  platformFeePercent   Float    @default(5.0)
+  autoApproveListings  Boolean  @default(false)
+  maintenanceMode      Boolean  @default(false)
+  payoutHoldDays       Int      @default(7)
+  supportEmail         String   @default("support@rentlink.pk")
+  updatedAt            DateTime @updatedAt
+}

@@ -6,52 +6,51 @@
 const img = (id, w = 1000) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&q=70`;
 
 const HOUSE_IMAGES = [
-  'https://lh3.googleusercontent.com/aida-public/AB6AXuCkMp94mcDTa38EtpJxbWWVk6GpbMwhF22jn891IrXGaJNtXBeVW8lTssQLmEWm178ZGvaNoFs2ByWbYxWtEiuYHAGxk7TS-wer0t8eXd5j14lTXe0ScuOGXPaF2q1MZk-0LkbQ36YoNpieCGlJ0LhdOHZhZ8cQNHUWBwglkpV6sNlQnPG23h_JZ7pZSmOOUTHGbVHakGNp8BbltvUyuh6f5DiF3dwjTgwHy9weVXJfzEC7otNGOSkU',
-  'https://lh3.googleusercontent.com/aida-public/AB6AXuAayis3OU7LPU7cOtmA_xgupVqprooGzAx6kLmfZP3XFBig5GDpueuogm_nYz3Q75mexRmcwLWgrBPXKNqVDt4qoOJZULXVL1pUFKd4qHso9vn7uFB0OHQTRo_5w1-ZgmSOCGfUbH7evO5Tmk70JlfLG66LEzD3cSDGOCPcJUm3-WbWdGMZwIf5V5kTnzS90EUyhNBo1BwkYGQRlgog_TSey-WJ930lRGjP5yBbt7L6WtdItAzDqrHF',
-  img('1568605114967-8130f3a36994'),
-  img('1600596542815-ffad4c1539a9'),
-  img('1600585154340-be6161a56a0c'),
-  img('1600607687939-ce8a6c25118c'),
-  img('1512917774080-9991f1c4c750'),
-  img('1570129477492-45c003edd2be'),
-  img('1600566753086-00f18fb6b3ea'),
-  img('1600047509807-ba8f99d2cdde'),
-  img('1580587771525-78b9dba3b914'),
-  img('1600210492486-724fe5c67fb0'),
+  img('1580587771525-78b9dba3b914'), // Real stone family house with front lawn
+  img('1600585154340-be6161a56a0c'), // Real mountain stone villa
+  img('1568605114967-8130f3a36994'), // Real contemporary mountain residence
+  img('1600596542815-ffad4c1539a9'), // Real multi-storey house exterior
+  img('1518780664697-55e3ad937233'), // Real mountain cottage with cedar finish
+  img('1600607687939-ce8a6c25118c'), // Real mountain estate
+  img('1512917774080-9991f1c4c750'), // Real spacious stone villa
+  img('1570129477492-45c003edd2be'), // Real country home with lawn & garden
+  img('1600566753086-00f18fb6b3ea'), // Real timber and stone mountain house
+  img('1600047509807-ba8f99d2cdde'), // Real mountain residence
+  img('1564013799919-ab600027ffc6'), // Real hillside villa overlooking valley
+  img('1600210492486-724fe5c67fb0'), // Real luxury living room with mountain light
 ];
 
 const APARTMENT_IMAGES = [
-  'https://lh3.googleusercontent.com/aida-public/AB6AXuAhqoh0IXYPCt2zIOesa66HDXmX_H6nPJp5XpaOCsegZAVKVzW8OJS_0lZW9XS_OcE7MTLuwmjASkvcW7jLDyEl8f2w_IrZoBIEV50VSFx_DfGEFcS0-gUMbPzBL1FR2FiZLBwo5apflDuuKiEbXg5ChGVqhCIn58ONZs1AVf5fDzIHr3hlUSuGQyIxTvKDawWSJhpdKnwx5WU9ZphHtsFo-wMZJ3fuc95s0Rd1hEeBtsqk_hca3f4q',
-  'https://lh3.googleusercontent.com/aida-public/AB6AXuAnnqOplqtescyY3OtIZUgomdZlM8zqrK4MFGKVjqvTNmVoL-5Kz54eOjxx_StF-vQ-52DrXzqjRs257BMJ9RbXmx5YhEFVFn0krnoSiFuKx-mtujtwKpJZbFynsdk_w8n6fqVcc-LXCte3rTMISQ6OmMOWB96AHA31ejtpZt943yxQsmhlAu9Azo5qq5bCVp2m052vda-p5BxdgU3R5mrjIDGB56hRmlugstJkqks5X7TNWgZA-9vb',
-  img('1560448204-e02f11c3d0e2'),
-  img('1502672260266-1c1ef2d93688'),
-  img('1522708323590-d24dbb6b0267'),
-  img('1505873242700-f289a29e1e0f'),
-  img('1484154218962-a197022b5858'),
-  img('1556911220-bff31c812dba'),
+  img('1560448204-e02f11c3d0e2'), // Real apartment lounge & kitchen
+  img('1502672260266-1c1ef2d93688'), // Real apartment bedroom with view
+  img('1522708323590-d24dbb6b0267'), // Real modern valley apartment
+  img('1505873242700-f289a29e1e0f'), // Real wooden furnished apartment
+  img('1484154218962-a197022b5858'), // Real apartment kitchen
+  img('1556911220-bff31c812dba'), // Real dining & living space
+  img('1513694203232-719a280e022f'), // Real bedroom with huge view window
+  img('1582719478250-c89cae4dc85b'), // Real boutique mountain suite
 ];
 
 const ROOM_IMAGES = [
-  img('1493809842364-78817add7ffb'),
-  img('1502672260266-1c1ef2d93688'),
-  img('1540518614846-7eded433c457'),
-  img('1522771739844-6a9f6d5f14af'),
+  img('1493809842364-78817add7ffb'), // Real bright furnished bedroom
+  img('1502672260266-1c1ef2d93688'), // Real study space
+  img('1540518614846-7eded433c457'), // Real cozy bedroom
+  img('1522771739844-6a9f6d5f14af'), // Real private room with wood paneling
+  img('1590490360182-c33d57733427'), // Real valley guest room
 ];
 
 const HOSTEL_IMAGES = [
-  'https://lh3.googleusercontent.com/aida-public/AB6AXuDBkU4sWu-3Mkc87AsKVcxHj5SXcP5l2waAoa3dz1ZLCJjZEoufRtbJxKUzYwTHYD50TNiwSCsf-QgIG1yJIsqJLbciqI845fHsfBBpLrn-xoa9nZ3Q16htGgyRcMf0ipi2fK9LfH1z9hwXEjhaMNCI9Bsnx471faPZE3i5Y9xgtCrlMRju8HYVlnR-P8YEjvvogJUIR5sJ9ETiFTd5axf-l5kL0Hrw4wzWt2Qy8BWz1xqrzC-To5jw',
-  img('1555854877-bab0e564b8d5'),
-  img('1520250497591-112f2f40a3f4'),
-  img('1541123437800-1bb1317badc2'),
-  img('1590490360182-c33d57733427'),
+  img('1555854877-bab0e564b8d5'), // Real shared hostel room & student accommodation
+  img('1520250497591-112f2f40a3f4'), // Real dormitory / lodge beds
+  img('1541123437800-1bb1317badc2'), // Real modern hostel bunk layout
+  img('1590490360182-c33d57733427'), // Real mountain hostel interior
 ];
 
 const OFFICE_IMAGES = [
-  'https://lh3.googleusercontent.com/aida-public/AB6AXuBD5JeDy3QuTOQgC6rsUeZjjXl4aKWKMEpU4TDNTBBmWpzAde1oKZwzY7wqsBY76lkGNC_CvLUM_dCgQ7A0nxB69GOxR8swBDFT15WliQNfHIdVST6O_bDL8cy5KXOs1sHMcI4d60VdfCJHy3k-Ew4IBviwtLIBkpgCfssaD5Vv7rnn9TbCOKUn1jUPoyPDPHHfRGl17fwXOF5FNaOhK1zSa5dl9JZiSFLeroErX-OE05A55u7E7oi7',
-  img('1497366216548-37526070297c'),
-  img('1497366754035-f200968a6e72'),
-  img('1524758631624-e2822e304c36'),
-  img('1497366811353-6870744d04b2'),
+  img('1497366216548-37526070297c'), // Real modern office space
+  img('1497366754035-f200968a6e72'), // Real meeting room
+  img('1524758631624-e2822e304c36'), // Real professional workstation
+  img('1486406146926-c627a92ad1ab'), // Real commercial office building exterior
 ];
 
 const COMMERCIAL_IMAGES = [

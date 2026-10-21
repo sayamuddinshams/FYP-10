@@ -244,6 +244,20 @@ const PATHS = {
   pause: <path d="M9 5v14M15 5v14" />,
   play: <path d="M7 4.5 19 12 7 19.5v-15z" />,
   drag: <path d="M9 6h.01M9 12h.01M9 18h.01M15 6h.01M15 12h.01M15 18h.01" strokeWidth="2.4" />,
+  map: (
+    <>
+      <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
+      <line x1="8" y1="2" x2="8" y2="18" />
+      <line x1="16" y1="6" x2="16" y2="22" />
+    </>
+  ),
+  external: (
+    <>
+      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+      <polyline points="15 3 21 3 21 9" />
+      <line x1="10" y1="14" x2="21" y2="3" />
+    </>
+  ),
 };
 
 export default function Icon({ name, className = 'h-5 w-5', strokeWidth = 1.75, ...rest }) {

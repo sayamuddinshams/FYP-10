@@ -16,6 +16,7 @@ import { useModals } from '../../context/ModalContext';
 import { useAsync, useDocumentTitle } from '../../hooks';
 import { PROPERTY_TYPES, AMENITIES, FURNISHING_OPTIONS, AMENITY_MAP } from '../../utils/constants';
 import { DISTRICTS, getCities, getAreas } from '../../data/locations';
+import LocationPicker from '../../components/property/LocationPicker';
 import { cn, formatDate, formatNumber } from '../../utils/format';
 
 const MAX_IMAGES = 8;
@@ -553,62 +554,7 @@ export default function EditProperty() {
 
         {/* Location */}
         <Section id="sec-location" title="Location" description="District, city and area power the filters tenants use.">
-          <div className="grid gap-5 sm:grid-cols-3">
-            <Select
-              label="District"
-              required
-              placeholder="Select district"
-              value={form.district}
-              onChange={(e) => update('district', e.target.value)}
-              error={errors.district}
-            >
-              {DISTRICTS.map((d) => (
-                <option key={d} value={d}>
-                  {d}
-                </option>
-              ))}
-            </Select>
-            <Select
-              label="City / Town"
-              required
-              placeholder={form.district ? 'Select city' : 'Select district first'}
-              value={form.city}
-              onChange={(e) => update('city', e.target.value)}
-              error={errors.city}
-              disabled={!form.district}
-            >
-              {cities.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </Select>
-            <Select
-              label="Area / Locality"
-              required
-              placeholder={form.city ? 'Select area' : 'Select city first'}
-              value={form.area}
-              onChange={(e) => update('area', e.target.value)}
-              error={errors.area}
-              disabled={!form.city}
-            >
-              {areas.map((a) => (
-                <option key={a} value={a}>
-                  {a}
-                </option>
-              ))}
-            </Select>
-          </div>
-          <div className="mt-5">
-            <Input
-              label="Street address"
-              required
-              value={form.address}
-              onChange={(e) => update('address', e.target.value)}
-              error={errors.address}
-              placeholder="House 14, Street 3, near the bazaar"
-            />
-          </div>
+          <LocationPicker form={form} update={update} errors={errors} />
         </Section>
 
         {/* Details */}

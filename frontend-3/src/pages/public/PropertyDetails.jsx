@@ -21,6 +21,7 @@ import RequestVisitModal from '../../components/property/RequestVisitModal';
 import ShareModal from '../../components/property/ShareModal';
 import ReviewsSection from '../../components/property/ReviewsSection';
 import PropertyCard from '../../components/property/PropertyCard';
+import PropertyMap from '../../components/property/PropertyMap';
 
 function Spec({ icon, label, value }) {
   return (
@@ -248,43 +249,18 @@ export default function PropertyDetails() {
               )}
             </section>
 
-            {/* Location */}
-            <section className="rounded-2xl border border-line bg-white p-5 shadow-soft sm:p-6">
-              <div className="flex items-center justify-between gap-3">
-                <h2 className="text-lg sm:text-xl font-semibold tracking-tight text-ink">Location</h2>
-                <a
-                  href={`https://www.google.com/maps/search/${encodeURIComponent(`${property.area}, ${property.city}, ${property.district}, Gilgit-Baltistan`)}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-sm font-semibold text-primary hover:underline"
-                >
-                  Open in Maps
-                </a>
+            {/* Location & Interactive Google Map */}
+            <section className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm">
+              <div className="mb-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                  <span className="text-[11px] font-bold tracking-widest text-emerald-800 uppercase">Interactive Map & Vicinity</span>
+                </div>
+                <h2 className="font-serif text-xl sm:text-2xl font-bold tracking-tight text-slate-950">Property Location</h2>
+                <p className="text-xs text-slate-500 mt-0.5">Explore the neighborhood topography, terrain, and road network in Gilgit-Baltistan</p>
               </div>
 
-              <div className="relative mt-4 overflow-hidden rounded-2xl border border-line bg-surface">
-                {/* Stylised static map panel (no external map SDK required) */}
-                <div className="relative h-56 sm:h-64">
-                  <svg viewBox="0 0 600 260" className="absolute inset-0 h-full w-full" aria-hidden="true">
-                    <rect width="600" height="260" fill="#eef2f7" />
-                    <path d="M0 190 C120 160 200 210 300 180 C400 150 480 200 600 170" stroke="#d7dee9" strokeWidth="18" fill="none" />
-                    <path d="M-20 80 C140 110 260 40 420 70 C500 85 560 60 620 75" stroke="#dbe3ee" strokeWidth="26" fill="none" />
-                    <path d="M60 0 L120 260" stroke="#e3e9f2" strokeWidth="12" fill="none" />
-                    <path d="M340 0 L300 260" stroke="#e3e9f2" strokeWidth="12" fill="none" />
-                    <path d="M500 0 L540 260" stroke="#e3e9f2" strokeWidth="12" fill="none" />
-                    <circle cx="300" cy="130" r="60" fill="#dbeafe" opacity="0.7" />
-                  </svg>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="flex flex-col items-center gap-1 rounded-xl bg-white/95 px-5 py-3 text-center shadow-lift backdrop-blur-sm">
-                      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-white">
-                        <Icon name="pin" className="h-5 w-5" />
-                      </span>
-                      <p className="text-sm font-semibold text-slate-800">{property.area}</p>
-                      <p className="text-xs text-slate-500">{property.city}, {property.district}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <PropertyMap property={property} className="mt-3" />
 
               <dl className="mt-4 grid gap-x-8 sm:grid-cols-2">
                 <Fact label="District" value={property.district} />

@@ -10,6 +10,7 @@ import { ListingStatusBadge } from '../../components/common/Badge';
 import { PROPERTY_TYPES, AMENITIES, FURNISHING_OPTIONS, AMENITY_MAP } from '../../utils/constants';
 import { DISTRICTS, getCities, getAreas } from '../../data/locations';
 import propertyService from '../../services/propertyService';
+import LocationPicker from '../../components/property/LocationPicker';
 
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
@@ -488,74 +489,7 @@ export default function AddProperty() {
 
         {/* ---------- Step 2: Location ---------- */}
         {step === 1 && (
-          <div className="space-y-5">
-            <div className="grid gap-5 sm:grid-cols-3">
-              <Select
-                label="District"
-                required
-                placeholder="Select district"
-                value={form.district}
-                onChange={(e) => update('district', e.target.value)}
-                error={errors.district}
-              >
-                {DISTRICTS.map((d) => (
-                  <option key={d} value={d}>
-                    {d}
-                  </option>
-                ))}
-              </Select>
-
-              <Select
-                label="City / Town"
-                required
-                placeholder={form.district ? 'Select city' : 'Select district first'}
-                value={form.city}
-                onChange={(e) => update('city', e.target.value)}
-                error={errors.city}
-                disabled={!form.district}
-              >
-                {cities.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </Select>
-
-              <Select
-                label="Area / Locality"
-                required
-                placeholder={form.city ? 'Select area' : 'Select city first'}
-                value={form.area}
-                onChange={(e) => update('area', e.target.value)}
-                error={errors.area}
-                disabled={!form.city}
-              >
-                {areas.map((a) => (
-                  <option key={a} value={a}>
-                    {a}
-                  </option>
-                ))}
-              </Select>
-            </div>
-
-            <Input
-              label="Street address"
-              required
-              placeholder="House 14, Street 3, near the bazaar"
-              value={form.address}
-              onChange={(e) => update('address', e.target.value)}
-              error={errors.address}
-            />
-
-            <div className="rounded-xl border border-dashed border-line bg-slate-50 px-4 py-6 text-center">
-              <Icon name="pin" className="mx-auto h-6 w-6 text-slate-500" />
-              <p className="mt-2 text-sm font-medium text-slate-600">Map pinning will be available at launch</p>
-              <p className="mx-auto mt-1 max-w-md text-xs leading-relaxed text-slate-500">
-                Your written address is enough for now. The exact pin is shared with a tenant only after you approve
-                their visit request.
-              </p>
-            </div>
-          </div>
+          <LocationPicker form={form} update={update} errors={errors} />
         )}
 
         {/* ---------- Step 3: Details ---------- */}

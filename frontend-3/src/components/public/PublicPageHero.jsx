@@ -7,7 +7,7 @@ export default function PublicPageHero({
   description,
   meta,
   aside,
-  image = 'https://lh3.googleusercontent.com/aida-public/AB6AXuB2i0831S2a5iL6ICB8KsmDlbHVqfSuMAlydKwHwBc_bnVndgNL9vO-jIObimvWaMApfkidtsiHr6gA1GlFY0biVw5V-6WBK2BCrywo7dgSmwa-qAO9P73ekr1ru-KqtzCATSFL1DBK2qriUhHRWxV4Dqk7hwoNNxO1rqHJ6A7bumF7_IuR7x-ifh2j-H_voltOPyvvk5JOHwV05k0qjfuTPDsQ7a63cpq5_yiIFobomZKRsDFTnT36',
+  image = 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1920&q=80',
   imagePosition = 'center',
   compact = false,
   className,

@@ -94,52 +94,52 @@ export const POPULAR_LOCATIONS = [
   {
     name: 'Gilgit',
     district: 'Gilgit',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD4NgeIeM-_xuKr1Bm9byzdbhrL0GO8XoJ4kM0r8nfN3uGh9GV7eP09qvvAnpg_ydt0NQxvSFgenUNiBdLNHGR61ozzLaj69iq_S53QO1Yg833iAv7tGVEEr5yHC7s5dlCACrhXlwh-8_ZgWl70mmZAU2N7VIAKXWbR_IrhEdJ3Ad8PAtHJp3DU-_R3zhbPdqyPJaHTNUbiYJQQT6XP6BXzzw6b27Pacm-BU-O8bM4xOHCEDuIeN_Ui'
+    image: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1200&q=80',
   },
   {
     name: 'Hunza',
     district: 'Hunza',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAy9ydod2w4m0R6eENCW1x093Ju7VKJtfD-Awryc-8CSWfvhYIATyMMV3hTuoEDlmTneLf5Mh81Anxl95dfCz1bHl7I5cpJT9f1SYMLJ2hkk5lTP2EgU31edjE314414FbiIgrzdBOkRUd1tlVGQn0jx7vaA1Tglxp8gqmRDSN2Rz-UcVpZz88lDj5cgxsMjebKNJcaHdkq1lUtuplJtrddIz__fEYBDaZDi2sqJODeu39KO4O3idd5'
+    image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80',
   },
   {
     name: 'Skardu',
     district: 'Skardu',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDhQHejAgvffKTppC1OBs56YFRAjkKUT_xjlDvg_hy4tqctr7t76r68iY_o7MN83zcXmcOQvS0_UI59IHaFQEdAKj602AeUIYZI1qV3WjP7uCKDMIHXp0zqLmAXuEzTIdpdaomatIzDBkR00G6KxwDM2kkD-ET8m7JnuwbamR1R0I1vWQ5XIp0X0q0bReYJm2IrinA8168bZrIScbb5WHjOlaU2rMM7orbqO87o-y8N-mSgiok1-EBo'
+    image: 'https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=1200&q=80',
   },
   {
     name: 'Nagar',
     district: 'Nagar',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAUWoksTcM_jqqV7GoUC81poO9nk4u1Sv1DComkJ7RCn25q1lLj8AmpTWWEHKoMC7T66SICA4IbYspuvJRkaKGJAGi1qz6Xhhk19sEl1F4TzLndE6tDuuZjyCnV3_DmxbIOj7JTLH7_mLjhp4GSpkwJ0-skrg9e3h78dy5rrwUWcnXnYMPbCSTtQ9BPccn_bVCkKLKQEvmk5STFPv9CAWW4huUvFAWss7b4EYX6BmJCMaW0Fwu5_bo8'
+    image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80',
   },
   {
     name: 'Ghizer',
     district: 'Ghizer',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDywsWpoo50pwZT78qD2q0tU49ZkNEAHA8trv0a75MFgi9MjghNH5DvJ1PA3lMns6-bN41FtTm6OIHeVl4nhez_AT4C9H1feEnG2JK6IDNA_XFbQR9E2KygH1PAJIOeBNu4lHJ_eVVVu1KeyvLq4nMmvGRY0x6OaBWO1Ac9gaixn4yc9gWyY8xnxJLNM5An8Cc0DN7shXahPL1g77R_V8ZDloxq2xsJtdSXngjRmqOxMuoXJEja-KZn'
+    image: 'https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1200&q=80',
   },
   {
     name: 'Astore',
     district: 'Astore',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCr7iyaI2_JgFerVUHu2M2Of9YQgdsrQUlFOC4gvA4P11IDW317NTig23qjZw1l0QQ45LyL1ju2hsnKC2UzBb17Hb6PRVPCGW5AS1h6z83BUvKVTFOpso6psoLeBn3Gm2puCTB9tOYauB57U15J66E1xHoyXxQW-7phykhM15vt4TnUTk8CF_GtR9HC3W6vBW4aU4GsgCNNkgmKKgTPgK6P02D1FlBAlKvNnQCI_u42y2GkiaRGDsy1'
+    image: 'https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=1200&q=80',
   },
   {
     name: 'Diamer',
     district: 'Diamer',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCZ4ya_aitDH55Tin64sG-87RaBF-fmCCTPJATsQIqM0RuaSfH2RzQK5NxRORbciiKHWx_3XAgp8rD6Rv9bJm4B9aRsItNlZzq9nzKKl8dekZYns6lV-dE6ObwgqHera2JmLBE-8aNdwQC9sxgVw4Kq7ethVnMKv9_zfiaO22C_e11ofT7EDFWu9nnD84spex19qDuxxMGXMMxIOfb9RZIa_RLxGQIa3-GDeI5rvXpEPgaIM5VO15CB'
+    image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80',
   },
   {
     name: 'Shigar',
     district: 'Shigar',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAapwTooEjqbjCN-DSDLFGDI8h_MZ00eLfhQGlXLjhPgyyIKJhTt8-EhVjBvq_BMBm-utBMa8cn8_lXeLX6P8ZE8FJPZ4cQluegK7qoXKKM4x_lwFMnninsTifh6ZNI2fhYmzl2QgfC6224jkBnskSm3B4naB8b7CDZbq1VIvLk4T9G42Z9v0dpjVRvTUKvIPLGs7FGWCGGq6WGIfTAyHi6AXZcac8RUfqdMYDjAozwVmOEaFJXblrm'
+    image: 'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?auto=format&fit=crop&w=1200&q=80',
   },
   {
     name: 'Kharmang',
     district: 'Kharmang',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBTrXHFVh3JWRdpICtgrcrLcWeBRC5s6v3OBz37VbX_u25hY-NkTTMvdyqRwys4OJPnqHR1D52O_dov0aI1Nj_eVBL9HxytJcl7_P-SVgnNh0gi3AFVQZ0DlHdgHF5VjwOhIqquaCiklj45RCh23lYosXLIE4gs1gJJ2OAkMashocY863gm2HODj6I6x7GMnd5evbpjkivvxnDaGReBiKQeAeLwx7FGdbvTk9hnG2xc8Xm8sKiJRnq-'
+    image: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1200&q=80',
   },
   {
     name: 'Ghanche',
     district: 'Ghanche',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuASXnKHbV3qn8byAmEzeY9qNlSL0IGLjc3wwgncJr3bMPPtu1Eviqvox0ZO1mmwz09d_WWX6KXd2YWwFZfvFdBOshoUHMuw5rWMWNjgfxWhv0z4eS5W6CTbaT13CPs3aBHkuurMYSRXH5sCzWKRl0xdTVTB8jZFcfi152XOOQlzKtEA17uqP15boQkG8Dul3WKmur8AVDp1_Fvl98XDdnMOVBsYVrfC3qrl-5Xitzso0lP0IHKJQdql'
+    image: 'https://images.unsplash.com/photo-1518780664697-55e3ad937233?auto=format&fit=crop&w=1200&q=80',
   },
 ];
 
@@ -174,3 +174,38 @@ export function searchLocations(query, limit = 8) {
   const rank = { area: 0, city: 1, district: 2 };
   return results.sort((a, b) => rank[a.kind] - rank[b.kind]).slice(0, limit);
 }
+
+/**
+ * Centroid coordinates for Gilgit-Baltistan districts for GPS matching and map centering.
+ */
+export const DISTRICT_COORDINATES = {
+  Gilgit: { lat: 35.9208, lng: 74.3144 },
+  Hunza: { lat: 36.3167, lng: 74.6500 },
+  Skardu: { lat: 35.2971, lng: 75.6333 },
+  Nagar: { lat: 36.2500, lng: 74.7000 },
+  Ghizer: { lat: 36.1667, lng: 73.7667 },
+  Astore: { lat: 35.3667, lng: 74.8500 },
+  Diamer: { lat: 35.4167, lng: 74.1000 },
+  Shigar: { lat: 35.4244, lng: 75.7275 },
+  Kharmang: { lat: 35.1500, lng: 76.1000 },
+  Ghanche: { lat: 35.1700, lng: 76.3300 },
+};
+
+/**
+ * Finds the closest Gilgit-Baltistan district given GPS coordinates.
+ */
+export function findNearestDistrict(lat, lng) {
+  let minDistance = Infinity;
+  let closest = 'Gilgit';
+  for (const [district, coords] of Object.entries(DISTRICT_COORDINATES)) {
+    const dLat = coords.lat - lat;
+    const dLng = coords.lng - lng;
+    const dist = dLat * dLat + dLng * dLng;
+    if (dist < minDistance) {
+      minDistance = dist;
+      closest = district;
+    }
+  }
+  return closest;
+}
+

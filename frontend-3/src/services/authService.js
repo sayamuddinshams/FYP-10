@@ -82,19 +82,14 @@ const authService = {
     };
     db.users.push(user);
     db.favorites[user.id] = [];
-    saveSession(user);
-    db.session = user.id;
+    // User must explicitly log in after creating an account
     emit();
     return publicUser(user);
   },
 
   async loginWithGoogle() {
-    await delay(900);
-    const user = db.users.find((u) => u.email === 'ayesha.khan@example.com');
-    saveSession(user);
-    db.session = user.id;
-    emit();
-    return publicUser(user);
+    await delay(200);
+    fail('Google Sign-In will be available soon. Please sign in with your email and password for now.');
   },
 
   async forgotPassword({ email }) {

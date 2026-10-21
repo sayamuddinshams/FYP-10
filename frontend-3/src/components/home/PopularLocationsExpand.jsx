@@ -21,8 +21,7 @@ const DESTINATIONS = [
     elevation: '2,438m',
     tagline: 'Passu Cones, Rakaposhi views & Karimabad apricot orchards.',
     vibe: 'Alpine Heritage',
-    image:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuAy9ydod2w4m0R6eENCW1x093Ju7VKJtfD-Awryc-8CSWfvhYIATyMMV3hTuoEDlmTneLf5Mh81Anxl95dfCz1bHl7I5cpJT9f1SYMLJ2hkk5lTP2EgU31edjE314414FbiIgrzdBOkRUd1tlVGQn0jx7vaA1Tglxp8gqmRDSN2Rz-UcVpZz88lDj5cgxsMjebKNJcaHdkq1lUtuplJtrddIz__fEYBDaZDi2sqJODeu39KO4O3idd5',
+    image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80',
   },
   {
     name: 'Skardu',
@@ -31,8 +30,7 @@ const DESTINATIONS = [
     elevation: '2,228m',
     tagline: 'Gateway to K2, Sarfaranga cold desert & Shangrila lakeside chalets.',
     vibe: 'High-Altitude Frontier',
-    image:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuDhQHejAgvffKTppC1OBs56YFRAjkKUT_xjlDvg_hy4tqctr7t76r68iY_o7MN83zcXmcOQvS0_UI59IHaFQEdAKj602AeUIYZI1qV3WjP7uCKDMIHXp0zqLmAXuEzTIdpdaomatIzDBkR00G6KxwDM2kkD-ET8m7JnuwbamR1R0I1vWQ5XIp0X0q0bReYJm2IrinA8168bZrIScbb5WHjOlaU2rMM7orbqO87o-y8N-mSgiok1-EBo',
+    image: 'https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=1200&q=80',
   },
   {
     name: 'Gilgit',
@@ -41,8 +39,7 @@ const DESTINATIONS = [
     elevation: '1,500m',
     tagline: 'Regional capital, Jutial business suites & historic Silk Route hub.',
     vibe: 'Commercial Capital',
-    image:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuD4NgeIeM-_xuKr1Bm9byzdbhrL0GO8XoJ4kM0r8nfN3uGh9GV7eP09qvvAnpg_ydt0NQxvSFgenUNiBdLNHGR61ozzLaj69iq_S53QO1Yg833iAv7tGVEEr5yHC7s5dlCACrhXlwh-8_ZgWl70mmZAU2N7VIAKXWbR_IrhEdJ3Ad8PAtHJp3DU-_R3zhbPdqyPJaHTNUbiYJQQT6XP6BXzzw6b27Pacm-BU-O8bM4xOHCEDuIeN_Ui',
+    image: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1200&q=80',
   },
   {
     name: 'Nagar',
@@ -51,8 +48,7 @@ const DESTINATIONS = [
     elevation: '2,688m',
     tagline: 'Hopar glacier retreats, Spantik vistas & terraced stone homes.',
     vibe: 'Glacial Valleys',
-    image:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuAUWoksTcM_jqqV7GoUC81poO9nk4u1Sv1DComkJ7RCn25q1lLj8AmpTWWEHKoMC7T66SICA4IbYspuvJRkaKGJAGi1qz6Xhhk19sEl1F4TzLndE6tDuuZjyCnV3_DmxbIOj7JTLH7_mLjhp4GSpkwJ0-skrg9e3h78dy5rrwUWcnXnYMPbCSTtQ9BPccn_bVCkKLKQEvmk5STFPv9CAWW4huUvFAWss7b4EYX6BmJCMaW0Fwu5_bo8',
+    image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80',
   },
   {
     name: 'Ghizer',
@@ -61,8 +57,7 @@ const DESTINATIONS = [
     elevation: '2,410m',
     tagline: 'Phander lake turquoise waters, Gahkuch riverfront & trout valleys.',
     vibe: 'Emerald Waters',
-    image:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuDywsWpoo50pwZT78qD2q0tU49ZkNEAHA8trv0a75MFgi9MjghNH5DvJ1PA3lMns6-bN41FtTm6OIHeVl4nhez_AT4C9H1feEnG2JK6IDNA_XFbQR9E2KygH1PAJIOeBNu4lHJ_eVVVu1KeyvLq4nMmvGRY0x6OaBWO1Ac9gaixn4yc9gWyY8xnxJLNM5An8Cc0DN7shXahPL1g77R_V8ZDloxq2xsJtdSXngjRmqOxMuoXJEja-KZn',
+    image: 'https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1200&q=80',
   },
   {
     name: 'Astore',
@@ -71,8 +66,7 @@ const DESTINATIONS = [
     elevation: '2,600m',
     tagline: 'Rama Meadows pine forests & Nanga Parbat Rupal face foothills.',
     vibe: 'Pine Sanctuary',
-    image:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuCr7iyaI2_JgFerVUHu2M2Of9YQgdsrQUlFOC4gvA4P11IDW317NTig23qjZw1l0QQ45LyL1ju2hsnKC2UzBb17Hb6PRVPCGW5AS1h6z83BUvKVTFOpso6psoLeBn3Gm2puCTB9tOYauB57U15J66E1xHoyXxQW-7phykhM15vt4TnUTk8CF_GtR9HC3W6vBW4aU4GsgCNNkgmKKgTPgK6P02D1FlBAlKvNnQCI_u42y2GkiaRGDsy1',
+    image: 'https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=1200&q=80',
   },
   {
     name: 'Shigar',
@@ -81,8 +75,7 @@ const DESTINATIONS = [
     elevation: '2,250m',
     tagline: 'Fong-Khar palace heritage & fertile oasis on the Karakoram trail.',
     vibe: 'Royal Oasis',
-    image:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuAapwTooEjqbjCN-DSDLFGDI8h_MZ00eLfhQGlXLjhPgyyIKJhTt8-EhVjBvq_BMBm-utBMa8cn8_lXeLX6P8ZE8FJPZ4cQluegK7qoXKKM4x_lwFMnninsTifh6ZNI2fhYmzl2QgfC6224jkBnskSm3B4naB8b7CDZbq1VIvLk4T9G42Z9v0dpjVRvTUKvIPLGs7FGWCGGq6WGIfTAyHi6AXZcac8RUfqdMYDjAozwVmOEaFJXblrm',
+    image: 'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?auto=format&fit=crop&w=1200&q=80',
   },
   {
     name: 'Kharmang',
@@ -91,8 +84,7 @@ const DESTINATIONS = [
     elevation: '2,300m',
     tagline: 'Manthokha waterfalls & pristine Indus river valley residences.',
     vibe: 'Cascade Terraces',
-    image:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuBTrXHFVh3JWRdpICtgrcrLcWeBRC5s6v3OBz37VbX_u25hY-NkTTMvdyqRwys4OJPnqHR1D52O_dov0aI1Nj_eVBL9HxytJcl7_P-SVgnNh0gi3AFVQZ0DlHdgHF5VjwOhIqquaCiklj45RCh23lYosXLIE4gs1gJJ2OAkMashocY863gm2HODj6I6x7GMnd5evbpjkivvxnDaGReBiKQeAeLwx7FGdbvTk9hnG2xc8Xm8sKiJRnq-',
+    image: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1200&q=80',
   },
 ];
 

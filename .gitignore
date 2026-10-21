@@ -11,6 +11,12 @@ dist-ssr/
 .env.*
 !.env.example
 
+# Database
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
 # Logs
 logs/
 *.log
