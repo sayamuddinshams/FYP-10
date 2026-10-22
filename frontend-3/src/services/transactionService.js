@@ -74,7 +74,7 @@ const transactionService = {
       totalViews: properties.reduce((a, p) => a + p.views, 0),
       visitRequests: visits.length,
       pendingVisits: visits.filter((v) => v.status === 'pending').length,
-      earnings: txns.filter((t) => t.status === 'completed').reduce((a, t) => a + fee(t.amount), 0),
+      earnings: txns.filter((t) => t.status === 'completed').reduce((a, t) => a + (t.amount - fee(t.amount)), 0),
     };
   },
 

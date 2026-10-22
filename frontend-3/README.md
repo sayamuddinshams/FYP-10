@@ -14,8 +14,7 @@ A modern, editorial real estate & hospitality platform for Gilgit-Baltistan, des
   - **Tenants:** Saved wishlist, scheduled visits, in-app messaging, notifications.
   - **Property Owners:** Property listings manager, visit requests approval, earnings, direct chat.
   - **Platform Administrators:** Verification moderation (deed review & verification badge), user management, analytics, platform transactions.
-- **Calibrated Density & Scaling:** Proportioned typography, compact headers (56px), and responsive padding across desktop, tablet, and mobile viewports.
-- **Zero Legacy Interference:** Self-contained in `frontend-3/`, allowing side-by-side comparison with the legacy `frontend/`.
+- **Zero External Bottlenecks:** Built with an instant, reactive client-side store architecture with realistic latency simulation and event subscriptions, allowing full offline evaluation as well as REST backend compatibility.
 
 ---
 
@@ -48,11 +47,11 @@ npm run preview
 
 The application includes instant demo account switchers available directly in the Auth Modal:
 
-| Role | Demo Identity | Focus / Access |
-| :--- | :--- | :--- |
-| **Tenant** | Karim Ali (`tenant@rentlink.pk`) | Browse listings, schedule property visits, message owners, save wishlist |
-| **Owner** | Hunza Heritage Homes (`owner@rentlink.pk`) | List properties, approve/decline visits, chat with tenants, review earnings |
-| **Admin** | RentLink Moderation (`admin@rentlink.pk`) | Verify properties, inspect ownership deeds, moderate users & listings |
+| Role | Demo Identity & Email | Password | Focus / Access |
+| :--- | :--- | :--- | :--- |
+| **Tenant** | Karim Ali (`tenant@rentlink.pk`) | `Password123!` *(or `rentlink123`)* | Browse listings, schedule property visits, message owners, save wishlist |
+| **Owner** | Hunza Heritage Homes (`owner@rentlink.pk`) | `Password123!` *(or `rentlink123`)* | List properties, approve/decline visits, chat with tenants, review earnings |
+| **Admin** | RentLink Moderation (`admin@rentlink.pk`) | `Admin123!` *(or `rentlink123`)* | Verify properties, inspect ownership deeds, moderate users & listings |
 
 ---
 

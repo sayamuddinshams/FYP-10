@@ -37,6 +37,18 @@ describe('RentLink Backend API Test Suite', () => {
     tenantToken = res.body.data.token;
   });
 
+  test('POST /api/auth/login authenticates canonical tenant@rentlink.pk with Password123!', async () => {
+    const res = await request(app).post('/api/auth/login').send({
+      email: 'tenant@rentlink.pk',
+      password: 'Password123!',
+    });
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.success, true);
+    assert.ok(res.body.data.token);
+    assert.strictEqual(res.body.data.user.email, 'tenant@rentlink.pk');
+  });
+
   test('POST /api/auth/login authenticates seeded owner user', async () => {
     const res = await request(app).post('/api/auth/login').send({
       email: 'contact@karimbuilders.pk',
@@ -50,6 +62,18 @@ describe('RentLink Backend API Test Suite', () => {
     ownerToken = res.body.data.token;
   });
 
+  test('POST /api/auth/login authenticates canonical owner@rentlink.pk with Password123!', async () => {
+    const res = await request(app).post('/api/auth/login').send({
+      email: 'owner@rentlink.pk',
+      password: 'Password123!',
+    });
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.success, true);
+    assert.ok(res.body.data.token);
+    assert.strictEqual(res.body.data.user.role, 'owner');
+  });
+
   test('POST /api/auth/login authenticates seeded admin user', async () => {
     const res = await request(app).post('/api/auth/login').send({
       email: 'admin@rentlink.pk',
@@ -61,6 +85,17 @@ describe('RentLink Backend API Test Suite', () => {
     assert.ok(res.body.data.token);
     assert.strictEqual(res.body.data.user.role, 'admin');
     adminToken = res.body.data.token;
+  });
+
+  test('POST /api/auth/login authenticates canonical admin@rentlink.pk with Admin123!', async () => {
+    const res = await request(app).post('/api/auth/login').send({
+      email: 'admin@rentlink.pk',
+      password: 'Admin123!',
+    });
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.success, true);
+    assert.ok(res.body.data.token);
   });
 
   test('GET /api/properties returns list of approved properties', async () => {

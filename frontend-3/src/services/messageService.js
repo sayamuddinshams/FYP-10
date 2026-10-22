@@ -76,7 +76,7 @@ const messageService = {
       type: 'message',
       title: 'New message',
       body: `${getUser(senderId)?.name || 'Someone'} sent you a message${property ? ` about ${property.title}` : ''}.`,
-      link: recipientId === senderId ? '/owner/messages' : '/tenant/messages',
+      link: getUser(recipientId)?.role === 'owner' ? '/owner/messages' : '/tenant/messages',
     });
 
     emit();

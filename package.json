@@ -17,6 +17,8 @@
     "preview:3": "npm --prefix frontend-3 run preview",
     "backend:test": "npm --prefix backend test",
     "backend:seed": "npm --prefix backend run prisma:seed",
+    "test": "npm --prefix backend test",
+    "seed": "npm --prefix backend run prisma:seed",
     "start": "npm --prefix frontend-3 run dev"
   },
   "keywords": [

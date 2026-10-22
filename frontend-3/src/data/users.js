@@ -4,6 +4,45 @@
  */
 export const MOCK_USERS = [
   {
+    id: 'u0_tenant',
+    name: 'Karim Ali',
+    email: 'tenant@rentlink.pk',
+    password: 'Password123!',
+    role: 'tenant',
+    phone: '+92 355 4120876',
+    district: 'Gilgit',
+    city: 'Gilgit',
+    area: 'Jutial',
+    address: 'Near Gilgit-Baltistan University, Jutial',
+    avatar: null,
+    bio: 'Student and researcher looking for rentals in Gilgit-Baltistan.',
+    joinedAt: '2025-01-01',
+    status: 'active',
+    verification: 'verified',
+    lastActivity: '2026-10-06T08:10:00',
+    memberSince: 'January 2025',
+  },
+  {
+    id: 'u0_owner',
+    name: 'Hunza Heritage Homes',
+    email: 'owner@rentlink.pk',
+    password: 'Password123!',
+    role: 'owner',
+    phone: '+92 345 7712094',
+    district: 'Hunza',
+    city: 'Hunza',
+    area: 'Karimabad',
+    address: 'Altit Road, Karimabad, Hunza',
+    avatar: null,
+    bio: 'Boutique rental operator offering furnished homes and guest apartments in Hunza Valley.',
+    joinedAt: '2025-02-17',
+    status: 'active',
+    verification: 'verified',
+    lastActivity: '2026-10-05T21:14:00',
+    memberSince: 'February 2025',
+    propertiesManaged: 4,
+  },
+  {
     id: 'u1',
     name: 'Ayesha Khan',
     email: 'ayesha.khan@example.com',
@@ -220,7 +259,7 @@ export const MOCK_USERS = [
 ];
 
 export const DEMO_ACCOUNTS = [
-  { role: 'tenant', name: 'Ayesha Khan', email: 'ayesha.khan@example.com' },
-  { role: 'owner', name: 'Karim Builders & Estates', email: 'contact@karimbuilders.pk' },
+  { role: 'tenant', name: 'Karim Ali', email: 'tenant@rentlink.pk' },
+  { role: 'owner', name: 'Hunza Heritage Homes', email: 'owner@rentlink.pk' },
   { role: 'admin', name: 'RentLink Admin', email: 'admin@rentlink.pk' },
 ];

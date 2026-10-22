@@ -29,6 +29,7 @@ export const db = {
   advertisements: MOCK_ADS.map((a) => ({ ...a })),
   reports: MOCK_REPORTS.map((r) => ({ ...r })),
   favorites: {
+    u0_tenant: ['p1', 'p2', 'p4', 'p13', 'p16'],
     u1: ['p1', 'p2', 'p4', 'p13', 'p16'],
     u2: ['p2', 'p12', 'p5'],
     u3: ['p13', 'p16', 'p9'],

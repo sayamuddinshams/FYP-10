@@ -171,7 +171,7 @@ Run the integration test suite (covering authentication, property querying, role
 
 ```bash
 # From workspace root
-npm run backend:test
+npm test             # or: npm run backend:test
 
 # Or from backend/ directory
 npm test
