@@ -75,7 +75,7 @@ export default function Team() {
         <div className="flex flex-wrap items-end justify-between gap-6 mb-12">
           <div>
             <span className="text-xs font-bold uppercase tracking-widest text-amber-700">The Creators</span>
-            <h2 className="mt-2 font-serif text-3xl sm:text-4xl font-bold tracking-tight text-slate-950">
+            <h2 className="mt-2 text-3xl sm:text-4xl font-bold tracking-tight text-slate-950">
               Meet the creators & engineering team
             </h2>
           </div>
@@ -135,7 +135,7 @@ export default function Team() {
                     <span className="absolute -bottom-1 -right-1 h-3.5 w-3.5 rounded-full bg-emerald-500 border-2 border-white ring-1 ring-emerald-300" />
                   </div>
                   <div className="min-w-0">
-                    <h3 className="truncate font-serif text-lg font-bold text-slate-950">{m.name}</h3>
+                    <h3 className="truncate text-lg font-bold text-slate-950">{m.name}</h3>
                     <p className="truncate text-xs font-semibold tracking-wide text-amber-700 uppercase">{m.role}</p>
                   </div>
                 </div>
@@ -159,7 +159,7 @@ export default function Team() {
         <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl mb-12">
             <span className="text-xs font-bold uppercase tracking-widest text-emerald-800">Our Culture</span>
-            <h2 className="mt-2 font-serif text-3xl sm:text-4xl font-bold tracking-tight text-slate-950">
+            <h2 className="mt-2 text-3xl sm:text-4xl font-bold tracking-tight text-slate-950">
               Shared principles in mountain software
             </h2>
           </div>
@@ -172,7 +172,7 @@ export default function Team() {
                 <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0B1320] text-amber-400">
                   <Icon name={v.icon} className="h-6 w-6" />
                 </span>
-                <h3 className="mt-5 font-serif text-lg font-bold text-slate-900">{v.label}</h3>
+                <h3 className="mt-5 text-lg font-bold text-slate-900">{v.label}</h3>
                 <p className="mt-2.5 text-sm leading-relaxed text-slate-600">{v.text}</p>
               </div>
             ))}
@@ -185,7 +185,7 @@ export default function Team() {
         <div className="grid items-center gap-10 rounded-3xl border border-slate-200/80 bg-white p-8 sm:p-14 lg:grid-cols-[1.4fr_1fr] shadow-sm">
           <div>
             <span className="text-xs font-bold uppercase tracking-widest text-amber-700">Join our team</span>
-            <h2 className="mt-2 font-serif text-3xl sm:text-4xl font-bold tracking-tight text-slate-950">
+            <h2 className="mt-2 text-3xl sm:text-4xl font-bold tracking-tight text-slate-950">
               Build high-altitude technology
             </h2>
             <p className="mt-4 text-base leading-relaxed text-slate-600 max-w-xl">

@@ -16,11 +16,11 @@ export default function NotFound() {
   return (
     <div className="flex min-h-[60vh] items-center justify-center px-4 py-16">
       <div className="w-full max-w-2xl text-center">
-        <p className="font-display text-7xl font-semibold text-brand-900 sm:text-8xl">404</p>
+        <p className="text-7xl font-semibold text-brand-900 sm:text-8xl">404</p>
         <div className="mx-auto mt-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-primary">
           <Icon name="pin" className="h-7 w-7" />
         </div>
-        <h1 className="mt-6 font-display text-4xl font-bold tracking-tight text-ink sm:text-5xl">
+        <h1 className="mt-6 text-4xl font-bold tracking-tight text-ink sm:text-5xl">
           This address does not exist
         </h1>
         <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-slate-600">

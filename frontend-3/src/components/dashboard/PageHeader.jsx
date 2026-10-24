@@ -15,7 +15,7 @@ export default function PageHeader({ title, subtitle, actions, back, backLabel =
             {backLabel}
           </Link>
         )}
-        <h1 className="font-serif text-2xl sm:text-3xl font-bold tracking-tight text-slate-950">{title}</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-950">{title}</h1>
         {subtitle && <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-slate-500 font-sans">{subtitle}</p>}
       </div>
       {actions && <div className="flex shrink-0 flex-wrap items-center gap-2.5">{actions}</div>}

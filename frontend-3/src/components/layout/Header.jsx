@@ -33,7 +33,7 @@ export function LogoMark({ size = 'md' }) {
       <div className="w-9 h-9 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-[#FE932C] shadow-sm group-hover:scale-105 transition-transform">
         <span className="material-symbols-outlined text-[20px]">landscape</span>
       </div>
-      <span className="font-serif text-[24px] lg:text-[26px] font-semibold text-white tracking-tight flex items-center">
+      <span className="text-[24px] lg:text-[26px] font-semibold text-white tracking-tight flex items-center">
         rent<span className="text-[#FE932C] font-normal">link</span>
       </span>
     </Link>
@@ -460,3 +460,4 @@ function ProfileDropdown({ user, onLogout }) {
     </div>
   );
 }
+

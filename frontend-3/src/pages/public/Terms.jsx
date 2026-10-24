@@ -126,7 +126,7 @@ export default function Terms() {
       <section className="border-b border-line bg-brand-950 text-white">
         <div className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
           <p className="text-sm font-semibold tracking-widest text-primary-300 uppercase">Legal</p>
-          <h1 className="mt-3 max-w-3xl font-display text-4xl leading-tight font-bold tracking-tight sm:text-5xl">
+          <h1 className="mt-3 max-w-3xl text-4xl leading-tight font-bold tracking-tight sm:text-5xl">
             Terms and Conditions
           </h1>
           <p className="mt-5 max-w-2xl text-lg leading-relaxed text-white/70">
@@ -162,7 +162,7 @@ export default function Terms() {
           <div className="max-w-3xl space-y-10">
             {SECTIONS.map((section) => (
               <section key={section.id} id={section.id} className="scroll-mt-24">
-                <h2 className="font-display text-xl font-bold tracking-tight text-ink sm:text-2xl">
+                <h2 className="text-xl font-bold tracking-tight text-ink sm:text-2xl">
                   {section.title}
                 </h2>
                 {section.paragraphs?.map((text) => (
@@ -190,7 +190,7 @@ export default function Terms() {
               id="contact"
               className="scroll-mt-24 rounded-2xl border border-line bg-surface p-6 sm:p-8"
             >
-              <h2 className="font-display text-xl font-bold tracking-tight text-ink sm:text-2xl">
+              <h2 className="text-xl font-bold tracking-tight text-ink sm:text-2xl">
                 Contact us
               </h2>
               <p className="mt-3 leading-relaxed text-slate-600">

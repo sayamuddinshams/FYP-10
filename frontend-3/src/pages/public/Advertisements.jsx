@@ -1,9 +1,8 @@
 import { useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAsync, useDocumentTitle } from '../../hooks';
 import advertisementService from '../../services/advertisementService';
 import { formatDate } from '../../utils/format';
-import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
 import Icon from '../../components/common/icons';
 import EmptyState from '../../components/common/EmptyState';
@@ -141,7 +140,7 @@ export default function Advertisements() {
 
                   <div className="flex flex-1 flex-col p-6">
                     <div className="flex items-start justify-between gap-3">
-                      <h3 className="font-serif text-lg font-bold leading-snug text-slate-900 group-hover:text-amber-700 transition-colors">
+                      <h3 className="text-lg font-bold leading-snug text-slate-900 group-hover:text-amber-700 transition-colors">
                         {ad.title}
                       </h3>
                       <Icon name="megaphone" className="h-5 w-5 shrink-0 text-amber-600" />
@@ -172,7 +171,7 @@ export default function Advertisements() {
         <section className="mt-16 grid gap-6 rounded-3xl border border-slate-200/80 bg-white p-8 sm:p-12 lg:grid-cols-3 shadow-sm">
           <div className="lg:col-span-3 pb-4 border-b border-slate-100">
             <span className="text-xs font-bold uppercase tracking-widest text-emerald-800">Standard of Integrity</span>
-            <h2 className="mt-2 font-serif text-2xl sm:text-3xl font-bold tracking-tight text-slate-950">
+            <h2 className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight text-slate-950">
               Honest promotion without deceptive clickbait
             </h2>
             <p className="mt-2 text-sm leading-relaxed text-slate-600 max-w-2xl">
@@ -188,7 +187,7 @@ export default function Advertisements() {
               <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#0B1320] text-amber-400">
                 <Icon name={icon} className="h-5 w-5" />
               </span>
-              <h3 className="mt-4 font-serif text-base font-bold text-slate-900">{title}</h3>
+              <h3 className="mt-4 text-base font-bold text-slate-900">{title}</h3>
               <p className="mt-2 text-xs sm:text-sm leading-relaxed text-slate-600">{text}</p>
             </div>
           ))}

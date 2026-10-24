@@ -76,7 +76,7 @@ export default function About() {
               <span className="h-2 w-2 rounded-full bg-amber-500" />
               <span className="text-xs font-bold uppercase tracking-widest text-amber-700">The Problem We Solved</span>
             </div>
-            <h2 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-slate-950">
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-950">
               The old way was an unreliable phone tree
             </h2>
             <p className="mt-5 text-base sm:text-lg leading-relaxed text-slate-600">
@@ -97,7 +97,7 @@ export default function About() {
                 key={n.label}
                 className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm hover:border-amber-300 hover:shadow-md transition-all"
               >
-                <p className="font-serif text-3xl sm:text-4xl font-bold text-amber-600">{n.value}</p>
+                <p className="text-3xl sm:text-4xl font-bold text-amber-600">{n.value}</p>
                 <p className="mt-2 text-sm font-bold text-slate-900">{n.label}</p>
                 <p className="mt-1 text-xs text-slate-400">{n.hint}</p>
               </div>
@@ -111,7 +111,7 @@ export default function About() {
         <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl">
             <span className="text-xs font-bold uppercase tracking-widest text-emerald-800">Guiding Pillars</span>
-            <h2 className="mt-2 font-serif text-3xl sm:text-4xl font-bold tracking-tight text-slate-950">
+            <h2 className="mt-2 text-3xl sm:text-4xl font-bold tracking-tight text-slate-950">
               Four principles that shape RentLink
             </h2>
             <p className="mt-3 text-slate-600">
@@ -128,7 +128,7 @@ export default function About() {
                 <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0B1320] text-amber-400 shadow-sm group-hover:scale-105 transition-transform">
                   <Icon name={v.icon} className="h-6 w-6" />
                 </span>
-                <h3 className="mt-5 font-serif text-xl font-bold text-slate-900">{v.title}</h3>
+                <h3 className="mt-5 text-xl font-bold text-slate-900">{v.title}</h3>
                 <p className="mt-2.5 text-sm leading-relaxed text-slate-600">{v.text}</p>
               </div>
             ))}
@@ -140,7 +140,7 @@ export default function About() {
       <section className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
         <div className="text-center max-w-2xl mx-auto mb-12">
           <span className="text-xs font-bold uppercase tracking-widest text-amber-700">Ecosystem</span>
-          <h2 className="mt-2 font-serif text-3xl sm:text-4xl font-bold tracking-tight text-slate-950">
+          <h2 className="mt-2 text-3xl sm:text-4xl font-bold tracking-tight text-slate-950">
             One platform built for three core stakeholders
           </h2>
         </div>
@@ -154,7 +154,7 @@ export default function About() {
               <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-700">
                 <Icon name={a.icon} className="h-6 w-6" />
               </span>
-              <h3 className="mt-5 font-serif text-xl font-bold text-slate-900">{a.title}</h3>
+              <h3 className="mt-5 text-xl font-bold text-slate-900">{a.title}</h3>
               <p className="mt-2.5 flex-1 text-sm leading-relaxed text-slate-600">{a.text}</p>
               <Button as={Link} to={a.to} variant="outline" fullWidth className="mt-6 rounded-full">
                 {a.cta}
@@ -170,7 +170,7 @@ export default function About() {
           <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
             <div>
               <span className="text-xs font-bold uppercase tracking-widest text-emerald-800">Trust Protocol</span>
-              <h2 className="mt-2 font-serif text-3xl sm:text-4xl font-bold tracking-tight text-slate-950">
+              <h2 className="mt-2 text-3xl sm:text-4xl font-bold tracking-tight text-slate-950">
                 How we protect the Northern rental market
               </h2>
               <p className="mt-4 text-base leading-relaxed text-slate-600">
@@ -200,7 +200,7 @@ export default function About() {
                     <Icon name="check" className="h-4 w-4" strokeWidth={2.5} />
                   </span>
                   <div>
-                    <p className="font-serif font-bold text-slate-900">{title}</p>
+                    <p className="font-bold text-slate-900">{title}</p>
                     <p className="mt-1 text-xs leading-relaxed text-slate-600">{text}</p>
                   </div>
                 </li>
@@ -221,7 +221,7 @@ export default function About() {
             <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-1 text-xs font-semibold text-amber-300">
               Meet the Custodians
             </span>
-            <h2 className="mt-4 font-serif text-3xl sm:text-4xl font-bold tracking-tight text-white">
+            <h2 className="mt-4 text-3xl sm:text-4xl font-bold tracking-tight text-white">
               The team behind RentLink Northern Pakistan
             </h2>
             <p className="mt-4 text-sm sm:text-base leading-relaxed text-slate-300">

@@ -134,8 +134,7 @@ The frontend is styled with **Tailwind CSS v4** following the bespoke **Alpine S
 | **Slate Border** | `rgba(255,255,255,0.1)` | Crisp frosted glass dividers and glassmorphic card borders |
 
 ### Typography
-- **Headings & Titles:** `Newsreader` — Transitional editorial serif with elegant italic variants for mountain aesthetics.
-- **UI & Data Displays:** `Plus Jakarta Sans` — Modern geometric sans-serif for high readability on cards, tables, and buttons.
+- **Global Typography:** `Plus Jakarta Sans` — Modern, high-legibility geometric sans-serif uniformly applied across all titles, editorial headings, cards, tables, and interface controls.
 
 ---
 

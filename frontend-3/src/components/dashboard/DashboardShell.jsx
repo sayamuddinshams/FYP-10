@@ -166,7 +166,7 @@ export default function DashboardShell({ navGroups, children, brandLabel }) {
           <span className="material-symbols-outlined text-xl">landscape</span>
         </span>
         <div className="leading-tight">
-          <p className="text-[16px] font-serif font-bold tracking-tight text-white">
+          <p className="text-[16px] font-bold tracking-tight text-white">
             Rent<span className="text-amber-400">Link</span>
           </p>
           <div className="flex items-center gap-1.5 mt-0.5">
@@ -230,7 +230,7 @@ export default function DashboardShell({ navGroups, children, brandLabel }) {
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500 text-white shadow-sm">
             <span className="material-symbols-outlined text-lg">landscape</span>
           </span>
-          <span className="font-serif text-lg font-bold tracking-tight text-white">
+          <span className="text-lg font-bold tracking-tight text-white">
             Rent<span className="text-amber-400">Link</span>
           </span>
         </Link>

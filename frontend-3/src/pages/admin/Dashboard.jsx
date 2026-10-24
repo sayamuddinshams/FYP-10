@@ -150,7 +150,7 @@ export default function Dashboard() {
                   <Icon name="coins" className="h-5 w-5" />
                 </span>
                 <div>
-                  <h3 className="font-serif text-base font-bold text-slate-900">Platform Revenue &amp; Settlements</h3>
+                  <h3 className="text-base font-bold text-slate-900">Platform Revenue &amp; Settlements</h3>
                   <p className="text-xs text-slate-500">5% platform service fee on verified rental leases</p>
                 </div>
               </div>
@@ -177,7 +177,7 @@ export default function Dashboard() {
                   </span>
                 </div>
                 <div className="mt-1 flex items-baseline gap-2">
-                  <span className="font-serif text-3xl font-extrabold text-slate-950">
+                  <span className="text-3xl font-extrabold text-slate-950">
                     {formatPrice(feesCollected)}
                   </span>
                   <span className="text-xs font-medium text-emerald-700">realized revenue</span>
@@ -239,7 +239,7 @@ export default function Dashboard() {
                 <Icon name="flag" className="h-5 w-5" />
               </span>
               <div>
-                <h3 className="font-serif text-base font-bold text-slate-900">Trust &amp; Safety Dispatch</h3>
+                <h3 className="text-base font-bold text-slate-900">Trust &amp; Safety Dispatch</h3>
                 <p className="text-xs text-slate-500">Moderation flags and tenant protection reports</p>
               </div>
             </div>
@@ -318,7 +318,7 @@ export default function Dashboard() {
           <header className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-100">
             <div>
               <div className="flex items-center gap-2.5">
-                <h3 className="font-serif text-lg font-bold text-slate-900">Pending Property Reviews</h3>
+                <h3 className="text-lg font-bold text-slate-900">Pending Property Reviews</h3>
                 <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-800">
                   {pending.data?.length || 0} waiting
                 </span>
@@ -372,12 +372,12 @@ export default function Dashboard() {
                           <Icon name="pin" className="h-3 w-3 text-slate-400" />
                           {p.district}{p.area ? ` • ${p.area}` : p.city ? ` • ${p.city}` : ''}
                         </span>
-                        <span className="font-serif text-xs font-bold text-emerald-700">
+                        <span className="text-xs font-bold text-emerald-700">
                           {formatPrice(p.price)}<span className="text-[10px] font-normal text-slate-500">/mo</span>
                         </span>
                       </div>
 
-                      <h4 className="font-serif text-sm font-bold text-slate-900 truncate group-hover:text-amber-800 transition-colors">
+                      <h4 className="text-sm font-bold text-slate-900 truncate group-hover:text-amber-800 transition-colors">
                         {p.title}
                       </h4>
 
@@ -426,7 +426,7 @@ export default function Dashboard() {
         <section className="lg:col-span-5 flex flex-col rounded-2xl border border-slate-200/90 bg-white p-6 shadow-sm">
           <header className="flex items-center justify-between gap-3 pb-4 border-b border-slate-100">
             <div>
-              <h3 className="font-serif text-lg font-bold text-slate-900">Recent Transactions</h3>
+              <h3 className="text-lg font-bold text-slate-900">Recent Transactions</h3>
               <p className="mt-0.5 text-xs text-slate-500">Latest rental settlements on the platform</p>
             </div>
             <Link
@@ -503,7 +503,7 @@ export default function Dashboard() {
       <div>
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <h2 className="font-serif text-lg font-bold text-slate-900">Ecosystem Analytics &amp; Market Growth</h2>
+            <h2 className="text-lg font-bold text-slate-900">Ecosystem Analytics &amp; Market Growth</h2>
             <p className="text-xs text-slate-500">Historical velocity of accounts, listings, and tenant inquiries</p>
           </div>
           <Link

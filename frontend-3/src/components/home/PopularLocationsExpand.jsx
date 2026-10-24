@@ -157,7 +157,7 @@ export default function PopularLocationsExpand({ stats, className = '' }) {
                     </span>
 
                     <div className="flex flex-col items-center gap-2">
-                      <span className="text-white/80 group-hover:text-amber-300 font-serif font-bold text-sm tracking-wider uppercase [writing-mode:vertical-rl] rotate-180 transition-colors">
+                      <span className="text-white/80 group-hover:text-amber-300 font-bold text-sm tracking-wider uppercase [writing-mode:vertical-rl] rotate-180 transition-colors">
                         {dest.name}
                       </span>
                     </div>
@@ -210,7 +210,7 @@ export default function PopularLocationsExpand({ stats, className = '' }) {
                         </div>
 
                         {/* Title */}
-                        <h3 className="font-serif text-3xl font-bold tracking-tight text-white mb-1.5">
+                        <h3 className="text-3xl font-bold tracking-tight text-white mb-1.5">
                           {dest.name} Valley
                         </h3>
 
@@ -272,7 +272,7 @@ export default function PopularLocationsExpand({ stats, className = '' }) {
                       <MapPin className="w-3.5 h-3.5" />
                       {count > 0 ? `${count} active listings` : 'Explore valley'}
                     </span>
-                    <h3 className="font-serif text-2xl font-bold text-white">{dest.name}</h3>
+                    <h3 className="text-2xl font-bold text-white">{dest.name}</h3>
                     <p className="text-xs text-slate-300 line-clamp-2 mt-1">{dest.tagline}</p>
 
                     <div className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-amber-400 group-hover:text-amber-300">

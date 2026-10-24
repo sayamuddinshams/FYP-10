@@ -1,5 +1,4 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import {
   MountainSnow,
   Home,
@@ -26,7 +25,6 @@ import {
   Warehouse,
   Megaphone,
   Sparkles,
-  ArrowRight,
 } from 'lucide-react';
 
 /**
@@ -141,9 +139,6 @@ export default function CompanyCardsHero({
   title = 'Amplify your mountain brand across Northern Pakistan.',
   subtitle = 'Showcase your sanctuaries, resorts, adventure expeditions, and local services directly to thousands of verified tenants, hosts, and travelers across Gilgit-Baltistan.',
   accentColor = '#4779ff',
-  advertiseHref = '/owner/dashboard',
-  advertiseLabel = 'Advertise Now',
-  onAdvertiseClick,
   className = '',
 }) {
   return (
@@ -183,7 +178,7 @@ export default function CompanyCardsHero({
         </p>
 
         <h1 className="text-3xl font-medium leading-[1.12] tracking-[-0.035em] sm:text-5xl md:text-[52px]">
-          <span className="block text-[#f3f5fa] font-serif">
+          <span className="block text-[#f3f5fa]">
             {title}
           </span>
         </h1>
@@ -200,56 +195,6 @@ export default function CompanyCardsHero({
 
         <div className="pointer-events-none absolute inset-x-0 top-0 z-20 h-10 sm:h-14 bg-gradient-to-b from-[#0d1424] to-transparent" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-10 sm:h-14 bg-gradient-to-t from-[#0d1424] to-transparent" />
-
-        {/* Center CTA Button */}
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-auto flex items-center justify-center">
-          <div className="pointer-events-none absolute -inset-4 sm:-inset-6 rounded-full bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-amber-500/20 blur-2xl opacity-75 -z-10" />
-
-          <div className="p-1.5 sm:p-2 rounded-full bg-white/[0.08] backdrop-blur-2xl border border-white/20 shadow-[0_20px_60px_-10px_rgba(0,0,0,0.85),0_0_30px_rgba(245,158,11,0.2)] ring-1 ring-white/10">
-            {onAdvertiseClick ? (
-              <button
-                type="button"
-                onClick={onAdvertiseClick}
-                className="group relative flex items-center gap-3 sm:gap-3.5 rounded-full bg-[#0b1320]/75 hover:bg-[#0b1320]/90 px-6 sm:px-8 py-3 sm:py-3.5 text-xs sm:text-sm font-bold text-white shadow-2xl backdrop-blur-xl border border-white/25 hover:border-amber-400/90 transition-all duration-300 hover:scale-[1.03] active:scale-95"
-              >
-                <div className="pointer-events-none absolute inset-x-4 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/50 to-transparent" />
-
-                <span className="relative flex h-2.5 w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500" />
-                </span>
-
-                <span className="tracking-wider uppercase font-semibold text-white group-hover:text-amber-300 transition-colors">
-                  {advertiseLabel}
-                </span>
-
-                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-white/10 group-hover:bg-amber-500 group-hover:text-black transition-all duration-300">
-                  <ArrowRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-0.5" />
-                </span>
-              </button>
-            ) : (
-              <Link
-                to={advertiseHref}
-                className="group relative flex items-center gap-3 sm:gap-3.5 rounded-full bg-[#0b1320]/75 hover:bg-[#0b1320]/90 px-6 sm:px-8 py-3 sm:py-3.5 text-xs sm:text-sm font-bold text-white shadow-2xl backdrop-blur-xl border border-white/25 hover:border-amber-400/90 transition-all duration-300 hover:scale-[1.03] active:scale-95"
-              >
-                <div className="pointer-events-none absolute inset-x-4 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/50 to-transparent" />
-
-                <span className="relative flex h-2.5 w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500" />
-                </span>
-
-                <span className="tracking-wider uppercase font-semibold text-white group-hover:text-amber-300 transition-colors">
-                  {advertiseLabel}
-                </span>
-
-                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-white/10 group-hover:bg-amber-500 group-hover:text-black transition-all duration-300">
-                  <ArrowRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-0.5" />
-                </span>
-              </Link>
-            )}
-          </div>
-        </div>
 
         {/* 4 Alternating Horizontal Moving Rows */}
         <div className="flex flex-col gap-1 sm:gap-2">

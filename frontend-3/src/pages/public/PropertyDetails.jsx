@@ -191,7 +191,7 @@ export default function PropertyDetails() {
                   {property.status === 'approved' && <Badge tone="success">Listed and verified</Badge>}
                 </div>
 
-                <h1 className="mt-3 font-serif text-2xl sm:text-3xl lg:text-4xl leading-tight font-bold tracking-tight text-slate-950">
+                <h1 className="mt-3 text-2xl sm:text-3xl lg:text-4xl leading-tight font-bold tracking-tight text-slate-950">
                   {property.title}
                 </h1>
 
@@ -201,7 +201,7 @@ export default function PropertyDetails() {
                 </p>
 
                 <div className="mt-5 border-t border-slate-100 pt-5">
-                  <p className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-slate-950 tabular-nums">
+                  <p className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-950 tabular-nums">
                     {formatPrice(property.price)}
                     <span className="ml-2 font-sans text-sm font-semibold tracking-wide text-slate-500">/month</span>
                   </p>
@@ -221,7 +221,7 @@ export default function PropertyDetails() {
 
             {/* Description */}
             <section className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm">
-              <h2 className="font-serif text-xl sm:text-2xl font-bold tracking-tight text-slate-950">About this property</h2>
+              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-950">About this property</h2>
               <p className="mt-3 text-sm leading-relaxed whitespace-pre-line text-slate-600">
                 {property.description}
               </p>
@@ -256,7 +256,7 @@ export default function PropertyDetails() {
                   <span className="h-2 w-2 rounded-full bg-emerald-500" />
                   <span className="text-[11px] font-bold tracking-widest text-emerald-800 uppercase">Interactive Map & Vicinity</span>
                 </div>
-                <h2 className="font-serif text-xl sm:text-2xl font-bold tracking-tight text-slate-950">Property Location</h2>
+                <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-950">Property Location</h2>
                 <p className="text-xs text-slate-500 mt-0.5">Explore the neighborhood topography, terrain, and road network in Gilgit-Baltistan</p>
               </div>
 
@@ -341,7 +341,7 @@ export default function PropertyDetails() {
                     <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/20 text-amber-400 ring-1 ring-amber-500/40">
                       <Icon name="shield" className="h-4.5 w-4.5" />
                     </span>
-                    <p className="font-serif text-base font-bold text-white">RentLink Alpine Guarantee</p>
+                    <p className="text-base font-bold text-white">RentLink Alpine Guarantee</p>
                   </div>
                   <ul className="mt-4 space-y-2.5 text-xs text-slate-300">
                     <li className="flex gap-2.5">

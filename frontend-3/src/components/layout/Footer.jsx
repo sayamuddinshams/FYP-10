@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
+import DataRain from '@/components/ui/data-rain';
 
 export default function Footer() {
   const prefersReducedMotion = useReducedMotion();
@@ -8,8 +9,13 @@ export default function Footer() {
     window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
 
   return (
-    <footer aria-label="Site footer" className="w-full bg-[#0B1320] text-slate-300 pt-16 pb-12 border-t border-white/10 mt-20">
-      <div className="max-w-7xl mx-auto px-6 lg:px-12">
+    <footer aria-label="Site footer" className="relative w-full bg-[#0B1320] text-slate-300 pt-16 pb-12 border-t border-white/10 mt-20 overflow-hidden">
+      {/* Ambient DataRain Background Effect */}
+      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden opacity-35">
+        <DataRain fullscreen={false} flowSpeed={0.7} />
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 lg:gap-8 mb-16">
           {/* Brand + Regional Focus */}
           <div className="lg:col-span-2 flex flex-col gap-4">
@@ -17,7 +23,7 @@ export default function Footer() {
               <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-[#FE932C] shadow-sm group-hover:scale-105 transition-transform">
                 <span className="material-symbols-outlined text-[24px]">landscape</span>
               </div>
-              <span className="font-serif text-2xl font-bold text-white tracking-tight">
+              <span className="text-2xl font-bold text-white tracking-tight">
                 rent<span className="text-[#FE932C] font-normal">link</span>
               </span>
             </Link>

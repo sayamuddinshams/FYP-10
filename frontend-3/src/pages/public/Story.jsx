@@ -129,7 +129,7 @@ export default function Story() {
             <span>Chronicle</span>
           </div>
 
-          <h2 className="font-serif text-3xl sm:text-5xl font-bold tracking-tight text-slate-950">
+          <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-slate-950">
             How RentLink came to life
           </h2>
 
@@ -270,7 +270,7 @@ export default function Story() {
                           >
                             <IconComponent className="w-5 h-5" />
                           </div>
-                          <h3 className="font-serif text-xl sm:text-2xl font-bold text-slate-900 group-hover:text-amber-800 transition-colors">
+                          <h3 className="text-xl sm:text-2xl font-bold text-slate-900 group-hover:text-amber-800 transition-colors">
                             {item.title}
                           </h3>
                         </div>
@@ -321,7 +321,7 @@ export default function Story() {
                       className="mx-auto block h-9 w-24 animate-pulse rounded-lg bg-slate-200"
                     />
                   ) : (
-                    <p className="font-serif text-4xl sm:text-5xl font-bold text-amber-600 tabular-nums">
+                    <p className="text-4xl sm:text-5xl font-bold text-amber-600 tabular-nums">
                       {m.value}
                     </p>
                   )}
@@ -337,7 +337,7 @@ export default function Story() {
       <section className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
         <div className="max-w-2xl">
           <span className="text-xs font-bold uppercase tracking-widest text-emerald-800">Convictions</span>
-          <h2 className="mt-2 font-serif text-3xl sm:text-4xl font-bold tracking-tight text-slate-950">
+          <h2 className="mt-2 text-3xl sm:text-4xl font-bold tracking-tight text-slate-950">
             Three principles we refuse to compromise
           </h2>
         </div>
@@ -347,7 +347,7 @@ export default function Story() {
               <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0B1320] text-amber-400">
                 <Icon name={p.icon} className="h-6 w-6" />
               </span>
-              <h3 className="mt-5 font-serif text-lg font-bold text-slate-900">{p.title}</h3>
+              <h3 className="mt-5 text-lg font-bold text-slate-900">{p.title}</h3>
               <p className="mt-2.5 text-sm leading-relaxed text-slate-600">{p.text}</p>
             </div>
           ))}
@@ -359,7 +359,7 @@ export default function Story() {
         <div className="mx-auto w-full max-w-4xl px-4 text-center sm:px-6 lg:px-8">
           <figure>
             <span className="material-symbols-outlined text-4xl text-amber-400 mb-4 inline-block">format_quote</span>
-            <blockquote className="font-serif text-2xl sm:text-3xl leading-relaxed font-normal text-slate-100">
+            <blockquote className="text-2xl sm:text-3xl leading-relaxed font-normal text-slate-100">
               “A rental listing is a promise made across mountains. It must describe an authentic place,
               at an honest rate, that someone is genuinely prepared to welcome you into this week.”
             </blockquote>
@@ -374,7 +374,7 @@ export default function Story() {
       {/* CTA */}
       <section className="mx-auto w-full max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
         <div className="flex flex-col items-center gap-6 text-center max-w-xl mx-auto">
-          <h2 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-slate-950">
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-950">
             Be part of the next chapter
           </h2>
           <p className="text-sm sm:text-base leading-relaxed text-slate-600">

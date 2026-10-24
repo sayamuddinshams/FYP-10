@@ -160,7 +160,7 @@ export function AboutCubesHero({ tone = 'dark', className = '' }) {
         {/* Editorial Heading with Embedded Animated Community Pills */}
         <h1
           className={cn(
-            'max-w-[28ch] text-[clamp(28px,4.3vw,54px)] leading-[1.3] font-serif font-medium tracking-[-0.025em] text-balance',
+            'max-w-[28ch] text-[clamp(28px,4.3vw,54px)] leading-[1.3] font-medium tracking-[-0.025em] text-balance',
             t.heading
           )}
         >

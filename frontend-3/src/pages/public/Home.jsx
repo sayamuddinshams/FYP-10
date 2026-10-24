@@ -120,7 +120,7 @@ export default function Home() {
           </div>
 
           {/* Main Heading with Editorial Contrast */}
-          <h1 className="font-serif text-3xl sm:text-5xl lg:text-6xl max-w-4xl tracking-tight text-white leading-[1.15]">
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl max-w-4xl tracking-tight text-white leading-[1.15]">
             Find a place that <span className="italic font-normal text-[#FE932C]">feels like home.</span>
           </h1>
 
@@ -301,7 +301,7 @@ export default function Home() {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
           <div>
             <span className="text-xs font-bold uppercase tracking-widest text-[#D97706]">Handpicked for you</span>
-            <h2 className="font-serif text-3xl sm:text-4xl font-bold text-[#1B1B1D] mt-1 tracking-tight">Featured properties</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold text-[#1B1B1D] mt-1 tracking-tight">Featured properties</h2>
             <p className="text-sm text-slate-500 mt-1">Recently verified listings from trusted owners across the region.</p>
           </div>
 
@@ -314,8 +314,8 @@ export default function Home() {
                   type="button"
                   onClick={() => setActiveCategory(cat)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeCategory === cat
-                      ? 'bg-white text-slate-900 shadow-sm'
-                      : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-white text-slate-900 shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
                     }`}
                 >
                   {cat.charAt(0).toUpperCase() + cat.slice(1)}
@@ -372,7 +372,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6 lg:px-12 relative z-10">
           <div className="text-center max-w-2xl mx-auto mb-12">
             <span className="text-xs font-bold uppercase tracking-widest text-[#D97706]">Browse by type</span>
-            <h2 className="font-serif text-3xl sm:text-4xl font-bold text-[#1B1B1D] mt-1">
+            <h2 className="text-3xl sm:text-4xl font-bold text-[#1B1B1D] mt-1">
               Whatever you are looking for, it starts here
             </h2>
             <p className="text-sm text-slate-500 mt-2">Six property categories, one trusted marketplace.</p>
@@ -455,7 +455,7 @@ export default function Home() {
               <span className="material-symbols-outlined text-[14px]">explore</span>
               <span>Explore the region</span>
             </div>
-            <h2 className="font-serif text-3xl sm:text-4xl font-bold text-[#1B1B1D] mt-1">Popular locations</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold text-[#1B1B1D] mt-1">Popular locations</h2>
             <p className="text-sm text-slate-500 mt-1">Interactive valley panorama inspired by Northern Pakistan's most sought-after mountain destinations.</p>
           </div>
           <Link
@@ -481,7 +481,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6 lg:px-12 relative">
           <div className="max-w-2xl mb-14">
             <span className="text-xs font-bold uppercase tracking-widest text-[#FFDCC3]">Simple and transparent</span>
-            <h2 className="font-serif text-3xl sm:text-4xl font-bold text-white mt-1">
+            <h2 className="text-3xl sm:text-4xl font-bold text-white mt-1">
               How <span className="italic font-normal text-[#FE932C]">RentLink</span> works
             </h2>
             <p className="text-sm text-slate-300 mt-2">Four steps between you and the right place: no brokers, no guesswork.</p>
@@ -494,7 +494,7 @@ export default function Home() {
                   <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center text-[#DBE2F5]">
                     <span className="material-symbols-outlined text-[24px]">search</span>
                   </div>
-                  <span className="font-serif text-2xl font-bold text-white/20">01</span>
+                  <span className="text-2xl font-bold text-white/20">01</span>
                 </div>
                 <h3 className="font-bold text-base text-white mb-2">Search smartly</h3>
                 <p className="text-xs leading-relaxed text-slate-300">
@@ -509,7 +509,7 @@ export default function Home() {
                   <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center text-[#85F8C4]">
                     <span className="material-symbols-outlined text-[24px]">verified</span>
                   </div>
-                  <span className="font-serif text-2xl font-bold text-white/20">02</span>
+                  <span className="text-2xl font-bold text-white/20">02</span>
                 </div>
                 <h3 className="font-bold text-base text-white mb-2">Verify the details</h3>
                 <p className="text-xs leading-relaxed text-slate-300">
@@ -524,7 +524,7 @@ export default function Home() {
                   <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center text-[#FFDCC3]">
                     <span className="material-symbols-outlined text-[24px]">calendar_month</span>
                   </div>
-                  <span className="font-serif text-2xl font-bold text-white/20">03</span>
+                  <span className="text-2xl font-bold text-white/20">03</span>
                 </div>
                 <h3 className="font-bold text-base text-white mb-2">Request a visit</h3>
                 <p className="text-xs leading-relaxed text-slate-300">
@@ -539,7 +539,7 @@ export default function Home() {
                   <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center text-[#DBE2F5]">
                     <span className="material-symbols-outlined text-[24px]">handshake</span>
                   </div>
-                  <span className="font-serif text-2xl font-bold text-white/20">04</span>
+                  <span className="text-2xl font-bold text-white/20">04</span>
                 </div>
                 <h3 className="font-bold text-base text-white mb-2">Move in with confidence</h3>
                 <p className="text-xs leading-relaxed text-slate-300">
@@ -558,7 +558,7 @@ export default function Home() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           <div className="lg:col-span-5 flex flex-col">
             <span className="text-xs font-bold uppercase tracking-widest text-[#D97706]">Why RentLink</span>
-            <h2 className="font-serif text-3xl sm:text-4xl font-bold text-[#1B1B1D] mt-1">
+            <h2 className="text-3xl sm:text-4xl font-bold text-[#1B1B1D] mt-1">
               A marketplace built on <span className="italic font-normal text-[#D97706]">trust</span>
             </h2>
             <p className="text-sm text-slate-600 mt-4 leading-relaxed">
@@ -627,7 +627,7 @@ export default function Home() {
           <div className="rounded-3xl bg-white p-8 lg:p-14 shadow-sm border border-slate-900/5 grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
             <div className="lg:col-span-6 flex flex-col">
               <span className="text-xs font-bold uppercase tracking-widest text-[#D97706]">For Owners</span>
-              <h2 className="font-serif text-3xl sm:text-4xl font-bold text-[#1B1B1D] mt-1 leading-tight">
+              <h2 className="text-3xl sm:text-4xl font-bold text-[#1B1B1D] mt-1 leading-tight">
                 List your place once, reach renters already looking
               </h2>
               <p className="text-sm text-slate-600 mt-4 leading-relaxed">
@@ -713,7 +713,7 @@ export default function Home() {
               </span>
             </div>
 
-            <h2 className="font-serif text-3xl sm:text-5xl font-bold text-white leading-tight">
+            <h2 className="text-3xl sm:text-5xl font-bold text-white leading-tight">
               Ready to find your <span className="italic font-normal text-[#FE932C]">next home?</span>
             </h2>
 

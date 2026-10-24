@@ -95,7 +95,7 @@ export default function Modal({
         {(title || showClose) && (
           <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-6 py-5 sm:px-8">
             <div className="min-w-0">
-              {title && <h2 className="font-serif text-xl sm:text-2xl font-bold tracking-tight text-[#0B1320]">{title}</h2>}
+              {title && <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#0B1320]">{title}</h2>}
               {description && (
                 <p id={descId} className="mt-1 text-xs text-slate-500 font-medium">
                   {description}

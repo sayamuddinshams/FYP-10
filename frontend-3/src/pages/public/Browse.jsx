@@ -176,7 +176,7 @@ export default function Browse() {
                 <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
                 <span className="text-[11px] font-bold tracking-widest text-emerald-800 uppercase">Gilgit-Baltistan Verified Catalog</span>
               </div>
-              <h1 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-slate-950">Browse Alpine Sanctuaries</h1>
+              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-950">Browse Alpine Sanctuaries</h1>
               <p aria-live="polite" aria-atomic="true" className="mt-1.5 min-h-5 text-sm text-slate-500">
                 {resultSummary}
               </p>

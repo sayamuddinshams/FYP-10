@@ -49,7 +49,7 @@ export default function PublicPageHero({
                 {eyebrow}
               </span>
             )}
-            <h1 id={headingId} className="font-serif text-3xl sm:text-5xl font-bold text-white tracking-tight leading-tight">
+            <h1 id={headingId} className="text-3xl sm:text-5xl font-bold text-white tracking-tight leading-tight">
               {title}
             </h1>
             {description && (

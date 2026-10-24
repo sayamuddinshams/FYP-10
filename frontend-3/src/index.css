@@ -2,8 +2,8 @@
 
 @theme {
   --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-serif: 'Newsreader', ui-serif, Georgia, Cambria, serif;
-  --font-display: 'Newsreader', ui-serif, Georgia, serif;
+  --font-serif: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
 
   /* Alpine Sanctuary Palette */
   --color-slate-base: #0B1320;
@@ -48,6 +48,7 @@
   html {
     scroll-behavior: smooth;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    font-family: var(--font-sans);
   }
 
   body {
@@ -55,6 +56,15 @@
     color: var(--color-ink-primary, #1B1B1D);
     font-family: var(--font-sans);
     overflow-x: hidden;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-sans);
   }
 
   ::selection {
@@ -159,3 +169,78 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #94A3B8;
 }
+
+/* ========================================================================= */
+/* Data Rain Canvas & Atmospheric Physics Component Styles                   */
+/* ========================================================================= */
+:root {
+  --dr-bg-0: #020308;
+  --dr-bg-1: #05070d;
+  --dr-bg-2: #0a1020;
+  --dr-calm: #22e6ff;
+  --dr-mid: #8a5cff;
+  --dr-hot: #ff3d9a;
+  --dr-core: #eafcff;
+  --dr-vignette: 0.62;
+  --dr-grain: 0.05;
+  --dr-bloom-blur: 10px;
+  --dr-bloom-opacity: 0.7;
+}
+
+@keyframes dr-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.dr-root {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 50%, var(--dr-bg-2) 0%, var(--dr-bg-1) 50%, var(--dr-bg-0) 100%);
+  z-index: 0;
+  animation: dr-fade-in 1.2s ease-out;
+}
+
+.dr-root--contained {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+}
+
+.dr-bloom,
+.dr-main {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+
+.dr-bloom {
+  filter: blur(var(--dr-bloom-blur, 10px));
+  opacity: var(--dr-bloom-opacity, 0.7);
+  transform: scale(1.02);
+}
+
+.dr-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 50%, transparent 40%, rgba(2, 3, 8, var(--dr-vignette, 0.62)) 100%);
+}
+
+.dr-grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: var(--dr-grain, 0.05);
+}

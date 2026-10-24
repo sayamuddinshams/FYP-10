@@ -70,7 +70,7 @@ export default function Collaborations() {
       <section className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
         <div className="max-w-2xl mb-12">
           <span className="text-xs font-bold uppercase tracking-widest text-amber-700">Engagement Tracks</span>
-          <h2 className="mt-2 font-serif text-3xl sm:text-4xl font-bold tracking-tight text-slate-950">
+          <h2 className="mt-2 text-3xl sm:text-4xl font-bold tracking-tight text-slate-950">
             Structured partnership frameworks
           </h2>
           <p className="mt-3 text-slate-600">
@@ -88,7 +88,7 @@ export default function Collaborations() {
                 <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0B1320] text-amber-400 shadow-sm">
                   <Icon name={p.icon} className="h-6 w-6" />
                 </span>
-                <h3 className="mt-5 font-serif text-2xl font-bold text-slate-900">{p.title}</h3>
+                <h3 className="mt-5 text-2xl font-bold text-slate-900">{p.title}</h3>
                 <p className="mt-3 text-sm sm:text-base leading-relaxed text-slate-600">{p.text}</p>
               </div>
               <ul className="space-y-3.5 self-center rounded-2xl bg-[#F8FAFC] border border-slate-100 p-6">
@@ -112,7 +112,7 @@ export default function Collaborations() {
           <div className="flex flex-wrap items-end justify-between gap-6 mb-12">
             <div>
               <span className="text-xs font-bold uppercase tracking-widest text-emerald-800">Affiliations</span>
-              <h2 className="mt-2 font-serif text-3xl sm:text-4xl font-bold tracking-tight text-slate-950">
+              <h2 className="mt-2 text-3xl sm:text-4xl font-bold tracking-tight text-slate-950">
                 Recognized institutional partners
               </h2>
             </div>
@@ -158,7 +158,7 @@ export default function Collaborations() {
                     </span>
                     <Badge tone={TONE_MAP[partner.type] || 'neutral'}>{partner.type}</Badge>
                   </div>
-                  <h3 className="mt-5 font-serif text-lg font-bold text-slate-900">{partner.name}</h3>
+                  <h3 className="mt-5 text-lg font-bold text-slate-900">{partner.name}</h3>
                   <p className="mt-2.5 flex-1 text-sm leading-relaxed text-slate-600">{partner.detail}</p>
                 </div>
               ))}
@@ -171,7 +171,7 @@ export default function Collaborations() {
         <div className="grid gap-12 lg:grid-cols-[1fr_1.2fr] lg:items-center">
           <div>
             <span className="text-xs font-bold uppercase tracking-widest text-amber-700">Getting Started</span>
-            <h2 className="mt-2 font-serif text-3xl sm:text-4xl font-bold tracking-tight text-slate-950">
+            <h2 className="mt-2 text-3xl sm:text-4xl font-bold tracking-tight text-slate-950">
               A collaborative, light-touch protocol
             </h2>
             <p className="mt-4 text-base leading-relaxed text-slate-600">
@@ -197,7 +197,7 @@ export default function Collaborations() {
                   {i + 1}
                 </span>
                 <div>
-                  <p className="font-serif font-bold text-slate-900">{title}</p>
+                  <p className="font-bold text-slate-900">{title}</p>
                   <p className="mt-1 text-xs text-slate-600 leading-relaxed">{text}</p>
                 </div>
               </li>
@@ -214,7 +214,7 @@ export default function Collaborations() {
             className="absolute inset-0 bg-[radial-gradient(ellipse_60%_80%_at_50%_0%,rgba(217,119,6,.2),transparent_70%)]"
           />
           <div className="relative z-10 max-w-2xl mx-auto">
-            <h2 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-white">
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">
               Ready to collaborate on mountain housing?
             </h2>
             <p className="mt-4 text-sm sm:text-base leading-relaxed text-slate-300">
