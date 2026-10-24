@@ -1,6 +1,6 @@
 import { verifyToken } from '../utils/jwt.js';
 import { errorResponse } from '../utils/apiResponse.js';
-import { prisma } from '../config/db.js';
+import { collections, toIdQuery, normalizeDoc } from '../config/db.js';
 
 export async function authenticate(req, res, next) {
   try {
@@ -22,33 +22,18 @@ export async function authenticate(req, res, next) {
       return errorResponse(res, 'Invalid or expired session. Please log in again.', 401);
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: decoded.id },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        phone: true,
-        district: true,
-        city: true,
-        area: true,
-        address: true,
-        avatar: true,
-        bio: true,
-        status: true,
-        verification: true,
-        createdAt: true,
-      },
-    });
+    const rawUser = await collections.users().findOne(toIdQuery(decoded.id));
 
-    if (!user) {
+    if (!rawUser) {
       return errorResponse(res, 'Account not found.', 401);
     }
 
-    if (user.status === 'suspended') {
+    if (rawUser.status === 'suspended') {
       return errorResponse(res, 'Your account has been suspended. Please contact support.', 403);
     }
+
+    const user = normalizeDoc(rawUser);
+    delete user.passwordHash;
 
     req.user = user;
     next();
@@ -57,36 +42,37 @@ export async function authenticate(req, res, next) {
   }
 }
 
-export function optionalAuth(req, res, next) {
-  let token = null;
-  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
-    token = req.headers.authorization.split(' ')[1];
-  } else if (req.cookies && req.cookies.token) {
-    token = req.cookies.token;
-  }
+export async function optionalAuth(req, res, next) {
+  try {
+    let token = null;
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+      token = req.headers.authorization.split(' ')[1];
+    } else if (req.cookies && req.cookies.token) {
+      token = req.cookies.token;
+    }
 
-  if (!token) {
-    req.user = null;
-    return next();
-  }
-
-  const decoded = verifyToken(token);
-  if (!decoded || !decoded.id) {
-    req.user = null;
-    return next();
-  }
-
-  prisma.user
-    .findUnique({
-      where: { id: decoded.id },
-      select: { id: true, name: true, email: true, role: true, status: true, verification: true },
-    })
-    .then((user) => {
-      req.user = user && user.status !== 'suspended' ? user : null;
-      next();
-    })
-    .catch(() => {
+    if (!token) {
       req.user = null;
-      next();
-    });
+      return next();
+    }
+
+    const decoded = verifyToken(token);
+    if (!decoded || !decoded.id) {
+      req.user = null;
+      return next();
+    }
+
+    const rawUser = await collections.users().findOne(toIdQuery(decoded.id));
+    if (rawUser && rawUser.status !== 'suspended') {
+      const user = normalizeDoc(rawUser);
+      delete user.passwordHash;
+      req.user = user;
+    } else {
+      req.user = null;
+    }
+    next();
+  } catch {
+    req.user = null;
+    next();
+  }
 }

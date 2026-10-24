@@ -1,14 +1,42 @@
-import { prisma } from '../config/db.js';
+import { ObjectId } from 'mongodb';
+import { collections, toIdQuery, normalizeDoc } from '../config/db.js';
 import { successResponse, errorResponse } from '../utils/apiResponse.js';
 
-function formatUser(u) {
+function formatUser(u, properties = []) {
   if (!u) return null;
-  const { passwordHash, ...rest } = u;
+  const doc = normalizeDoc(u);
+  const { passwordHash, ...rest } = doc;
+  const propList = properties || doc.properties || [];
+
   return {
     ...rest,
-    propertyCount: u._count?.properties || 0,
-    approvedCount: (u.properties || []).filter((p) => p.status === 'approved').length,
+    propertyCount: propList.length,
+    approvedCount: propList.filter((p) => p.status === 'approved').length,
+    properties: propList,
   };
+}
+
+async function attachUserProperties(userDocs) {
+  if (!userDocs || userDocs.length === 0) return [];
+  const userIds = userDocs.map((u) => u.id || u._id.toString());
+
+  const properties = await collections.properties()
+    .find({ ownerId: { $in: userIds } }, { projection: { ownerId: 1, status: 1 } })
+    .toArray();
+
+  const propMap = new Map();
+  for (const p of properties) {
+    if (!propMap.has(p.ownerId)) {
+      propMap.set(p.ownerId, []);
+    }
+    propMap.get(p.ownerId).push(p);
+  }
+
+  return userDocs.map((u) => {
+    const uId = u.id || u._id.toString();
+    const userProps = propMap.get(uId) || [];
+    return formatUser(u, userProps);
+  });
 }
 
 export async function getUsers(req, res, next) {
@@ -24,12 +52,12 @@ export async function getUsers(req, res, next) {
     }
 
     if (query) {
-      const q = query.trim();
-      where.OR = [
-        { name: { contains: q } },
-        { email: { contains: q } },
-        { city: { contains: q } },
-        { district: { contains: q } },
+      const q = String(query).trim();
+      where.$or = [
+        { name: { $regex: q, $options: 'i' } },
+        { email: { $regex: q, $options: 'i' } },
+        { city: { $regex: q, $options: 'i' } },
+        { district: { $regex: q, $options: 'i' } },
       ];
     }
 
@@ -37,21 +65,14 @@ export async function getUsers(req, res, next) {
     const skip = (Math.max(parseInt(page, 10) || 1, 1) - 1) * take;
 
     const [users, total] = await Promise.all([
-      prisma.user.findMany({
-        where,
-        include: {
-          _count: { select: { properties: true } },
-          properties: { select: { status: true } },
-        },
-        orderBy: { createdAt: 'desc' },
-        take,
-        skip,
-      }),
-      prisma.user.count({ where }),
+      collections.users().find(where).sort({ createdAt: -1 }).skip(skip).limit(take).toArray(),
+      collections.users().countDocuments(where),
     ]);
 
+    const formatted = await attachUserProperties(users);
+
     return successResponse(res, {
-      items: users.map(formatUser),
+      items: formatted,
       total,
       page: parseInt(page, 10) || 1,
       limit: take,
@@ -64,16 +85,13 @@ export async function getUsers(req, res, next) {
 
 export async function getOwners(req, res, next) {
   try {
-    const owners = await prisma.user.findMany({
-      where: { role: 'owner' },
-      include: {
-        _count: { select: { properties: true } },
-        properties: { select: { status: true } },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+    const owners = await collections.users()
+      .find({ role: 'owner' })
+      .sort({ createdAt: -1 })
+      .toArray();
 
-    return successResponse(res, owners.map(formatUser));
+    const formatted = await attachUserProperties(owners);
+    return successResponse(res, formatted);
   } catch (error) {
     next(error);
   }
@@ -82,22 +100,18 @@ export async function getOwners(req, res, next) {
 export async function getUserById(req, res, next) {
   try {
     const { id } = req.params;
-    const user = await prisma.user.findUnique({
-      where: { id },
-      include: {
-        _count: { select: { properties: true } },
-        properties: {
-          where: { status: 'approved' },
-          include: { images: { orderBy: { order: 'asc' }, take: 1 } },
-        },
-      },
-    });
+    const user = await collections.users().findOne(toIdQuery(id));
 
     if (!user) {
       return errorResponse(res, 'User not found.', 404);
     }
 
-    return successResponse(res, formatUser(user));
+    const userId = user.id || user._id.toString();
+    const approvedProps = await collections.properties()
+      .find({ ownerId: userId, status: 'approved' })
+      .toArray();
+
+    return successResponse(res, formatUser(user, approvedProps));
   } catch (error) {
     next(error);
   }
@@ -108,7 +122,7 @@ export async function updateUserStatus(req, res, next) {
     const { id } = req.params;
     const { status } = req.body;
 
-    const user = await prisma.user.findUnique({ where: { id } });
+    const user = await collections.users().findOne(toIdQuery(id));
     if (!user) {
       return errorResponse(res, 'User not found.', 404);
     }
@@ -117,13 +131,17 @@ export async function updateUserStatus(req, res, next) {
       return errorResponse(res, 'Admin accounts cannot be suspended.', 400);
     }
 
-    const updated = await prisma.user.update({
-      where: { id },
-      data: { status },
-      include: { _count: { select: { properties: true } } },
-    });
+    await collections.users().updateOne(
+      toIdQuery(id),
+      { $set: { status, updatedAt: new Date() } }
+    );
 
-    return successResponse(res, formatUser(updated), `User status updated to ${status}.`);
+    const updated = await collections.users().findOne(toIdQuery(id));
+    const userProps = await collections.properties()
+      .find({ ownerId: updated.id || updated._id.toString() })
+      .toArray();
+
+    return successResponse(res, formatUser(updated, userProps), `User status updated to ${status}.`);
   } catch (error) {
     next(error);
   }
@@ -134,25 +152,100 @@ export async function updateUserVerification(req, res, next) {
     const { id } = req.params;
     const { verification } = req.body;
 
-    const updated = await prisma.user.update({
-      where: { id },
-      data: { verification },
-      include: { _count: { select: { properties: true } } },
-    });
+    await collections.users().updateOne(
+      toIdQuery(id),
+      { $set: { verification, updatedAt: new Date() } }
+    );
+
+    const updated = await collections.users().findOne(toIdQuery(id));
+    if (!updated) {
+      return errorResponse(res, 'User not found.', 404);
+    }
+
+    const userId = updated.id || updated._id.toString();
 
     // Notify user of verification status change
-    await prisma.notification.create({
-      data: {
-        userId: id,
-        type: 'verification',
-        title: 'Verification Status Update',
-        body: `Your identity verification status has been updated to "${verification}".`,
-        link: updated.role === 'owner' ? '/owner/settings' : '/tenant/profile',
-      },
+    const notifId = new ObjectId().toString();
+    await collections.notifications().insertOne({
+      _id: notifId,
+      id: notifId,
+      userId,
+      type: 'verification',
+      title: 'Verification Status Update',
+      body: `Your identity verification status has been updated to "${verification}".`,
+      link: updated.role === 'owner' ? '/owner/settings' : '/tenant/profile',
+      read: false,
+      createdAt: new Date(),
     });
 
-    return successResponse(res, formatUser(updated), `Verification set to ${verification}.`);
+    const userProps = await collections.properties()
+      .find({ ownerId: userId })
+      .toArray();
+
+    return successResponse(res, formatUser(updated, userProps), `Verification set to ${verification}.`);
   } catch (error) {
     next(error);
   }
 }
+
+export async function submitCnicVerification(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { cnic, cnicName, cnicDob, cnicExpiry, cnicLifetime, cnicFront, cnicBack } = req.body;
+
+    if (!cnic || !cnicFront || !cnicBack) {
+      return errorResponse(res, 'CNIC number and both front and back photos are required.', 400);
+    }
+
+    const trackingId = `NADRA-PK-${Math.floor(100000 + Math.random() * 900000)}`;
+
+    const updateFields = {
+      cnic: String(cnic).trim(),
+      cnicName: String(cnicName || '').trim(),
+      cnicDob: cnicDob || '',
+      cnicExpiry: cnicLifetime ? 'Lifetime' : (cnicExpiry || ''),
+      cnicLifetime: Boolean(cnicLifetime),
+      cnicFront,
+      cnicBack,
+      verification: 'pending',
+      nadraStatus: 'pending_sync',
+      nadraTrackingId: trackingId,
+      verificationSubmittedAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    await collections.users().updateOne(
+      toIdQuery(id),
+      { $set: updateFields }
+    );
+
+    const updated = await collections.users().findOne(toIdQuery(id));
+    if (!updated) {
+      return errorResponse(res, 'User not found.', 404);
+    }
+
+    const userId = updated.id || updated._id.toString();
+
+    const notifId = new ObjectId().toString();
+    await collections.notifications().insertOne({
+      _id: notifId,
+      id: notifId,
+      userId,
+      type: 'verification',
+      title: 'CNIC Queued for NADRA Verification',
+      body: `Your CNIC (${cnic}) has been submitted under tracking ${trackingId} and is queued for NADRA registry cross-reference.`,
+      link: '/owner/profile',
+      read: false,
+      createdAt: new Date(),
+    });
+
+    const userProps = await collections.properties()
+      .find({ ownerId: userId })
+      .toArray();
+
+    return successResponse(res, formatUser(updated, userProps), 'CNIC submitted successfully for NADRA verification.');
+  } catch (error) {
+    next(error);
+  }
+}
+

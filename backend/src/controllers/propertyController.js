@@ -1,31 +1,67 @@
-import { prisma } from '../config/db.js';
+import { ObjectId } from 'mongodb';
+import { collections, toIdQuery, normalizeDoc } from '../config/db.js';
 import { successResponse, errorResponse } from '../utils/apiResponse.js';
 
-function formatProperty(p) {
+function formatProperty(p, owner = null) {
   if (!p) return null;
+  const doc = normalizeDoc(p);
+
   let amenities = [];
-  try {
-    amenities = JSON.parse(p.amenitiesJson || '[]');
-  } catch {
-    amenities = [];
+  if (Array.isArray(doc.amenities)) {
+    amenities = doc.amenities;
+  } else if (doc.amenitiesJson) {
+    try {
+      amenities = JSON.parse(doc.amenitiesJson);
+    } catch {
+      amenities = [];
+    }
   }
 
-  const images = (p.images || []).map((img) => img.url);
+  let images = [];
+  if (Array.isArray(doc.images)) {
+    images = doc.images.map((img) => (typeof img === 'string' ? img : img.url || ''));
+  }
+
+  const ownerData = owner || doc.owner || null;
 
   return {
-    ...p,
+    ...doc,
     amenities,
-    images: images.length > 0 ? images : (p.images || []),
-    owner: p.owner ? {
-      id: p.owner.id,
-      name: p.owner.name,
-      email: p.owner.email,
-      phone: p.owner.phone,
-      avatar: p.owner.avatar,
-      verification: p.owner.verification,
-      role: p.owner.role,
-    } : null,
+    amenitiesJson: doc.amenitiesJson || JSON.stringify(amenities),
+    images,
+    owner: ownerData
+      ? {
+          id: ownerData.id || ownerData._id?.toString(),
+          name: ownerData.name,
+          email: ownerData.email,
+          phone: ownerData.phone || '',
+          avatar: ownerData.avatar || null,
+          verification: ownerData.verification || 'unverified',
+          role: ownerData.role || 'owner',
+        }
+      : null,
   };
+}
+
+async function populateOwners(propertyDocs) {
+  if (!propertyDocs || propertyDocs.length === 0) return [];
+  const ownerIds = [...new Set(propertyDocs.map((p) => p.ownerId).filter(Boolean))];
+  const owners = await collections.users()
+    .find({
+      $or: [{ id: { $in: ownerIds } }, { _id: { $in: ownerIds } }],
+    })
+    .toArray();
+
+  const ownerMap = new Map();
+  for (const o of owners) {
+    const oId = o.id || o._id.toString();
+    ownerMap.set(oId, o);
+  }
+
+  return propertyDocs.map((p) => {
+    const owner = ownerMap.get(p.ownerId) || null;
+    return formatProperty(p, owner);
+  });
 }
 
 export async function getProperties(req, res, next) {
@@ -47,8 +83,7 @@ export async function getProperties(req, res, next) {
 
     const where = {};
 
-    // By default public only sees approved
-    if (status) {
+    if (status && status !== 'all') {
       where.status = status;
     }
 
@@ -65,7 +100,7 @@ export async function getProperties(req, res, next) {
     }
 
     if (area) {
-      where.area = { contains: area };
+      where.area = { $regex: area, $options: 'i' };
     }
 
     if (featured === 'true' || featured === true) {
@@ -74,52 +109,43 @@ export async function getProperties(req, res, next) {
 
     if (minPrice || maxPrice) {
       where.price = {};
-      if (minPrice) where.price.gte = parseInt(minPrice, 10);
-      if (maxPrice) where.price.lte = parseInt(maxPrice, 10);
+      if (minPrice) where.price.$gte = parseInt(minPrice, 10);
+      if (maxPrice) where.price.$lte = parseInt(maxPrice, 10);
     }
 
     if (query) {
-      const q = query.trim();
-      where.OR = [
-        { title: { contains: q } },
-        { description: { contains: q } },
-        { district: { contains: q } },
-        { city: { contains: q } },
-        { area: { contains: q } },
-        { address: { contains: q } },
+      const q = String(query).trim();
+      where.$or = [
+        { title: { $regex: q, $options: 'i' } },
+        { description: { $regex: q, $options: 'i' } },
+        { district: { $regex: q, $options: 'i' } },
+        { city: { $regex: q, $options: 'i' } },
+        { area: { $regex: q, $options: 'i' } },
+        { address: { $regex: q, $options: 'i' } },
       ];
     }
 
-    let orderBy = { createdAt: 'desc' };
-    if (sort === 'price_asc') orderBy = { price: 'asc' };
-    if (sort === 'price_desc') orderBy = { price: 'desc' };
-    if (sort === 'views') orderBy = { views: 'desc' };
+    let sortOption = { createdAt: -1 };
+    if (sort === 'price_asc') sortOption = { price: 1 };
+    if (sort === 'price_desc') sortOption = { price: -1 };
+    if (sort === 'views') sortOption = { views: -1 };
 
     const take = Math.min(parseInt(limit, 10) || 50, 100);
     const skip = (Math.max(parseInt(page, 10) || 1, 1) - 1) * take;
 
     const [items, total] = await Promise.all([
-      prisma.property.findMany({
-        where,
-        include: {
-          images: { orderBy: { order: 'asc' } },
-          owner: true,
-        },
-        orderBy,
-        take,
-        skip,
-      }),
-      prisma.property.count({ where }),
+      collections.properties().find(where).sort(sortOption).skip(skip).limit(take).toArray(),
+      collections.properties().countDocuments(where),
     ]);
 
-    const formatted = items.map(formatProperty);
+    const formatted = await populateOwners(items);
 
     return successResponse(res, {
       items: formatted,
       total,
       page: parseInt(page, 10) || 1,
       limit: take,
-      pages: Math.ceil(total / take),
+      pages: Math.ceil(total / take) || 1,
     });
   } catch (error) {
     next(error);
@@ -128,15 +154,13 @@ export async function getProperties(req, res, next) {
 
 export async function getFeatured(req, res, next) {
   try {
-    const items = await prisma.property.findMany({
-      where: { status: 'approved', featured: true },
-      include: {
-        images: { orderBy: { order: 'asc' } },
-        owner: true,
-      },
-      take: 6,
-    });
-    return successResponse(res, items.map(formatProperty));
+    const items = await collections.properties()
+      .find({ status: 'approved', featured: true })
+      .limit(6)
+      .toArray();
+
+    const formatted = await populateOwners(items);
+    return successResponse(res, formatted);
   } catch (error) {
     next(error);
   }
@@ -145,19 +169,18 @@ export async function getFeatured(req, res, next) {
 export async function getStats(req, res, next) {
   try {
     const [totalApproved, properties] = await Promise.all([
-      prisma.property.count({ where: { status: 'approved' } }),
-      prisma.property.findMany({
-        where: { status: 'approved' },
-        select: { district: true, type: true },
-      }),
+      collections.properties().countDocuments({ status: 'approved' }),
+      collections.properties()
+        .find({ status: 'approved' }, { projection: { district: 1, type: 1 } })
+        .toArray(),
     ]);
 
     const byDistrict = {};
     const byType = {};
 
     properties.forEach((p) => {
-      byDistrict[p.district] = (byDistrict[p.district] || 0) + 1;
-      byType[p.type] = (byType[p.type] || 0) + 1;
+      if (p.district) byDistrict[p.district] = (byDistrict[p.district] || 0) + 1;
+      if (p.type) byType[p.type] = (byType[p.type] || 0) + 1;
     });
 
     return successResponse(res, { totalApproved, byDistrict, byType });
@@ -168,16 +191,29 @@ export async function getStats(req, res, next) {
 
 export async function getMyProperties(req, res, next) {
   try {
-    const properties = await prisma.property.findMany({
-      where: { ownerId: req.user.id },
-      include: {
-        images: { orderBy: { order: 'asc' } },
-        _count: { select: { visits: true, favorites: true } },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+    const properties = await collections.properties()
+      .find({ ownerId: req.user.id })
+      .sort({ createdAt: -1 })
+      .toArray();
 
-    return successResponse(res, properties.map(formatProperty));
+    const formatted = await Promise.all(
+      properties.map(async (p) => {
+        const propId = p.id || p._id.toString();
+        const [visitsCount, favCount] = await Promise.all([
+          collections.visitRequests().countDocuments({ propertyId: propId }),
+          collections.favorites().countDocuments({ propertyId: propId }),
+        ]);
+
+        const formattedProp = formatProperty(p);
+        formattedProp._count = {
+          visits: visitsCount,
+          favorites: favCount,
+        };
+        return formattedProp;
+      })
+    );
+
+    return successResponse(res, formatted);
   } catch (error) {
     next(error);
   }
@@ -186,19 +222,17 @@ export async function getMyProperties(req, res, next) {
 export async function getPropertyById(req, res, next) {
   try {
     const { id } = req.params;
-    const property = await prisma.property.findUnique({
-      where: { id },
-      include: {
-        images: { orderBy: { order: 'asc' } },
-        owner: true,
-      },
-    });
+    const property = await collections.properties().findOne(toIdQuery(id));
 
     if (!property) {
       return errorResponse(res, 'Property listing not found.', 404);
     }
 
-    return successResponse(res, formatProperty(property));
+    const owner = property.ownerId
+      ? await collections.users().findOne(toIdQuery(property.ownerId))
+      : null;
+
+    return successResponse(res, formatProperty(property, owner));
   } catch (error) {
     next(error);
   }
@@ -207,25 +241,27 @@ export async function getPropertyById(req, res, next) {
 export async function getRelated(req, res, next) {
   try {
     const { id } = req.params;
-    const current = await prisma.property.findUnique({ where: { id } });
+    const current = await collections.properties().findOne(toIdQuery(id));
     if (!current) {
       return errorResponse(res, 'Property not found.', 404);
     }
 
-    const related = await prisma.property.findMany({
-      where: {
-        id: { not: id },
-        status: 'approved',
-        OR: [{ district: current.district }, { type: current.type }],
-      },
-      include: {
-        images: { orderBy: { order: 'asc' } },
-        owner: true,
-      },
-      take: 4,
-    });
+    const currentId = current.id || current._id.toString();
 
-    return successResponse(res, related.map(formatProperty));
+    const related = await collections.properties()
+      .find({
+        status: 'approved',
+        $and: [
+          { $or: [{ district: current.district }, { type: current.type }] },
+          { id: { $ne: currentId } },
+          { _id: { $ne: current._id } },
+        ],
+      })
+      .limit(4)
+      .toArray();
+
+    const formatted = await populateOwners(related);
+    return successResponse(res, formatted);
   } catch (error) {
     next(error);
   }
@@ -252,47 +288,42 @@ export async function createProperty(req, res, next) {
       status = 'pending',
     } = req.body;
 
-    // Check if autoApprove is enabled in platform settings
-    const settings = await prisma.platformSetting.findUnique({ where: { id: 'global' } });
+    const settings = await collections.platformSettings().findOne({ id: 'global' });
     const finalStatus = settings?.autoApproveListings ? 'approved' : status;
+    const propId = new ObjectId().toString();
 
-    const property = await prisma.property.create({
-      data: {
-        title,
-        type,
-        description,
-        price,
-        district,
-        city,
-        area,
-        address,
-        bedrooms,
-        bathrooms,
-        size,
-        furnishing,
-        availableFrom,
-        amenitiesJson: JSON.stringify(amenities),
-        status: finalStatus,
-        ownerId: req.user.id,
-      },
-    });
+    const newProperty = {
+      _id: propId,
+      id: propId,
+      title,
+      type,
+      description,
+      price: Number(price),
+      district,
+      city,
+      area,
+      address,
+      bedrooms: Number(bedrooms) || 0,
+      bathrooms: Number(bathrooms) || 0,
+      size: Number(size) || 0,
+      furnishing,
+      availableFrom,
+      amenities: Array.isArray(amenities) ? amenities : [],
+      amenitiesJson: JSON.stringify(Array.isArray(amenities) ? amenities : []),
+      images: Array.isArray(images) ? images : [],
+      status: finalStatus,
+      views: 0,
+      featured: false,
+      adminNote: '',
+      ownerId: req.user.id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
 
-    if (images.length > 0) {
-      await prisma.propertyImage.createMany({
-        data: images.map((url, index) => ({
-          propertyId: property.id,
-          url,
-          order: index,
-        })),
-      });
-    }
+    await collections.properties().insertOne(newProperty);
 
-    const full = await prisma.property.findUnique({
-      where: { id: property.id },
-      include: { images: true, owner: true },
-    });
-
-    return successResponse(res, formatProperty(full), 'Property listed successfully.', 201);
+    const owner = await collections.users().findOne(toIdQuery(req.user.id));
+    return successResponse(res, formatProperty(newProperty, owner), 'Property listed successfully.', 201);
   } catch (error) {
     next(error);
   }
@@ -301,7 +332,7 @@ export async function createProperty(req, res, next) {
 export async function updateProperty(req, res, next) {
   try {
     const { id } = req.params;
-    const existing = await prisma.property.findUnique({ where: { id } });
+    const existing = await collections.properties().findOne(toIdQuery(id));
 
     if (!existing) {
       return errorResponse(res, 'Property listing not found.', 404);
@@ -330,21 +361,27 @@ export async function updateProperty(req, res, next) {
       status,
     } = req.body;
 
-    const updateData = {};
+    const updateData = { updatedAt: new Date() };
     if (title !== undefined) updateData.title = title;
     if (type !== undefined) updateData.type = type;
     if (description !== undefined) updateData.description = description;
-    if (price !== undefined) updateData.price = price;
+    if (price !== undefined) updateData.price = Number(price);
     if (district !== undefined) updateData.district = district;
     if (city !== undefined) updateData.city = city;
     if (area !== undefined) updateData.area = area;
     if (address !== undefined) updateData.address = address;
-    if (bedrooms !== undefined) updateData.bedrooms = bedrooms;
-    if (bathrooms !== undefined) updateData.bathrooms = bathrooms;
-    if (size !== undefined) updateData.size = size;
+    if (bedrooms !== undefined) updateData.bedrooms = Number(bedrooms);
+    if (bathrooms !== undefined) updateData.bathrooms = Number(bathrooms);
+    if (size !== undefined) updateData.size = Number(size);
     if (furnishing !== undefined) updateData.furnishing = furnishing;
     if (availableFrom !== undefined) updateData.availableFrom = availableFrom;
-    if (amenities !== undefined) updateData.amenitiesJson = JSON.stringify(amenities);
+    if (amenities !== undefined) {
+      updateData.amenities = Array.isArray(amenities) ? amenities : [];
+      updateData.amenitiesJson = JSON.stringify(updateData.amenities);
+    }
+    if (images !== undefined && Array.isArray(images)) {
+      updateData.images = images;
+    }
 
     // If an owner edits an approved listing, move it back to pending review
     if (req.user.role === 'owner') {
@@ -357,30 +394,12 @@ export async function updateProperty(req, res, next) {
       updateData.status = status;
     }
 
-    await prisma.property.update({
-      where: { id },
-      data: updateData,
-    });
+    await collections.properties().updateOne(toIdQuery(id), { $set: updateData });
 
-    if (Array.isArray(images)) {
-      await prisma.propertyImage.deleteMany({ where: { propertyId: id } });
-      if (images.length > 0) {
-        await prisma.propertyImage.createMany({
-          data: images.map((url, idx) => ({
-            propertyId: id,
-            url,
-            order: idx,
-          })),
-        });
-      }
-    }
+    const updated = await collections.properties().findOne(toIdQuery(id));
+    const owner = await collections.users().findOne(toIdQuery(updated.ownerId));
 
-    const full = await prisma.property.findUnique({
-      where: { id },
-      include: { images: true, owner: true },
-    });
-
-    return successResponse(res, formatProperty(full), 'Property updated successfully.');
+    return successResponse(res, formatProperty(updated, owner), 'Property updated successfully.');
   } catch (error) {
     next(error);
   }
@@ -389,7 +408,7 @@ export async function updateProperty(req, res, next) {
 export async function deleteProperty(req, res, next) {
   try {
     const { id } = req.params;
-    const existing = await prisma.property.findUnique({ where: { id } });
+    const existing = await collections.properties().findOne(toIdQuery(id));
 
     if (!existing) {
       return errorResponse(res, 'Property listing not found.', 404);
@@ -399,7 +418,13 @@ export async function deleteProperty(req, res, next) {
       return errorResponse(res, 'You are not authorized to delete this listing.', 403);
     }
 
-    await prisma.property.delete({ where: { id } });
+    const propId = existing.id || existing._id.toString();
+    await Promise.all([
+      collections.properties().deleteOne(toIdQuery(id)),
+      collections.favorites().deleteMany({ propertyId: propId }),
+      collections.visitRequests().deleteMany({ propertyId: propId }),
+    ]);
+
     return successResponse(res, null, 'Listing deleted successfully.');
   } catch (error) {
     next(error);
@@ -409,7 +434,7 @@ export async function deleteProperty(req, res, next) {
 export async function togglePause(req, res, next) {
   try {
     const { id } = req.params;
-    const existing = await prisma.property.findUnique({ where: { id } });
+    const existing = await collections.properties().findOne(toIdQuery(id));
 
     if (!existing) {
       return errorResponse(res, 'Property listing not found.', 404);
@@ -420,13 +445,15 @@ export async function togglePause(req, res, next) {
     }
 
     const newStatus = existing.status === 'suspended' ? 'approved' : 'suspended';
-    const updated = await prisma.property.update({
-      where: { id },
-      data: { status: newStatus },
-      include: { images: true, owner: true },
-    });
+    await collections.properties().updateOne(
+      toIdQuery(id),
+      { $set: { status: newStatus, updatedAt: new Date() } }
+    );
 
-    return successResponse(res, formatProperty(updated), `Listing is now ${newStatus}.`);
+    const updated = await collections.properties().findOne(toIdQuery(id));
+    const owner = await collections.users().findOne(toIdQuery(updated.ownerId));
+
+    return successResponse(res, formatProperty(updated, owner), `Listing is now ${newStatus}.`);
   } catch (error) {
     next(error);
   }
@@ -435,10 +462,7 @@ export async function togglePause(req, res, next) {
 export async function recordView(req, res, next) {
   try {
     const { id } = req.params;
-    await prisma.property.update({
-      where: { id },
-      data: { views: { increment: 1 } },
-    });
+    await collections.properties().updateOne(toIdQuery(id), { $inc: { views: 1 } });
     return successResponse(res, null, 'View incremented.');
   } catch (error) {
     next(error);

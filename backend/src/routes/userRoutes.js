@@ -9,6 +9,9 @@ const router = Router();
 router.get('/owners', userController.getOwners);
 router.get('/:id', userController.getUserById);
 
+// Owner verification submission
+router.post('/:id/cnic-verification', authenticate, userController.submitCnicVerification);
+
 // Admin user management
 router.get('/', authenticate, authorize('admin'), userController.getUsers);
 router.patch('/:id/status', authenticate, authorize('admin'), userController.updateUserStatus);

@@ -258,6 +258,20 @@ const PATHS = {
       <line x1="10" y1="14" x2="21" y2="3" />
     </>
   ),
+  upload: (
+    <>
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <polyline points="17 8 12 3 7 8" />
+      <line x1="12" y1="3" x2="12" y2="15" />
+    </>
+  ),
+  idCard: (
+    <>
+      <rect x="2" y="4" width="20" height="16" rx="2" />
+      <circle cx="8" cy="11" r="2.5" />
+      <path d="M14 9h4M14 13h4M6 17a3 3 0 0 1 6 0" />
+    </>
+  ),
 };
 
 export default function Icon({ name, className = 'h-5 w-5', strokeWidth = 1.75, ...rest }) {

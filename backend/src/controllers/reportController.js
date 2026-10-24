@@ -1,19 +1,42 @@
-import { prisma } from '../config/db.js';
+import { ObjectId } from 'mongodb';
+import { collections, toIdQuery, normalizeDoc } from '../config/db.js';
 import { successResponse, errorResponse } from '../utils/apiResponse.js';
 
-function decorateReport(r) {
+function decorateReport(r, reporter = null) {
   if (!r) return null;
+  const doc = normalizeDoc(r);
+  const rep = reporter || doc.reporter || null;
+
   return {
-    ...r,
-    reporter: r.reporter
+    ...doc,
+    reporter: rep
       ? {
-          id: r.reporter.id,
-          name: r.reporter.name,
-          email: r.reporter.email,
-          role: r.reporter.role,
+          id: rep.id || rep._id?.toString(),
+          name: rep.name,
+          email: rep.email,
+          role: rep.role,
         }
       : null,
   };
+}
+
+async function populateReports(reportDocs) {
+  if (!reportDocs || reportDocs.length === 0) return [];
+
+  const reporterIds = [...new Set(reportDocs.map((r) => r.reporterId).filter(Boolean))];
+  const reporters = await collections.users()
+    .find({ $or: [{ id: { $in: reporterIds } }, { _id: { $in: reporterIds } }] })
+    .toArray();
+
+  const userMap = new Map();
+  for (const u of reporters) {
+    userMap.set(u.id || u._id.toString(), u);
+  }
+
+  return reportDocs.map((r) => {
+    const rep = userMap.get(r.reporterId) || null;
+    return decorateReport(r, rep);
+  });
 }
 
 export async function createReport(req, res, next) {
@@ -25,20 +48,26 @@ export async function createReport(req, res, next) {
       return errorResponse(res, 'Reason and details are required to submit a report.', 400);
     }
 
-    const report = await prisma.report.create({
-      data: {
-        type: type || 'listing',
-        reporterId,
-        targetId: targetId || '',
-        targetLabel: targetLabel || 'Item',
-        reason,
-        details,
-        status: 'open',
-      },
-      include: { reporter: true },
-    });
+    const reportId = new ObjectId().toString();
+    const newReport = {
+      _id: reportId,
+      id: reportId,
+      type: type || 'listing',
+      reporterId,
+      targetId: targetId || '',
+      targetLabel: targetLabel || 'Item',
+      reason,
+      details,
+      status: 'open',
+      resolution: '',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
 
-    return successResponse(res, decorateReport(report), 'Report submitted for review.', 201);
+    await collections.reports().insertOne(newReport);
+    const reporter = await collections.users().findOne(toIdQuery(reporterId));
+
+    return successResponse(res, decorateReport(newReport, reporter), 'Report submitted for review.', 201);
   } catch (error) {
     next(error);
   }
@@ -52,13 +81,13 @@ export async function getReports(req, res, next) {
       where.status = status;
     }
 
-    const reports = await prisma.report.findMany({
-      where,
-      include: { reporter: true },
-      orderBy: { createdAt: 'desc' },
-    });
+    const reports = await collections.reports()
+      .find(where)
+      .sort({ createdAt: -1 })
+      .toArray();
 
-    return successResponse(res, reports.map(decorateReport));
+    const formatted = await populateReports(reports);
+    return successResponse(res, formatted);
   } catch (error) {
     next(error);
   }
@@ -69,16 +98,19 @@ export async function updateReport(req, res, next) {
     const { id } = req.params;
     const { status, resolution } = req.body;
 
-    const report = await prisma.report.update({
-      where: { id },
-      data: {
-        status,
-        resolution: resolution || '',
-      },
-      include: { reporter: true },
-    });
+    const updateData = { updatedAt: new Date() };
+    if (status !== undefined) updateData.status = status;
+    if (resolution !== undefined) updateData.resolution = resolution;
 
-    return successResponse(res, decorateReport(report), 'Report updated.');
+    await collections.reports().updateOne(toIdQuery(id), { $set: updateData });
+    const updated = await collections.reports().findOne(toIdQuery(id));
+
+    if (!updated) {
+      return errorResponse(res, 'Report not found.', 404);
+    }
+
+    const reporter = await collections.users().findOne(toIdQuery(updated.reporterId));
+    return successResponse(res, decorateReport(updated, reporter), 'Report updated.');
   } catch (error) {
     next(error);
   }

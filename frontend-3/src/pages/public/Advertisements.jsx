@@ -8,6 +8,7 @@ import Badge from '../../components/common/Badge';
 import Icon from '../../components/common/icons';
 import EmptyState from '../../components/common/EmptyState';
 import { ErrorState } from '../../components/common/Feedback';
+import ImageWithFallback from '../../components/common/ImageWithFallback';
 import CompanyCardsHero from '../../components/public/CompanyCardsHero';
 
 const FILTERS = [

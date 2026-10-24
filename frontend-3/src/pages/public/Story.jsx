@@ -364,8 +364,8 @@ export default function Story() {
               at an honest rate, that someone is genuinely prepared to welcome you into this week.”
             </blockquote>
             <figcaption className="mt-8 flex flex-col items-center gap-1">
-              <span className="text-sm font-bold tracking-wider text-amber-400 uppercase">Zahid Karim</span>
-              <span className="text-xs text-slate-400">Founder &amp; Regional Steward, RentLink Northern Pakistan</span>
+              <span className="text-sm font-bold tracking-wider text-amber-400 uppercase">Sayam-ud-Din</span>
+              <span className="text-xs text-slate-400">Co-Founder &amp; Engineering Lead, RentLink Northern Pakistan</span>
             </figcaption>
           </figure>
         </div>

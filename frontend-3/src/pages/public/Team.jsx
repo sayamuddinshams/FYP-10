@@ -9,6 +9,38 @@ import EmptyState from '../../components/common/EmptyState';
 import { ErrorState } from '../../components/common/Feedback';
 import { LineSkeleton } from '../../components/common/Skeleton';
 import PublicPageHero from '../../components/public/PublicPageHero';
+import { AnimatedTeamSection } from '@/components/ui/team-section';
+
+const ANIMATED_TEAM_MEMBERS = [
+  {
+    name: 'Sayam-ud-Din',
+    image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80',
+  },
+  {
+    name: 'Nouman Azam',
+    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=600&q=80',
+  },
+  {
+    name: 'Sayad Yaqoob',
+    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=600&q=80',
+  },
+  {
+    name: 'Irfan Mujeeb',
+    image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=600&q=80',
+  },
+  {
+    name: 'Ayesha Khan',
+    image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=600&q=80',
+  },
+  {
+    name: 'Karim Hunzai',
+    image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=600&q=80',
+  },
+  {
+    name: 'Fatima Skardu',
+    image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=600&q=80',
+  },
+];
 
 const VALUES = [
   { icon: 'shield', label: 'Verified Integrity', text: 'If a single room or deed detail is questionable, our regional liaisons resolve it before it ever reaches the public.' },
@@ -25,18 +57,26 @@ export default function Team() {
       {/* High-Altitude Alpine Hero */}
       <PublicPageHero
         eyebrow="Custodians & Builders"
-        title="Six local stewards, ten mountain districts, one unified sanctuary."
-        description="We are engineers, community liaisons, and designers born and raised in Gilgit-Baltistan, determined to bring dignity and trust to regional rental housing."
+        title="Four dedicated builders, ten mountain districts, one unified platform."
+        description="We are engineers, researchers, and designers born and raised in Gilgit-Baltistan, determined to bring dignity, transparency, and trust to regional rental housing."
         image="https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=1920&q=80"
+      />
+
+      {/* Animated Fanned Card Team Section */}
+      <AnimatedTeamSection
+        title="Our Commitment to Integrity & Regional Innovation"
+        description="At RentLink, we believe in forging strong partnerships built on integrity and honesty. Our mission is to engineer high-altitude software solutions ensuring tenants and landlords succeed across all 10 mountain districts."
+        members={ANIMATED_TEAM_MEMBERS}
+        className="py-16 lg:py-24 bg-white border-b border-slate-200/80 shadow-xs"
       />
 
       {/* Team Profiles Grid */}
       <section className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
         <div className="flex flex-wrap items-end justify-between gap-6 mb-12">
           <div>
-            <span className="text-xs font-bold uppercase tracking-widest text-amber-700">The People</span>
+            <span className="text-xs font-bold uppercase tracking-widest text-amber-700">The Creators</span>
             <h2 className="mt-2 font-serif text-3xl sm:text-4xl font-bold tracking-tight text-slate-950">
-              Meet our regional operations team
+              Meet the creators & engineering team
             </h2>
           </div>
           <Link
@@ -48,9 +88,9 @@ export default function Team() {
           </Link>
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {loading &&
-            Array.from({ length: 6 }).map((_, i) => (
+            Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm">
                 <div className="flex items-center gap-4">
                   <div className="h-14 w-14 animate-pulse rounded-full bg-slate-200" />

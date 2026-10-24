@@ -1,52 +1,80 @@
-import { prisma } from '../config/db.js';
+import { ObjectId } from 'mongodb';
+import { collections, toIdQuery, normalizeDoc } from '../config/db.js';
 import { successResponse, errorResponse } from '../utils/apiResponse.js';
 
-function formatProperty(p) {
+function formatProperty(p, owner = null) {
   if (!p) return null;
+  const doc = normalizeDoc(p);
+
   let amenities = [];
-  try {
-    amenities = JSON.parse(p.amenitiesJson || '[]');
-  } catch {
-    amenities = [];
+  if (Array.isArray(doc.amenities)) {
+    amenities = doc.amenities;
+  } else if (doc.amenitiesJson) {
+    try {
+      amenities = JSON.parse(doc.amenitiesJson);
+    } catch {
+      amenities = [];
+    }
   }
-  const images = (p.images || []).map((img) => img.url);
+
+  let images = [];
+  if (Array.isArray(doc.images)) {
+    images = doc.images.map((img) => (typeof img === 'string' ? img : img.url || ''));
+  }
+
+  const ownerData = owner || doc.owner || null;
+
   return {
-    ...p,
+    ...doc,
     amenities,
-    images: images.length > 0 ? images : (p.images || []),
-    owner: p.owner ? {
-      id: p.owner.id,
-      name: p.owner.name,
-      avatar: p.owner.avatar,
-      verification: p.owner.verification,
-    } : null,
+    images,
+    owner: ownerData
+      ? {
+          id: ownerData.id || ownerData._id?.toString(),
+          name: ownerData.name,
+          avatar: ownerData.avatar || null,
+          verification: ownerData.verification || 'unverified',
+        }
+      : null,
   };
 }
 
 export async function getFavorites(req, res, next) {
   try {
     const userId = req.user.id;
-    const favorites = await prisma.favorite.findMany({
-      where: { userId },
-      include: {
-        property: {
-          include: {
-            images: { orderBy: { order: 'asc' } },
-            owner: true,
-          },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+    const favorites = await collections.favorites()
+      .find({ userId })
+      .sort({ createdAt: -1 })
+      .toArray();
 
-    const properties = favorites
-      .map((f) => f.property)
-      .filter(Boolean)
-      .map(formatProperty);
+    const propIds = favorites.map((f) => f.propertyId).filter(Boolean);
+    const properties = await collections.properties()
+      .find({ $or: [{ id: { $in: propIds } }, { _id: { $in: propIds } }] })
+      .toArray();
+
+    const ownerIds = [...new Set(properties.map((p) => p.ownerId).filter(Boolean))];
+    const owners = await collections.users()
+      .find({ $or: [{ id: { $in: ownerIds } }, { _id: { $in: ownerIds } }] })
+      .toArray();
+
+    const ownerMap = new Map();
+    for (const o of owners) {
+      ownerMap.set(o.id || o._id.toString(), o);
+    }
+
+    const propMap = new Map();
+    for (const p of properties) {
+      const owner = ownerMap.get(p.ownerId) || null;
+      propMap.set(p.id || p._id.toString(), formatProperty(p, owner));
+    }
+
+    const items = favorites
+      .map((f) => propMap.get(f.propertyId))
+      .filter(Boolean);
 
     const ids = favorites.map((f) => f.propertyId);
 
-    return successResponse(res, { ids, items: properties });
+    return successResponse(res, { ids, items });
   } catch (error) {
     next(error);
   }
@@ -61,20 +89,19 @@ export async function toggleFavorite(req, res, next) {
       return errorResponse(res, 'Property ID is required.', 400);
     }
 
-    const existing = await prisma.favorite.findUnique({
-      where: {
-        userId_propertyId: { userId, propertyId },
-      },
-    });
+    const existing = await collections.favorites().findOne({ userId, propertyId });
 
     if (existing) {
-      await prisma.favorite.delete({
-        where: { id: existing.id },
-      });
+      await collections.favorites().deleteOne({ userId, propertyId });
       return successResponse(res, { favorited: false, propertyId }, 'Removed from favorites.');
     } else {
-      await prisma.favorite.create({
-        data: { userId, propertyId },
+      const favId = new ObjectId().toString();
+      await collections.favorites().insertOne({
+        _id: favId,
+        id: favId,
+        userId,
+        propertyId,
+        createdAt: new Date(),
       });
       return successResponse(res, { favorited: true, propertyId }, 'Saved to favorites.');
     }

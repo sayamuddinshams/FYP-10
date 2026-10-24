@@ -1,3 +1,5 @@
+import { SAMPLE_CNIC_FRONT, SAMPLE_CNIC_BACK, generateCnicSvg } from './cnicTemplates';
+
 /**
  * Mock users — tenants, owners/agents and admins.
  * Password for every seeded account: rentlink123
@@ -38,6 +40,16 @@ export const MOCK_USERS = [
     joinedAt: '2025-02-17',
     status: 'active',
     verification: 'verified',
+    nadraStatus: 'nadra_verified',
+    cnic: '71501-1928374-1',
+    cnicName: 'Hunza Heritage Homes',
+    cnicDob: '1988-06-15',
+    cnicExpiry: '2031-06-15',
+    cnicLifetime: false,
+    cnicFront: SAMPLE_CNIC_FRONT,
+    cnicBack: SAMPLE_CNIC_BACK,
+    nadraTrackingId: 'NADRA-PK-884129',
+    verifiedAt: '2025-02-18T10:30:00',
     lastActivity: '2026-10-05T21:14:00',
     memberSince: 'February 2025',
     propertiesManaged: 4,
@@ -193,6 +205,16 @@ export const MOCK_USERS = [
     joinedAt: '2025-05-29',
     status: 'active',
     verification: 'pending',
+    nadraStatus: 'pending_sync',
+    cnic: '71101-4491823-7',
+    cnicName: 'Deosai Property Group',
+    cnicDob: '1985-11-20',
+    cnicExpiry: '2030-11-20',
+    cnicLifetime: false,
+    cnicFront: generateCnicSvg({ name: 'Deosai Property Group', cnic: '71101-4491823-7', dob: '20.11.1985', expiry: '20.11.2030' }),
+    cnicBack: generateCnicSvg({ cnic: '71101-4491823-7', dob: '20.11.1985', expiry: '20.11.2030', isBack: true }),
+    nadraTrackingId: 'NADRA-PK-320914',
+    verificationSubmittedAt: '2026-10-04T12:00:00',
     lastActivity: '2026-10-04T13:47:00',
     memberSince: 'May 2025',
     propertiesManaged: 5,

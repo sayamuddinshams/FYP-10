@@ -1,178 +1,280 @@
-# RentLink Backend API
+# RentLink Backend REST API (MongoDB Native Driver)
 
-A production-grade REST API backend built for the **RentLink** rental housing platform in Gilgit-Baltistan. Powered by **Node.js**, **Express**, **Prisma ORM**, and **SQLite**.
+A production-grade REST API backend built for the **RentLink** rental housing platform in Gilgit-Baltistan. Engineered with **Node.js**, **Express 4**, and the official **MongoDB Node.js Native Driver** (`mongodb`) without any ORM abstraction.
 
 ---
 
-## Tech Stack & Architecture
+## 📋 Table of Contents
+1. [Tech Stack & Architecture](#1-tech-stack--architecture)
+2. [Directory Structure](#2-directory-structure)
+3. [Environment Configuration](#3-environment-configuration)
+4. [Prerequisites & Local MongoDB](#4-prerequisites--local-mongodb)
+5. [Quick Start & Scripts](#5-quick-start--scripts)
+6. [API Endpoints Reference](#6-api-endpoints-reference)
+7. [Authentication & Security](#7-authentication--security)
+8. [Automated Testing](#8-automated-testing)
+9. [Database Inspection (MongoDB Compass)](#9-database-inspection-mongodb-compass)
 
-- **Runtime & Framework:** Node.js (ES Modules) with [Express 4](https://expressjs.com/)
-- **Database & ORM:** [Prisma ORM 5](https://www.prisma.io/) with **SQLite** (`prisma/dev.db` for zero-configuration local development; drop-in upgradeable to PostgreSQL via `schema.prisma`)
-- **Authentication & Security:** 
-  - Password hashing with [bcryptjs](https://github.com/dcodeIO/bcrypt.js) (salt factor 12)
-  - Bearer token / Cookie authentication with [jsonwebtoken (JWT)](https://github.com/auth0/node-jsonwebtoken)
+---
+
+## 1. Tech Stack & Architecture
+
+- **Runtime & Modules:** Node.js (v18+) with native ES Modules (`"type": "module"`)
+- **HTTP Framework:** [Express 4.21](https://expressjs.com/)
+- **Database Driver:** Official [MongoDB Node.js Native Driver](https://www.mongodb.com/docs/drivers/node/current/) (`mongodb` v7.7+)
+  - Centralized connection singleton with connection pooling (`maxPoolSize: 50`)
+  - Automatic index creation and unique constraint verification on boot
+  - Graceful connection termination on `SIGINT` and `SIGTERM`
+  - Zero ORM / No Mongoose / No Prisma / No MySQL or SQLite dependencies
+- **Authentication & Authorization:**
+  - Password hashing with [bcryptjs](https://github.com/dcodeIO/bcrypt.js)
+  - Bearer token & HTTP-only Cookie authentication with [jsonwebtoken (JWT)](https://github.com/auth0/node-jsonwebtoken)
   - Role-Based Access Control (RBAC) middleware for `tenant`, `owner`, and `admin` roles
-  - Cross-Origin Resource Sharing (CORS) with credentials support
-- **Data Validation:** Schema validation powered by [Zod](https://zod.dev/)
-- **Automated Testing:** Built-in Node test runner (`node --test`) paired with [Supertest](https://github.com/ladjs/supertest)
+  - Parameterized queries and ObjectId sanitization to prevent NoSQL query injection
+- **Input Validation:** Strict schema validation with [Zod](https://zod.dev/)
+- **Automated Testing:** Built-in Node test runner (`node --test`) with [Supertest](https://github.com/ladjs/supertest)
 
 ---
 
-## Directory Structure
+## 2. Directory Structure
 
 ```
 backend/
-├── prisma/
-│   ├── schema.prisma       # Prisma data model (Users, Properties, Visits, Reviews, Messages, etc.)
-│   ├── seed.js             # Seed script with real Gilgit-Baltistan listings and test accounts
-│   └── dev.db              # SQLite local database (generated, git-ignored)
 ├── src/
-│   ├── config/             # Environment variables, constants, and Prisma database client
-│   ├── controllers/        # Request handlers (auth, properties, visits, messages, admin, etc.)
-│   ├── middleware/         # Auth (JWT), RBAC, error handling, request validator
+│   ├── config/             # MongoDB connection singleton (db.js), constants, environment (env.js)
+│   ├── controllers/        # Request handlers utilizing MongoDB native driver
+│   │   ├── authController.js         # Register, login, profile, password, getMe
+│   │   ├── propertyController.js     # Search, filter, CRUD, views, stats
+│   │   ├── visitController.js        # Visit tour requests and status updates
+│   │   ├── favoriteController.js     # Saved properties wishlist
+│   │   ├── messageController.js      # Direct chat conversations & messages
+│   │   ├── notificationController.js # User notifications feed
+│   │   ├── transactionController.js  # Rent payments, owner earnings, admin financials
+│   │   ├── adController.js           # Sponsored partner banners & click tracking
+│   │   ├── reportController.js       # Trust & safety content moderation reports
+│   │   ├── userController.js         # User management & landlord verification
+│   │   └── adminController.js        # Dashboard overview KPIs, platform settings, audit logs
+│   ├── db/                 # Native MongoDB database seed script (seed.js) & DB README
+│   ├── middleware/         # Security & pipeline middleware
+│   │   ├── auth.js                   # JWT verification and user resolution
+│   │   ├── rbac.js                   # Role-based access control guard
+│   │   ├── validate.js               # Zod request schema validator
+│   │   └── errorHandler.js           # 404 handler and centralized error response
 │   ├── routes/             # Modular Express routers
-│   ├── utils/              # API response helpers, JWT token signing/verification, logger
-│   ├── validators/         # Zod validation schemas
-│   ├── app.js              # Express app setup and middleware pipeline
-│   └── server.js           # Server entry point (starts HTTP listener)
+│   ├── utils/              # API response helpers, JWT sign/verify, logger
+│   ├── validators/         # Zod schemas for properties, auth, visits
+│   ├── app.js              # Express app setup, CORS, JSON parsers, route mounting
+│   └── server.js           # HTTP listener entry point (connects DB and starts port 5000)
 ├── tests/
-│   └── api.test.js         # Integration test suite covering auth, listings, stats, and admin
-├── .env.example            # Example environment configuration template
-└── package.json            # Backend scripts and dependencies
+│   └── api.test.js         # 17 automated integration tests running against local MongoDB
+├── .env.example            # Environment variables template
+└── package.json            # Dependencies, test scripts, and seed scripts
 ```
 
 ---
 
-## Quick Start Guide
+## 3. Environment Configuration
 
-### 1. Environment Configuration
-
-Copy the sample environment file to `.env`:
-
+Copy the template to create your local `.env`:
 ```bash
-# From workspace root
-copy backend\.env.example backend\.env
-# or in Linux/macOS: cp backend/.env.example backend/.env
+# Windows PowerShell
+copy .env.example .env
+
+# macOS / Linux
+cp .env.example .env
 ```
 
-Default `.env` settings:
+Default configuration (`backend/.env`):
 ```env
 PORT=5000
 NODE_ENV=development
-DATABASE_URL="file:./dev.db"
+MONGODB_URI="mongodb://127.0.0.1:27017"
+MONGODB_DB_NAME="rentlink"
 JWT_SECRET="rentlink_super_secret_jwt_key_2026_secure_random"
 JWT_EXPIRES_IN="7d"
 CORS_ORIGIN="http://localhost:5175,http://localhost:5173,http://localhost:3000"
 ```
 
-### 2. Install Dependencies
+---
 
-From the repository root:
+## 4. Prerequisites & Local MongoDB
+
+1. **Node.js:** v18.0.0 or higher
+2. **MongoDB Community Server:** Running on `127.0.0.1:27017`
+
+### Checking the MongoDB Service on Windows
+```powershell
+Get-Service -Name MongoDB
+```
+If not running:
+```powershell
+Start-Service -Name MongoDB
+```
+
+---
+
+## 5. Quick Start & Scripts
+
+### 1. Install Backend Dependencies
 ```bash
 npm install
 ```
 
-### 3. Initialize & Seed Database
-
-Generate the Prisma Client and populate the SQLite database with Gilgit-Baltistan districts, verified properties, and default user accounts:
-
+### 2. Seed the MongoDB Database
+Populate MongoDB with Gilgit-Baltistan listings, test accounts, platform settings, and indexes:
 ```bash
-# From repository root:
-npm run backend:seed
-
-# Or inside the backend/ directory:
-cd backend
-npm run prisma:generate
 npm run seed
 ```
 
-### 4. Run the Backend Server
-
+### 3. Start Development Server
 ```bash
-# From repository root (starts backend with file-watch on http://localhost:5000):
+npm run dev
+# or:
 npm run dev:backend
-
-# Or run both frontend and backend concurrently:
-npm run dev          # Starts Vite frontend on http://localhost:5175
-npm run dev:backend  # Starts Express backend on http://localhost:5000
 ```
+The server starts at **http://localhost:5000/** and auto-reloads upon code modifications.
 
 ---
 
-## Seed Accounts & Test Credentials
-
-The seed script creates ready-to-test accounts across all platform roles:
-
-| Role | Email | Password | Permissions |
-| :--- | :--- | :--- | :--- |
-| **Tenant** | `tenant@rentlink.pk` | `Password123!` | Browse, schedule visits, favorite listings, direct message owners |
-| **Owner / Agent** | `owner@rentlink.pk` | `Password123!` | Add/edit properties, manage visit requests, view earnings & inquiries |
-| **Admin** | `admin@rentlink.pk` | `Admin123!` | Moderate properties, manage users, platform analytics, system settings |
-
----
-
-## API Endpoints Reference
+## 6. API Endpoints Reference
 
 Base URL: `http://localhost:5000`
 
 ### Health Checks
-- `GET /health` & `GET /api/health` — Service status, timestamp, and environment
+- `GET /health` & `GET /api/health` — Returns service status and environment.
 
 ### Authentication (`/api/auth`)
-- `POST /api/auth/register` — Register a new account (`name`, `email`, `password`, `role`, `phone`)
-- `POST /api/auth/login` — Login with email and password; returns JWT token and user profile
-- `POST /api/auth/logout` — Invalidate user session
-- `GET /api/auth/me` — Retrieve currently authenticated user profile
-- `PUT /api/auth/profile` — Update user profile details
+- `POST /api/auth/register` — Register a new account (`name`, `email`, `password`, `role`, `phone`, `district`, `city`, `area`).
+- `POST /api/auth/login` — Sign in with email and password; returns JWT token, sets cookie, and returns user object.
+- `POST /api/auth/logout` — Clears authentication cookie.
+- `GET /api/auth/me` *(Authenticated)* — Returns current profile with related counts (properties, visits, favorites).
+- `PUT /api/auth/profile` *(Authenticated)* — Updates profile metadata (phone, district, city, address, bio, avatar).
+- `POST /api/auth/change-password` *(Authenticated)* — Updates password after verifying current password.
 
 ### Properties & Listings (`/api/properties`)
-- `GET /api/properties` — List verified properties with filtering (`district`, `type`, `minPrice`, `maxPrice`, `search`)
-- `GET /api/properties/stats` — Platform-wide listing counts, districts, and pricing metrics
-- `GET /api/properties/featured` — Featured listings on home hero
-- `GET /api/properties/:id` — Property details including amenities, host info, and verified reviews
-- `POST /api/properties` *(Owner/Admin)* — Create a new property listing with GPS coordinates
-- `PUT /api/properties/:id` *(Owner/Admin)* — Update existing listing
-- `DELETE /api/properties/:id` *(Owner/Admin)* — Remove listing
+- `GET /api/properties` — Discover properties with pagination and filtering:
+  - Query parameters: `type`, `district`, `city`, `area`, `minPrice`, `maxPrice`, `query`, `status`, `sort`, `page`, `limit`.
+- `GET /api/properties/featured` — Returns top featured properties for homepage showcase.
+- `GET /api/properties/stats` — Platform counts grouped by district and property type.
+- `GET /api/properties/my` *(Owner/Admin)* — Returns listings owned by authenticated user with visit and favorite counts.
+- `GET /api/properties/:id` — Full listing detail with owner profile and amenities.
+- `GET /api/properties/:id/related` — Retrieves related properties in the same district or category.
+- `POST /api/properties` *(Owner/Admin)* — Create a new listing with images and amenities.
+- `PUT /api/properties/:id` *(Owner/Admin)* — Update existing listing (owner edits on approved properties re-trigger review).
+- `DELETE /api/properties/:id` *(Owner/Admin)* — Deletes property and cascades favorites/visits.
+- `PATCH /api/properties/:id/pause` *(Owner/Admin)* — Toggles listing status between approved and suspended.
+- `POST /api/properties/:id/view` — Increments listing view counter.
 
 ### Visits & Tours (`/api/visits`)
-- `POST /api/visits` *(Tenant)* — Request an in-person or video property visit
-- `GET /api/visits/my` — Retrieve visits requested by or assigned to the current user
-- `PATCH /api/visits/:id/status` *(Owner/Admin)* — Accept, reject, or mark visit completed
-
-### Messages & Threads (`/api/messages`)
-- `GET /api/messages/conversations` — List active conversation threads
-- `GET /api/messages/conversations/:id` — Get messages within a thread
-- `POST /api/messages` — Send a direct message
-- `PATCH /api/messages/:id/read` — Mark message as read
+- `POST /api/visits` *(Tenant)* — Schedules property visit with date, time, and note.
+- `GET /api/visits/my` *(Authenticated)* — Returns user's visits (as tenant or owner).
+- `GET /api/visits/all` *(Admin)* — Platform-wide visit logs.
+- `GET /api/visits/:id` *(Authenticated)* — Detailed visit inspection record.
+- `PATCH /api/visits/:id/status` *(Owner/Admin)* — Updates visit status (`approved`, `rejected`, `rescheduled`, `completed`).
+- `DELETE /api/visits/:id` *(Tenant/Admin)* — Cancels scheduled visit.
 
 ### Favorites (`/api/favorites`)
-- `GET /api/favorites` *(Tenant)* — List saved properties
-- `POST /api/favorites/toggle` *(Tenant)* — Save / unsave a property
+- `GET /api/favorites` *(Tenant)* — List saved properties with full listing data.
+- `POST /api/favorites/toggle` *(Tenant)* — Save / unsave a property ID.
 
-### Advertisements (`/api/advertisements`)
-- `GET /api/advertisements/active` — Retrieve currently active sponsored banner ads
+### Messages & Threads (`/api/messages`)
+- `GET /api/messages/conversations` *(Authenticated)* — List user's active chat conversations with last message preview.
+- `GET /api/messages/conversations/:id` *(Authenticated)* — Get full conversation message history and marks unread messages as read.
+- `POST /api/messages/open` *(Authenticated)* — Opens or retrieves an existing conversation thread for a property.
+- `POST /api/messages/conversations/:id` *(Authenticated)* — Sends message and triggers recipient notification.
+- `PATCH /api/messages/conversations/:id/read` *(Authenticated)* — Explicitly marks thread messages as read.
 
 ### Notifications (`/api/notifications`)
-- `GET /api/notifications` — List user notifications
-- `PATCH /api/notifications/:id/read` — Mark notification as read
-- `POST /api/notifications/read-all` — Mark all notifications as read
+- `GET /api/notifications` *(Authenticated)* — Returns user notification feed and unread badge count.
+- `PATCH /api/notifications/:id/read` *(Authenticated)* — Marks notification as read.
+- `POST /api/notifications/read-all` *(Authenticated)* — Marks all notifications as read.
+- `DELETE /api/notifications/:id` *(Authenticated)* — Removes notification item.
+
+### Financials & Transactions (`/api/transactions`)
+- `GET /api/transactions/my` *(Authenticated)* — User transactions ledger.
+- `GET /api/transactions/owner-summary` *(Owner/Admin)* — Aggregated owner earnings, platform fees, and gross rent.
+- `GET /api/transactions/admin-summary` *(Admin)* — Platform-wide revenue metrics.
+- `POST /api/transactions` *(Authenticated)* — Processes rent transaction with 5% platform fee calculation.
+- `PATCH /api/transactions/:id/payout` *(Admin)* — Updates payout status (`pending`, `eligible`, `processed`).
+
+### Advertisements (`/api/advertisements`)
+- `GET /api/advertisements/active` — Public active sponsored banners within valid date range.
+- `GET /api/advertisements/all` *(Admin)* — List all ad campaigns.
+- `POST /api/advertisements` *(Admin)* — Create ad campaign.
+- `PUT /api/advertisements/:id` *(Admin)* — Update ad campaign.
+- `POST /api/advertisements/:id/interact` — Tracks banner impression or click.
+- `DELETE /api/advertisements/:id` *(Admin)* — Deletes ad.
+
+### Moderation & Reports (`/api/reports`)
+- `POST /api/reports` *(Authenticated)* — File a content moderation report.
+- `GET /api/reports` *(Admin)* — List moderation reports with optional status filter.
+- `PATCH /api/reports/:id` *(Admin)* — Update report resolution and status.
+
+### Users & Landlords (`/api/users`)
+- `GET /api/users` *(Admin)* — Search, filter, and paginate platform users.
+- `GET /api/users/owners` *(Admin)* — List all registered property owners with property counts.
+- `GET /api/users/:id` — Public profile of user and their approved properties.
+- `PATCH /api/users/:id/status` *(Admin)* — Activate or suspend user account.
+- `PATCH /api/users/:id/verification` *(Admin)* — Update landlord verification (`unverified`, `pending`, `verified`, `rejected`).
 
 ### Admin Portal (`/api/admin`)
-- `GET /api/admin/overview` *(Admin)* — Aggregate metrics (total users, listings, visits, revenue)
-- `GET /api/admin/users` *(Admin)* — Search and manage user accounts
-- `PATCH /api/admin/properties/:id/status` *(Admin)* — Approve, reject, or flag listings
-- `GET /api/admin/settings` *(Admin)* — System platform configuration and flags
+- `GET /api/admin/overview` *(Admin)* — System KPI metrics.
+- `GET /api/admin/counts` *(Admin)* — Real-time badge counts.
+- `GET /api/admin/settings` *(Admin)* — Global platform settings (fee %, auto-approve flag).
+- `POST /api/admin/settings` *(Admin)* — Updates platform configuration and creates audit log.
+- `GET /api/admin/audit-logs` *(Admin)* — Administrative audit trail logs.
 
 ---
 
-## Running Automated Tests
+## 7. Authentication & Security
 
-Run the integration test suite (covering authentication, property querying, role enforcement, analytics, and favorites):
+1. **Password Security:** All passwords hashed using `bcryptjs` with salt factor 10.
+2. **Session / JWT Tokens:** Issued upon login via `jsonwebtoken`, containing `{ id, email, role }` with 7-day expiration.
+3. **Dual Token Delivery:** Tokens returned in response JSON and set as secure, HTTP-only cookies (`SameSite: Lax`).
+4. **RBAC Guard (`src/middleware/rbac.js`):** Enforces user roles (`tenant`, `owner`, `admin`) on sensitive endpoints.
+5. **NoSQL Injection Protection:** Query strings are sanitized, inputs validated by Zod schemas, and IDs processed through `toIdQuery(id)`.
+
+---
+
+## 8. Automated Testing
+
+The backend includes a comprehensive automated test suite testing the native MongoDB implementation:
 
 ```bash
-# From workspace root
-npm test             # or: npm run backend:test
-
-# Or from backend/ directory
 npm test
 ```
+
+### Passing Test Output:
+```
+[INFO] - ✓ MongoDB connected successfully to database "rentlink" via native driver 
+[INFO] - ✓ MongoDB indexes verified and established successfully. 
+▶ RentLink Backend API Test Suite (MongoDB Native)
+  ✔ GET /health returns 200 OK
+  ✔ POST /api/auth/login authenticates seeded tenant user
+  ✔ POST /api/auth/login authenticates canonical tenant@rentlink.pk with Password123!
+  ✔ POST /api/auth/login authenticates seeded owner user
+  ✔ POST /api/auth/login authenticates canonical owner@rentlink.pk with Password123!
+  ✔ POST /api/auth/login authenticates seeded admin user
+  ✔ POST /api/auth/login authenticates canonical admin@rentlink.pk with Admin123!
+  ✔ GET /api/auth/me returns authenticated user details
+  ✔ GET /api/properties returns list of approved properties from MongoDB
+  ✔ GET /api/properties/:id returns single property details
+  ✔ GET /api/properties/stats returns analytics statistics
+  ✔ GET /api/advertisements/active returns active ads
+  ✔ POST /api/favorites/toggle toggles favorite property for authenticated tenant
+  ✔ GET /api/notifications returns user notification list
+  ✔ GET /api/visits/my returns visit requests for tenant
+  ✔ GET /api/admin/overview returns dashboard metrics for admin
+  ✔ GET /api/admin/settings returns system platform settings
+✔ RentLink Backend API Test Suite (MongoDB Native) (17 tests passing, 0 failing)
+```
+
+---
+
+## 9. Database Inspection (MongoDB Compass)
+
+1. Open **MongoDB Compass**.
+2. Connect to `mongodb://127.0.0.1:27017`.
+3. Open the **`rentlink`** database.
+4. Inspect the 12 collections (`users`, `properties`, `visitRequests`, `transactions`, etc.).
+5. For complete schema specifications, see [backend/src/db/README.md](file:///c:/Users/uddin/Downloads/sq/backend/src/db/README.md).

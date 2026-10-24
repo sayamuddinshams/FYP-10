@@ -2,20 +2,20 @@ import { test, describe, before, after } from 'node:test';
 import assert from 'node:assert';
 import request from 'supertest';
 import app from '../src/app.js';
-import { prisma } from '../src/config/db.js';
+import { connectDB, closeDB } from '../src/config/db.js';
 
-describe('RentLink Backend API Test Suite', () => {
+describe('RentLink Backend API Test Suite (MongoDB Native)', () => {
   let tenantToken = '';
   let ownerToken = '';
   let adminToken = '';
   let testPropertyId = '';
 
   before(async () => {
-    await prisma.$connect();
+    await connectDB();
   });
 
   after(async () => {
-    await prisma.$disconnect();
+    await closeDB();
   });
 
   test('GET /health returns 200 OK', async () => {
@@ -98,7 +98,18 @@ describe('RentLink Backend API Test Suite', () => {
     assert.ok(res.body.data.token);
   });
 
-  test('GET /api/properties returns list of approved properties', async () => {
+  test('GET /api/auth/me returns authenticated user details', async () => {
+    const res = await request(app)
+      .get('/api/auth/me')
+      .set('Authorization', `Bearer ${tenantToken}`);
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.success, true);
+    assert.ok(res.body.data.user.id);
+    assert.ok(res.body.data.user._count);
+  });
+
+  test('GET /api/properties returns list of approved properties from MongoDB', async () => {
     const res = await request(app).get('/api/properties');
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.body.success, true);
@@ -148,6 +159,16 @@ describe('RentLink Backend API Test Suite', () => {
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.body.success, true);
     assert.ok(Array.isArray(res.body.data.items));
+  });
+
+  test('GET /api/visits/my returns visit requests for tenant', async () => {
+    const res = await request(app)
+      .get('/api/visits/my')
+      .set('Authorization', `Bearer ${tenantToken}`);
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.success, true);
+    assert.ok(Array.isArray(res.body.data));
   });
 
   test('GET /api/admin/overview returns dashboard metrics for admin', async () => {

@@ -1,73 +1,96 @@
-import { prisma } from '../config/db.js';
+import { ObjectId } from 'mongodb';
+import { collections, toIdQuery, normalizeDoc } from '../config/db.js';
 import { successResponse, errorResponse } from '../utils/apiResponse.js';
 
-function formatConversation(c, currentUserId) {
+function formatConversation(c, currentUserId, property = null, p1 = null, p2 = null, msgs = []) {
   if (!c) return null;
-  const isP1 = c.participant1Id === currentUserId;
-  const other = isP1 ? c.participant2 : c.participant1;
-  const otherId = isP1 ? c.participant2Id : c.participant1Id;
+  const doc = normalizeDoc(c);
+  const isP1 = doc.participant1Id === currentUserId;
+  const otherUser = isP1 ? p2 : p1;
+  const otherId = isP1 ? doc.participant2Id : doc.participant1Id;
 
-  const messages = (c.messages || []).map((m) => ({
-    id: m.id,
-    senderId: m.senderId,
-    text: m.text,
-    read: m.read,
-    at: m.createdAt.toISOString(),
-  }));
+  const messages = msgs.map((m) => {
+    const mDoc = normalizeDoc(m);
+    const createdAt = mDoc.createdAt instanceof Date ? mDoc.createdAt.toISOString() : (mDoc.createdAt || new Date().toISOString());
+    return {
+      id: mDoc.id,
+      senderId: mDoc.senderId,
+      text: mDoc.text,
+      read: Boolean(mDoc.read),
+      at: createdAt,
+    };
+  });
 
   const lastMessage = messages[messages.length - 1] || null;
-  const unreadCount = (c.messages || []).filter(
-    (m) => m.senderId !== currentUserId && !m.read
-  ).length;
+  const unreadCount = messages.filter((m) => m.senderId !== currentUserId && !m.read).length;
+
+  const propImages = Array.isArray(property?.images) ? property.images : [];
+  const firstImage = propImages.length > 0
+    ? (typeof propImages[0] === 'string' ? propImages[0] : propImages[0]?.url || null)
+    : null;
+
+  const updatedAtStr = doc.updatedAt instanceof Date ? doc.updatedAt.toISOString() : (doc.updatedAt || new Date().toISOString());
 
   return {
-    id: c.id,
-    propertyId: c.propertyId,
-    property: c.property
+    id: doc.id,
+    propertyId: doc.propertyId,
+    property: property
       ? {
-          id: c.property.id,
-          title: c.property.title,
-          image: c.property.images?.[0]?.url || null,
-          location: `${c.property.area}, ${c.property.city}`,
+          id: property.id || property._id?.toString(),
+          title: property.title,
+          image: firstImage,
+          location: `${property.area || ''}, ${property.city || ''}`,
         }
       : null,
-    other: other
+    other: otherUser
       ? {
-          id: other.id,
-          name: other.name,
-          role: other.role,
-          avatar: other.avatar,
-          verification: other.verification,
+          id: otherUser.id || otherUser._id?.toString(),
+          name: otherUser.name,
+          role: otherUser.role,
+          avatar: otherUser.avatar,
+          verification: otherUser.verification,
         }
       : { id: otherId, name: 'User' },
     unread: unreadCount,
     lastMessage,
-    updatedAt: c.updatedAt.toISOString(),
+    updatedAt: updatedAtStr,
     messages,
-    participants: [c.participant1Id, c.participant2Id],
+    participants: [doc.participant1Id, doc.participant2Id],
   };
+}
+
+async function populateConversationDetails(c, currentUserId) {
+  const doc = normalizeDoc(c);
+  const cId = doc.id;
+
+  const [property, p1, p2, messages] = await Promise.all([
+    collections.properties().findOne(toIdQuery(doc.propertyId)),
+    collections.users().findOne(toIdQuery(doc.participant1Id)),
+    collections.users().findOne(toIdQuery(doc.participant2Id)),
+    collections.messages()
+      .find({ conversationId: cId })
+      .sort({ createdAt: 1 })
+      .toArray(),
+  ]);
+
+  return formatConversation(doc, currentUserId, property, p1, p2, messages);
 }
 
 export async function getConversations(req, res, next) {
   try {
     const userId = req.user.id;
-    const conversations = await prisma.conversation.findMany({
-      where: {
-        OR: [{ participant1Id: userId }, { participant2Id: userId }],
-      },
-      include: {
-        property: { include: { images: { orderBy: { order: 'asc' }, take: 1 } } },
-        participant1: true,
-        participant2: true,
-        messages: { orderBy: { createdAt: 'asc' } },
-      },
-      orderBy: { updatedAt: 'desc' },
-    });
+    const conversations = await collections.conversations()
+      .find({
+        $or: [{ participant1Id: userId }, { participant2Id: userId }],
+      })
+      .sort({ updatedAt: -1 })
+      .toArray();
 
-    return successResponse(
-      res,
-      conversations.map((c) => formatConversation(c, userId))
+    const formatted = await Promise.all(
+      conversations.map((c) => populateConversationDetails(c, userId))
     );
+
+    return successResponse(res, formatted);
   } catch (error) {
     next(error);
   }
@@ -78,16 +101,7 @@ export async function getConversation(req, res, next) {
     const { id } = req.params;
     const userId = req.user.id;
 
-    const conversation = await prisma.conversation.findUnique({
-      where: { id },
-      include: {
-        property: { include: { images: { orderBy: { order: 'asc' }, take: 1 } } },
-        participant1: true,
-        participant2: true,
-        messages: { orderBy: { createdAt: 'asc' } },
-      },
-    });
-
+    const conversation = await collections.conversations().findOne(toIdQuery(id));
     if (!conversation) {
       return errorResponse(res, 'Conversation not found.', 404);
     }
@@ -100,17 +114,20 @@ export async function getConversation(req, res, next) {
       return errorResponse(res, 'Access denied.', 403);
     }
 
+    const cId = conversation.id || conversation._id.toString();
+
     // Mark unread messages sent by other user as read
-    await prisma.message.updateMany({
-      where: {
-        conversationId: id,
-        senderId: { not: userId },
+    await collections.messages().updateMany(
+      {
+        conversationId: cId,
+        senderId: { $ne: userId },
         read: false,
       },
-      data: { read: true },
-    });
+      { $set: { read: true } }
+    );
 
-    return successResponse(res, formatConversation(conversation, userId));
+    const formatted = await populateConversationDetails(conversation, userId);
+    return successResponse(res, formatted);
   } catch (error) {
     next(error);
   }
@@ -125,45 +142,36 @@ export async function openConversation(req, res, next) {
       return errorResponse(res, 'propertyId and otherUserId are required.', 400);
     }
 
-    // Ensure consistent participant ordering for unique index
     const [p1, p2] =
       currentUserId < otherUserId
         ? [currentUserId, otherUserId]
         : [otherUserId, currentUserId];
 
-    let conversation = await prisma.conversation.findFirst({
-      where: {
-        propertyId,
-        OR: [
-          { participant1Id: p1, participant2Id: p2 },
-          { participant1Id: p2, participant2Id: p1 },
-        ],
-      },
-      include: {
-        property: { include: { images: { orderBy: { order: 'asc' }, take: 1 } } },
-        participant1: true,
-        participant2: true,
-        messages: { orderBy: { createdAt: 'asc' } },
-      },
+    let conversation = await collections.conversations().findOne({
+      propertyId,
+      $or: [
+        { participant1Id: p1, participant2Id: p2 },
+        { participant1Id: p2, participant2Id: p1 },
+      ],
     });
 
     if (!conversation) {
-      conversation = await prisma.conversation.create({
-        data: {
-          propertyId,
-          participant1Id: p1,
-          participant2Id: p2,
-        },
-        include: {
-          property: { include: { images: { orderBy: { order: 'asc' }, take: 1 } } },
-          participant1: true,
-          participant2: true,
-          messages: true,
-        },
-      });
+      const cId = new ObjectId().toString();
+      const newConv = {
+        _id: cId,
+        id: cId,
+        propertyId,
+        participant1Id: p1,
+        participant2Id: p2,
+        updatedAt: new Date(),
+        createdAt: new Date(),
+      };
+      await collections.conversations().insertOne(newConv);
+      conversation = newConv;
     }
 
-    return successResponse(res, formatConversation(conversation, currentUserId));
+    const formatted = await populateConversationDetails(conversation, currentUserId);
+    return successResponse(res, formatted);
   } catch (error) {
     next(error);
   }
@@ -179,11 +187,7 @@ export async function sendMessage(req, res, next) {
       return errorResponse(res, 'Message text cannot be empty.', 400);
     }
 
-    const conversation = await prisma.conversation.findUnique({
-      where: { id },
-      include: { property: true },
-    });
-
+    const conversation = await collections.conversations().findOne(toIdQuery(id));
     if (!conversation) {
       return errorResponse(res, 'Conversation not found.', 404);
     }
@@ -197,32 +201,43 @@ export async function sendMessage(req, res, next) {
         ? conversation.participant2Id
         : conversation.participant1Id;
 
-    const message = await prisma.message.create({
-      data: {
-        conversationId: id,
-        senderId,
-        text: text.trim(),
-      },
-    });
+    const cId = conversation.id || conversation._id.toString();
+    const msgId = new ObjectId().toString();
+    const messageDoc = {
+      _id: msgId,
+      id: msgId,
+      conversationId: cId,
+      senderId,
+      text: text.trim(),
+      read: false,
+      createdAt: new Date(),
+    };
+
+    await collections.messages().insertOne(messageDoc);
 
     // Update conversation timestamp
-    await prisma.conversation.update({
-      where: { id },
-      data: { updatedAt: new Date() },
-    });
+    await collections.conversations().updateOne(
+      toIdQuery(id),
+      { $set: { updatedAt: new Date() } }
+    );
 
     // Send notification to recipient
-    await prisma.notification.create({
-      data: {
-        userId: recipientId,
-        type: 'message',
-        title: 'New Message',
-        body: `${req.user.name} sent you a message about "${conversation.property?.title || 'property'}".`,
-        link: req.user.role === 'owner' ? '/tenant/messages' : '/owner/messages',
-      },
+    const property = await collections.properties().findOne(toIdQuery(conversation.propertyId));
+    const notifId = new ObjectId().toString();
+    await collections.notifications().insertOne({
+      _id: notifId,
+      id: notifId,
+      userId: recipientId,
+      type: 'message',
+      title: 'New Message',
+      body: `${req.user.name} sent you a message about "${property?.title || 'property'}".`,
+      link: req.user.role === 'owner' ? '/tenant/messages' : '/owner/messages',
+      read: false,
+      createdAt: new Date(),
     });
 
-    return successResponse(res, message, 'Message sent successfully.', 201);
+    const responseMsg = normalizeDoc(messageDoc);
+    return successResponse(res, responseMsg, 'Message sent successfully.', 201);
   } catch (error) {
     next(error);
   }
@@ -232,15 +247,17 @@ export async function markRead(req, res, next) {
   try {
     const { id } = req.params;
     const userId = req.user.id;
+    const conversation = await collections.conversations().findOne(toIdQuery(id));
+    const cId = conversation ? (conversation.id || conversation._id.toString()) : id;
 
-    await prisma.message.updateMany({
-      where: {
-        conversationId: id,
-        senderId: { not: userId },
+    await collections.messages().updateMany(
+      {
+        conversationId: cId,
+        senderId: { $ne: userId },
         read: false,
       },
-      data: { read: true },
-    });
+      { $set: { read: true } }
+    );
 
     return successResponse(res, null, 'Messages marked as read.');
   } catch (error) {

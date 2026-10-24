@@ -1,15 +1,15 @@
 import app from './app.js';
 import { ENV } from './config/env.js';
-import { prisma } from './config/db.js';
+import { connectDB, closeDB } from './config/db.js';
 import { logger } from './utils/logger.js';
 
 const PORT = ENV.PORT || 5000;
 
 async function startServer() {
   try {
-    // Verify database connection
-    await prisma.$connect();
-    logger.info('Database connected successfully (SQLite / Prisma).');
+    // Verify database connection & ensure indexes
+    await connectDB();
+    logger.info('Database connected successfully to MongoDB via Native Driver.');
 
     const server = app.listen(PORT, () => {
       logger.info(`RentLink Backend running at http://localhost:${PORT}`);
@@ -20,7 +20,7 @@ async function startServer() {
     const shutdown = async (signal) => {
       logger.info(`Received ${signal}. Shutting down gracefully...`);
       server.close(async () => {
-        await prisma.$disconnect();
+        await closeDB();
         logger.info('Closed database connection and HTTP server.');
         process.exit(0);
       });

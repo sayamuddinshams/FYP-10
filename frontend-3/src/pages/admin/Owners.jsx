@@ -53,6 +53,7 @@ export default function Owners() {
   const debouncedQuery = useDebounce(query, 350);
   const [verificationFilter, setVerificationFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [previewCard, setPreviewCard] = useState(null);
 
   const { data, loading, error, reload } = useAsync(() => userService.listOwners(), []);
 
@@ -357,6 +358,83 @@ export default function Owners() {
               </p>
             </div>
 
+            {/* CNIC Documents & NADRA section */}
+            <div className="rounded-xl border border-line bg-slate-50/60 p-4 text-sm">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
+                  CNIC &amp; NADRA Verification
+                </p>
+                <span
+                  className={cn(
+                    'rounded-full px-2 py-0.5 text-[10px] font-bold uppercase',
+                    viewOwner.verification === 'verified'
+                      ? 'bg-emerald-100 text-emerald-800'
+                      : viewOwner.verification === 'pending'
+                        ? 'bg-amber-100 text-amber-800'
+                        : 'bg-slate-200 text-slate-700'
+                  )}
+                >
+                  {viewOwner.verification === 'verified'
+                    ? 'NADRA Verified'
+                    : viewOwner.verification === 'pending'
+                      ? 'Sync Queued'
+                      : 'Unverified'}
+                </span>
+              </div>
+
+              {viewOwner.cnic ? (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <span className="text-slate-500">CNIC Number:</span>
+                      <p className="font-mono font-bold text-slate-900">{viewOwner.cnic}</p>
+                    </div>
+                    <div>
+                      <span className="text-slate-500">Name on CNIC:</span>
+                      <p className="font-semibold text-slate-900">{viewOwner.cnicName || viewOwner.name}</p>
+                    </div>
+                    {viewOwner.nadraTrackingId && (
+                      <div className="col-span-2">
+                        <span className="text-slate-500">NADRA Tracking ID:</span>
+                        <p className="font-mono text-slate-700">{viewOwner.nadraTrackingId}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {(viewOwner.cnicFront || viewOwner.cnicBack) && (
+                    <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200">
+                      {viewOwner.cnicFront && (
+                        <div>
+                          <p className="text-[10px] font-semibold text-slate-600 mb-1">CNIC Front</p>
+                          <div
+                            onClick={() => setPreviewCard({ title: `${viewOwner.name} - CNIC Front`, image: viewOwner.cnicFront })}
+                            className="aspect-[1.58/1] overflow-hidden rounded-lg border border-slate-300 bg-white cursor-pointer hover:border-brand-500 transition-colors"
+                          >
+                            <img src={viewOwner.cnicFront} alt="Front" className="h-full w-full object-cover" />
+                          </div>
+                        </div>
+                      )}
+                      {viewOwner.cnicBack && (
+                        <div>
+                          <p className="text-[10px] font-semibold text-slate-600 mb-1">CNIC Back</p>
+                          <div
+                            onClick={() => setPreviewCard({ title: `${viewOwner.name} - CNIC Back`, image: viewOwner.cnicBack })}
+                            className="aspect-[1.58/1] overflow-hidden rounded-lg border border-slate-300 bg-white cursor-pointer hover:border-brand-500 transition-colors"
+                          >
+                            <img src={viewOwner.cnicBack} alt="Back" className="h-full w-full object-cover" />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-xs text-slate-500 mt-1">
+                  Owner has not uploaded CNIC documents yet.
+                </p>
+              )}
+            </div>
+
             <div className="flex flex-wrap justify-end gap-2">
               {viewOwner.verification !== 'verified' && (
                 <Button variant="success" onClick={() => { handleVerify(viewOwner); setViewOwner(null); }}>
@@ -400,6 +478,31 @@ export default function Owners() {
             error={!rejectReason.trim() ? 'A reason is required to reject verification.' : ''}
           />
         </form>
+      </Modal>
+
+      {/* Document preview modal */}
+      <Modal
+        open={Boolean(previewCard)}
+        onClose={() => setPreviewCard(null)}
+        title={previewCard?.title || 'CNIC Document'}
+        size="lg"
+      >
+        {previewCard && (
+          <div className="space-y-4">
+            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-900 shadow-inner flex items-center justify-center p-2">
+              <img
+                src={previewCard.image}
+                alt={previewCard.title}
+                className="max-h-[70vh] w-auto max-w-full rounded-xl object-contain shadow-lg"
+              />
+            </div>
+            <div className="flex justify-end">
+              <Button variant="outline" size="sm" onClick={() => setPreviewCard(null)}>
+                Close Preview
+              </Button>
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   );
