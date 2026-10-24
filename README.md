@@ -20,7 +20,7 @@ For in-depth explanations of individual parts of the application, please refer t
 
 | Module | Location | Description |
 | :--- | :--- | :--- |
-| 🌐 **Frontend Application** | [`frontend-3/README.md`](file:///c:/Users/uddin/Downloads/sq/frontend-3/README.md) | Alpine Sanctuary design tokens, pages, multi-role routing, Leaflet maps, and component hierarchy. |
+| 🌐 **Frontend Application** | [`frontend/README.md`](file:///c:/Users/uddin/Downloads/sq/frontend/README.md) | Alpine Sanctuary design tokens, pages, multi-role routing, Leaflet maps, and component hierarchy. |
 | ⚙️ **Backend REST API** | [`backend/README.md`](file:///c:/Users/uddin/Downloads/sq/backend/README.md) | Express pipeline, JWT authentication, RBAC authorization, and all 11 REST API endpoint specs. |
 | 🗄️ **Database & Schemas** | [`backend/src/db/README.md`](file:///c:/Users/uddin/Downloads/sq/backend/src/db/README.md) | MongoDB collections, document schemas, indexes, connection pooling, and Compass inspection. |
 
@@ -30,7 +30,7 @@ For in-depth explanations of individual parts of the application, please refer t
 
 ```mermaid
 flowchart TB
-    subgraph Client ["Client Layer (frontend-3 / Port 5175)"]
+    subgraph Client ["Client Layer (frontend / Port 5175)"]
         UI["React 18 + Vite (Alpine Sanctuary UI)"]
         Router["React Router v6 (Public, Tenant, Owner, Admin)"]
         ServiceLayer["Service Layer (Property, Visit, Message, Admin)"]
@@ -163,7 +163,7 @@ sq/
 ├── package.json                  # Workspace monorepo configuration and unified scripts
 ├── README.md                     # Main full-stack architecture & onboarding guide
 │
-├── frontend-3/                   # React 18 + Vite Web Application
+├── frontend/                   # React 18 + Vite Web Application
 │   ├── README.md                 # Dedicated frontend design system & routing documentation
 │   ├── package.json              # Frontend scripts & dependencies
 │   ├── vite.config.js            # Vite server & Tailwind v4 plugin config

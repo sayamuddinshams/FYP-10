@@ -1,0 +1,78 @@
+# =============================================================================
+# RentLink Full-Stack Multi-Container Docker Compose
+# Services: Frontend (Nginx + Vite), Backend (Express REST API), MongoDB 7.0
+# =============================================================================
+
+version: '3.8'
+
+services:
+  # ---------------------------------------------------------------------------
+  # MongoDB Database Service
+  # ---------------------------------------------------------------------------
+  mongodb:
+    image: mongo:7.0
+    container_name: rentlink-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - rentlink_mongodb_data:/data/db
+    networks:
+      - rentlink-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ---------------------------------------------------------------------------
+  # Backend REST API Service
+  # ---------------------------------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: rentlink-backend
+    restart: unless-stopped
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    environment:
+      PORT: 5000
+      NODE_ENV: production
+      MONGODB_URI: mongodb://mongodb:27017
+      MONGODB_DB_NAME: rentlink
+      JWT_SECRET: rentlink_super_secret_jwt_key_2026_secure_random
+      JWT_EXPIRES_IN: 7d
+      CORS_ORIGIN: "http://localhost,http://localhost:80,http://localhost:5175,http://localhost:5173"
+    ports:
+      - "5000:5000"
+    networks:
+      - rentlink-network
+
+  # ---------------------------------------------------------------------------
+  # Frontend Web Application Service
+  # ---------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: "http://localhost:5000/api"
+    container_name: rentlink-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+      - "5175:80"
+    networks:
+      - rentlink-network
+
+volumes:
+  rentlink_mongodb_data:
+    driver: local
+
+networks:
+  rentlink-network:
+    driver: bridge

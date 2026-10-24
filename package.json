@@ -4,24 +4,20 @@
   "private": true,
   "description": "RentLink - Rental housing platform web application",
   "workspaces": [
-    "frontend-3",
+    "frontend",
     "backend"
   ],
   "scripts": {
-    "dev": "npm --prefix frontend-3 run dev",
-    "dev:3": "npm --prefix frontend-3 run dev",
-    "dev:frontend": "npm --prefix frontend-3 run dev",
-    "dev:frontend-3": "npm --prefix frontend-3 run dev",
+    "dev": "npm --prefix frontend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
     "dev:backend": "npm --prefix backend run dev",
-    "build": "npm --prefix frontend-3 run build",
-    "build:3": "npm --prefix frontend-3 run build",
-    "preview": "npm --prefix frontend-3 run preview",
-    "preview:3": "npm --prefix frontend-3 run preview",
+    "build": "npm --prefix frontend run build",
+    "preview": "npm --prefix frontend run preview",
     "backend:test": "npm --prefix backend test",
     "backend:seed": "npm --prefix backend run seed",
     "test": "npm --prefix backend test",
     "seed": "npm --prefix backend run seed",
-    "start": "npm --prefix frontend-3 run dev"
+    "start": "npm --prefix frontend run dev"
   },
   "keywords": [
     "rental",
