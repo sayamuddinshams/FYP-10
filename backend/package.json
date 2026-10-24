@@ -1,0 +1,35 @@
+{
+  "name": "rentlink-backend",
+  "version": "1.0.0",
+  "description": "Production-ready Node.js & MongoDB backend for RentLink platform",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "dev:backend": "node --watch src/server.js",
+    "seed": "node src/db/seed.js",
+    "backend:seed": "node src/db/seed.js",
+    "test": "node --test tests/**/*.test.js"
+  },
+  "keywords": [
+    "rentlink",
+    "express",
+    "mongodb"
+  ],
+  "author": "Sayam-ud-Din, Nouman Azam, Sayad Yaqoob, Irfan Mujeeb (RentLink FYP Team)",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongodb": "^7.7.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "supertest": "^7.0.0"
+  }
+}

@@ -1,0 +1,161 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-serif: 'Newsreader', ui-serif, Georgia, Cambria, serif;
+  --font-display: 'Newsreader', ui-serif, Georgia, serif;
+
+  /* Alpine Sanctuary Palette */
+  --color-slate-base: #0B1320;
+  --color-slate-container: #141C29;
+  --color-slate-muted: #7C8495;
+  --color-slate-border: rgba(255, 255, 255, 0.12);
+
+  --color-amber-primary: #D97706;
+  --color-amber-container: #FE932C;
+  --color-amber-soft: #FEF3C7;
+  --color-amber-dark: #904D00;
+
+  --color-emerald-primary: #059669;
+  --color-emerald-container: #10B981;
+  --color-emerald-soft: #ECFDF5;
+  --color-emerald-dark: #047857;
+
+  --color-canvas-mist: #F8FAFC;
+  --color-canvas-card: #FFFFFF;
+  --color-canvas-subtle: #F0EDEE;
+  --color-canvas-line: rgba(15, 23, 42, 0.08);
+
+  --color-ink-primary: #1B1B1D;
+  --color-ink-secondary: #45474C;
+  --color-ink-muted: #75777C;
+
+  /* Aliased brand & semantic scale */
+  --color-primary: #0B1320;
+  --color-secondary: #D97706;
+  --color-accent: #FE932C;
+  --color-success: #059669;
+  --color-danger: #BA1A1A;
+
+  /* Elevation scale */
+  --shadow-soft: 0 4px 20px -2px rgba(11, 19, 32, 0.04);
+  --shadow-card: 0 8px 30px -4px rgba(11, 19, 32, 0.05);
+  --shadow-lift: 0 20px 40px -8px rgba(11, 19, 32, 0.12);
+  --shadow-glass: 0 16px 32px 0 rgba(11, 19, 32, 0.18);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+
+  body {
+    background-color: var(--color-canvas-mist, #F8FAFC);
+    color: var(--color-ink-primary, #1B1B1D);
+    font-family: var(--font-sans);
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background-color: #FE932C;
+    color: #FFFFFF;
+  }
+}
+
+/* Material Symbols sizing helper */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  vertical-align: middle;
+  line-height: 1;
+}
+
+.material-symbols-outlined.fill {
+  font-variation-settings: 'FILL' 1;
+}
+
+/* 3D Curved Bow / Rainbow Arch Styling */
+.perspective-stage {
+  perspective: 1200px;
+  perspective-origin: 50% 120%;
+  transform-style: preserve-3d;
+}
+
+.bow-track-container {
+  transform: rotateX(12deg) scale(1.02);
+  transform-style: preserve-3d;
+}
+
+.bow-card {
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.4s ease, background-color 0.3s ease;
+  transform-style: preserve-3d;
+}
+
+.bow-card:nth-child(6n+1) {
+  transform: translateY(32px) rotate(-6.5deg) translateZ(-16px);
+}
+
+.bow-card:nth-child(6n+2) {
+  transform: translateY(12px) rotate(-3.2deg) translateZ(4px);
+}
+
+.bow-card:nth-child(6n+3) {
+  transform: translateY(0px) rotate(-0.5deg) translateZ(24px);
+}
+
+.bow-card:nth-child(6n+4) {
+  transform: translateY(0px) rotate(0.8deg) translateZ(24px);
+}
+
+.bow-card:nth-child(6n+5) {
+  transform: translateY(12px) rotate(3.5deg) translateZ(4px);
+}
+
+.bow-card:nth-child(6n+6) {
+  transform: translateY(32px) rotate(6.8deg) translateZ(-16px);
+}
+
+.bow-card:hover {
+  transform: translateY(-14px) rotate(0deg) translateZ(48px) scale(1.06) !important;
+  z-index: 30;
+}
+
+@keyframes marquee-infinite {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee-infinite 36s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F1F5F9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
