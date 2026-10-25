@@ -87,12 +87,14 @@ export async function getProperties(req, res, next) {
       where.status = status;
     }
 
-    if (type && type !== 'all') {
-      where.type = type.toLowerCase();
+    const rawTypes = req.query.types ? (Array.isArray(req.query.types) ? req.query.types : String(req.query.types).split(',')) : (type && type !== 'all' ? [type] : null);
+    if (rawTypes && rawTypes.length) {
+      where.type = { $in: rawTypes.map((t) => t.trim().toLowerCase()) };
     }
 
-    if (district && district !== 'All Districts') {
-      where.district = district;
+    const rawDistricts = req.query.districts ? (Array.isArray(req.query.districts) ? req.query.districts : String(req.query.districts).split(',')) : (district && district !== 'All Districts' ? [district] : null);
+    if (rawDistricts && rawDistricts.length) {
+      where.district = { $in: rawDistricts.map((d) => d.trim()) };
     }
 
     if (city && city !== 'All Cities') {
@@ -101,6 +103,20 @@ export async function getProperties(req, res, next) {
 
     if (area) {
       where.area = { $regex: area, $options: 'i' };
+    }
+
+    if (req.query.bedrooms) {
+      where.bedrooms = { $gte: parseInt(req.query.bedrooms, 10) };
+    }
+
+    if (req.query.bathrooms) {
+      where.bathrooms = { $gte: parseInt(req.query.bathrooms, 10) };
+    }
+
+    if (req.query.furnished === 'furnished') {
+      where.furnishing = { $ne: 'Unfurnished' };
+    } else if (req.query.furnished === 'unfurnished') {
+      where.furnishing = 'Unfurnished';
     }
 
     if (featured === 'true' || featured === true) {
@@ -359,9 +375,11 @@ export async function updateProperty(req, res, next) {
       amenities,
       images,
       status,
+      adminNote,
     } = req.body;
 
     const updateData = { updatedAt: new Date() };
+    if (adminNote !== undefined) updateData.adminNote = adminNote;
     if (title !== undefined) updateData.title = title;
     if (type !== undefined) updateData.type = type;
     if (description !== undefined) updateData.description = description;

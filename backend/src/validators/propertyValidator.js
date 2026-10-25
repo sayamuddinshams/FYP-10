@@ -37,7 +37,8 @@ export const updatePropertySchema = z.object({
     furnishing: z.string().optional(),
     availableFrom: z.string().optional(),
     amenities: z.array(z.string()).optional(),
-    images: z.array(z.string().url()).optional(),
-    status: z.enum(['draft', 'pending', 'approved', 'suspended', 'rejected']).optional(),
+    images: z.array(z.string()).optional(),
+    status: z.enum(['draft', 'pending', 'approved', 'suspended', 'rejected', 'changes']).optional(),
+    adminNote: z.string().optional(),
   }),
 });

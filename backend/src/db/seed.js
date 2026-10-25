@@ -1,10 +1,10 @@
 import bcrypt from 'bcryptjs';
 import { connectDB, closeDB, collections } from '../config/db.js';
-import { MOCK_USERS } from '../../../frontend-3/src/data/users.js';
-import { MOCK_PROPERTIES } from '../../../frontend-3/src/data/properties.js';
-import { MOCK_VISITS } from '../../../frontend-3/src/data/visits.js';
-import { MOCK_NOTIFICATIONS } from '../../../frontend-3/src/data/notifications.js';
-import { MOCK_TRANSACTIONS, MOCK_ADS, MOCK_REPORTS } from '../../../frontend-3/src/data/platform.js';
+import { MOCK_USERS } from './fixtures/users.js';
+import { MOCK_PROPERTIES } from './fixtures/properties.js';
+import { MOCK_VISITS } from './fixtures/visits.js';
+import { MOCK_NOTIFICATIONS } from './fixtures/notifications.js';
+import { MOCK_TRANSACTIONS, MOCK_ADS, MOCK_REPORTS } from './fixtures/platform.js';
 
 export async function seedDatabase() {
   console.log('Seeding MongoDB database...');
