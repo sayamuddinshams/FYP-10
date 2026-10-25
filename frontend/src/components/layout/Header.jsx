@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import Avatar from '../common/Avatar';
 import Icon from '../common/icons';
 import Button from '../common/Button';
@@ -68,6 +69,18 @@ export default function Header() {
     setSearchOpen(false);
   }, [location.pathname]);
 
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileOpen]);
+
   const handleLogout = async () => {
     await logout();
     toast.success('You have been logged out.');
@@ -92,9 +105,11 @@ export default function Header() {
     <header
       className={cn(
         'fixed top-0 w-full z-50 transition-all duration-300',
-        isHome && !scrolled
-          ? 'bg-transparent border-b border-white/10 text-white backdrop-blur-sm'
-          : 'bg-[#0B1320]/95 backdrop-blur-xl border-b border-white/10 text-white shadow-lg'
+        mobileOpen
+          ? 'bg-[#0B1320] border-b border-white/10 text-white shadow-lg'
+          : isHome && !scrolled
+            ? 'bg-transparent border-b border-white/10 text-white backdrop-blur-sm'
+            : 'bg-[#0B1320]/95 backdrop-blur-xl border-b border-white/10 text-white shadow-lg'
       )}
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-12 h-20 flex items-center justify-between gap-4">
@@ -206,11 +221,14 @@ export default function Header() {
           {/* Mobile hamburger */}
           <button
             type="button"
-            onClick={() => setMobileOpen((v) => !v)}
+            onClick={() => {
+              setMobileOpen((v) => !v);
+              setSearchOpen(false);
+            }}
             aria-label="Toggle navigation menu"
-            className="md:hidden w-9 h-9 rounded-full flex items-center justify-center text-white/90 hover:bg-white/10 transition-all"
+            className="md:hidden w-10 h-10 rounded-xl flex items-center justify-center text-white/90 hover:bg-white/10 active:scale-95 transition-all cursor-pointer z-50 shrink-0"
           >
-            <span className="material-symbols-outlined text-[22px]">
+            <span className="material-symbols-outlined text-[24px]">
               {mobileOpen ? 'close' : 'menu'}
             </span>
           </button>
@@ -253,96 +271,125 @@ export default function Header() {
       )}
 
       {/* Mobile Drawer */}
-      {mobileOpen && (
-        <div className="fixed inset-0 top-20 z-40 bg-[#0B1320]/95 backdrop-blur-2xl md:hidden overflow-y-auto border-t border-white/10 animate-fade-in p-6 flex flex-col justify-between">
-          <nav className="flex flex-col gap-2">
-            {NAV_LINKS.map((link) => (
-              <NavLink
-                key={link.to}
-                to={link.to}
-                end={link.end}
-                className={({ isActive }) =>
-                  cn(
-                    'flex items-center px-4 py-3 rounded-xl text-base font-medium transition-colors',
-                    isActive ? 'bg-white/15 text-white font-bold' : 'text-white/80 hover:bg-white/10 hover:text-white'
-                  )
-                }
-              >
-                {link.label}
-              </NavLink>
-            ))}
-
-            <div className="my-2 h-px bg-white/10" />
-
-            <Link
-              to="/browse"
-              className="flex items-center gap-2 px-4 py-3 rounded-xl text-base font-medium text-white/80 hover:bg-white/10 hover:text-white"
-            >
-              <span className="material-symbols-outlined text-[20px] text-[#FE932C]">search</span>
-              <span>Browse All Listings</span>
-            </Link>
-
-            <Link
-              to={isAuthenticated ? '/tenant/saved' : '#'}
-              onClick={(e) => {
-                if (!isAuthenticated) {
-                  e.preventDefault();
-                  openAuth('login');
-                }
-              }}
-              className="flex items-center gap-2 px-4 py-3 rounded-xl text-base font-medium text-white/80 hover:bg-white/10 hover:text-white"
-            >
-              <span className="material-symbols-outlined text-[20px] text-[#FE932C]">favorite_border</span>
-              <span>Saved Properties</span>
-            </Link>
-
-            <Link
-              to="/owner/properties/new"
-              onClick={(e) => {
-                if (!isAuthenticated) {
-                  e.preventDefault();
-                  openAuth('signup');
-                }
-              }}
-              className="flex items-center gap-2 px-4 py-3 rounded-xl text-base font-medium text-white/80 hover:bg-white/10 hover:text-white"
-            >
-              <span className="material-symbols-outlined text-[20px] text-[#FE932C]">add_business</span>
-              <span>List Your Property</span>
-            </Link>
-          </nav>
-
-          <div className="pt-6 border-t border-white/10 flex flex-col gap-3">
-            {isAuthenticated ? (
-              <div className="flex items-center justify-between p-3 rounded-2xl bg-white/5 border border-white/10">
-                <div className="flex items-center gap-3">
-                  <Avatar name={user.name} size="sm" />
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-bold text-white">{user.name}</p>
-                    <p className="truncate text-xs text-white/60">{user.email}</p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="p-2 text-white/70 hover:text-red-400"
-                  aria-label="Logout"
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="fixed top-20 left-0 right-0 w-full h-[calc(100dvh-5rem)] bg-[#0B1320] md:hidden overflow-y-auto border-t border-white/10 p-6 flex flex-col justify-between z-50 shadow-2xl"
+          >
+            <nav className="flex flex-col gap-2">
+              {NAV_LINKS.map((link) => (
+                <NavLink
+                  key={link.to}
+                  to={link.to}
+                  end={link.end}
+                  onClick={() => setMobileOpen(false)}
+                  className={({ isActive }) =>
+                    cn(
+                      'flex items-center px-4 py-3 rounded-xl text-base font-medium transition-colors',
+                      isActive ? 'bg-white/15 text-white font-bold' : 'text-white/80 hover:bg-white/10 hover:text-white'
+                    )
+                  }
                 >
-                  <span className="material-symbols-outlined text-[20px]">logout</span>
-                </button>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-2">
-                <Button fullWidth variant="secondary" onClick={() => openAuth('login')}>
-                  Sign In
-                </Button>
-                <Button fullWidth variant="glass" onClick={() => openAuth('signup')}>
-                  Create Account
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+                  {link.label}
+                </NavLink>
+              ))}
+
+              <div className="my-2 h-px bg-white/10" />
+
+              <Link
+                to="/browse"
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center gap-2 px-4 py-3 rounded-xl text-base font-medium text-white/80 hover:bg-white/10 hover:text-white"
+              >
+                <span className="material-symbols-outlined text-[20px] text-[#FE932C]">search</span>
+                <span>Browse All Listings</span>
+              </Link>
+
+              <Link
+                to={isAuthenticated ? '/tenant/saved' : '#'}
+                onClick={(e) => {
+                  setMobileOpen(false);
+                  if (!isAuthenticated) {
+                    e.preventDefault();
+                    openAuth('login');
+                  }
+                }}
+                className="flex items-center gap-2 px-4 py-3 rounded-xl text-base font-medium text-white/80 hover:bg-white/10 hover:text-white"
+              >
+                <span className="material-symbols-outlined text-[20px] text-[#FE932C]">favorite_border</span>
+                <span>Saved Properties</span>
+              </Link>
+
+              <Link
+                to="/owner/properties/new"
+                onClick={(e) => {
+                  setMobileOpen(false);
+                  if (!isAuthenticated) {
+                    e.preventDefault();
+                    openAuth('signup');
+                  }
+                }}
+                className="flex items-center gap-2 px-4 py-3 rounded-xl text-base font-medium text-white/80 hover:bg-white/10 hover:text-white"
+              >
+                <span className="material-symbols-outlined text-[20px] text-[#FE932C]">add_business</span>
+                <span>List Your Property</span>
+              </Link>
+            </nav>
+
+            <div className="pt-6 border-t border-white/10 flex flex-col gap-3 pb-8">
+              {isAuthenticated ? (
+                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white/5 border border-white/10">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Avatar name={user.name} size="sm" />
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold text-white">{user.name}</p>
+                      <p className="truncate text-xs text-white/60">{user.email}</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMobileOpen(false);
+                      handleLogout();
+                    }}
+                    className="p-2 text-white/70 hover:text-red-400 cursor-pointer"
+                    aria-label="Logout"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">logout</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  <Button
+                    fullWidth
+                    variant="secondary"
+                    onClick={() => {
+                      setMobileOpen(false);
+                      openAuth('login');
+                    }}
+                  >
+                    Sign In
+                  </Button>
+                  <Button
+                    fullWidth
+                    variant="glass"
+                    onClick={() => {
+                      setMobileOpen(false);
+                      openAuth('signup');
+                    }}
+                  >
+                    Create Account
+                  </Button>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 }
