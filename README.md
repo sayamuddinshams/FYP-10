@@ -34,29 +34,34 @@ flowchart TB
         UI["React 18 + Vite (Alpine Sanctuary UI)"]
         Router["React Router v6 (Public, Tenant, Owner, Admin)"]
         ServiceLayer["Service Layer (Property, Visit, Message, Admin)"]
-        ReactiveStore["Reactive Client In-Memory Store & Cache"]
+        ApiClient["REST API Client (api.js + JWT Bearer Auth)"]
+        EventBus["Lightweight Event Bus (events.js)"]
     end
 
     subgraph API ["REST API Backend (backend / Port 5000)"]
         ExpressApp["Express.js Server (Port 5000)"]
         AuthMid["JWT Auth & Role Guard Middleware"]
         Controllers["Controllers (Auth, Properties, Visits, Admin)"]
+        Fixtures["Independent Seed Fixtures (fixtures/)"]
         MongoDriver["MongoDB Native Driver (Connection Pool)"]
     end
 
     subgraph Storage ["Persistence Layer (Port 27017)"]
         MongoDB[("MongoDB Local Server (rentlink database)")]
-        UsersCol[("users")]
-        PropsCol[("properties")]
+        UsersCol[("users (Tenants, Owners, Admins)")]
+        PropsCol[("properties (Listings & Images)")]
         VisitsCol[("visitRequests")]
         TxCol[("transactions")]
     end
 
     UI --> Router
     Router --> ServiceLayer
-    ServiceLayer <--> ReactiveStore
-    ServiceLayer -.->|REST / JSON| ExpressApp
+    ServiceLayer --> ApiClient
+    ServiceLayer -.->|State Invalidation| EventBus
+    EventBus -.->|Re-render Trigger| UI
+    ApiClient ==>|HTTP REST / JSON + Bearer JWT| ExpressApp
     ExpressApp --> AuthMid --> Controllers --> MongoDriver
+    Fixtures -.->|Database Seeder| MongoDriver
     MongoDriver --> MongoDB
     MongoDB --- UsersCol & PropsCol & VisitsCol & TxCol
 ```
