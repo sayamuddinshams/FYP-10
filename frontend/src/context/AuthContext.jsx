@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { subscribe } from '../data/store';
+import { subscribe } from '../services/events';
 import authService from '../services/authService';
 
 /**

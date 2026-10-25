@@ -1,5 +1,5 @@
 import { useEffect, useState, useSyncExternalStore } from 'react';
-import { subscribe, getVersion } from '../data/store';
+import { subscribe, getVersion } from '../services/events';
 import notificationService from '../services/notificationService';
 import { useAuth } from '../context/AuthContext';
 

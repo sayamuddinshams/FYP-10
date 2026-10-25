@@ -1,75 +1,72 @@
-import { db, emit, getUser } from '../data/store';
-import { delay, fail, createNotification } from './core';
-
-function decorate(report) {
-  const reporter = getUser(report.reporterId);
-  return {
-    ...report,
-    reporter: reporter ? { id: reporter.id, name: reporter.name, role: reporter.role } : null,
-  };
-}
+import api from './api';
+import { emit, fail } from './core';
 
 const adminService = {
   /** Platform overview statistics used by the admin dashboard. */
   async overview() {
-    await delay(400);
-    const users = db.users;
-    const properties = db.properties;
-    const approved = properties.filter((p) => p.status === 'approved');
-    const pending = properties.filter((p) => p.status === 'pending');
-    const completedTransactions = db.transactions.filter((t) => t.status === 'completed');
-    const revenue = completedTransactions.reduce((a, t) => a + t.amount, 0);
-    const fees = completedTransactions.reduce((a, t) => a + Math.round(t.amount * 0.05), 0);
-
-    return {
-      totalUsers: users.filter((u) => u.role === 'tenant').length,
-      totalOwners: users.filter((u) => u.role === 'owner').length,
-      totalProperties: properties.length,
-      pendingProperties: pending.length,
-      activeListings: approved.length,
-      visitRequests: db.visits.length,
-      platformRevenue: fees,
-      grossValue: revenue,
-      openReports: db.reports.filter((r) => r.status === 'open').length,
-      suspendedUsers: users.filter((u) => u.status === 'suspended').length,
-    };
+    const data = await api.get('/admin/overview');
+    return (
+      data || {
+        totalUsers: 0,
+        totalOwners: 0,
+        totalProperties: 0,
+        pendingProperties: 0,
+        activeListings: 0,
+        visitRequests: 0,
+        platformRevenue: 0,
+        grossValue: 0,
+        openReports: 0,
+        suspendedUsers: 0,
+      }
+    );
   },
 
   async counts() {
-    await delay(200);
-    return {
-      users: db.users.length,
-      properties: db.properties.length,
-      pending: db.properties.filter((p) => p.status === 'pending').length,
-      reports: db.reports.filter((r) => r.status === 'open').length,
-      visits: db.visits.length,
-    };
+    const data = await api.get('/admin/counts');
+    return (
+      data || {
+        users: 0,
+        properties: 0,
+        pending: 0,
+        reports: 0,
+        visits: 0,
+      }
+    );
   },
 
   /** Full analytics dataset for the admin analytics screen. */
   async analytics() {
-    await delay(380);
-    return db.analytics;
+    try {
+      const [overview, finance] = await Promise.all([
+        this.overview(),
+        api.get('/transactions/admin-summary'),
+      ]);
+      return {
+        overview,
+        finance,
+      };
+    } catch {
+      return {};
+    }
   },
 
   /* ---------------- reports ---------------- */
 
   async listReports(status = 'all') {
-    await delay(360);
-    let items = db.reports.map(decorate);
-    if (status !== 'all') items = items.filter((r) => r.status === status);
-    items.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    return items;
+    const res = await api.get('/reports', {
+      status: status !== 'all' ? status : undefined,
+    });
+    return Array.isArray(res) ? res : [];
   },
 
   async updateReport(id, status, resolution = '') {
-    await delay(500);
-    const report = db.reports.find((r) => r.id === id);
-    if (!report) fail('Report not found.');
-    report.status = status;
-    if (resolution) report.resolution = resolution;
-    emit();
-    return decorate(report);
+    if (!id) fail('Report ID is required.');
+    const updated = await api.patch(`/reports/${id}`, {
+      status,
+      resolution,
+    });
+    emit('reports');
+    return updated;
   },
 
   async resolveReport(id, resolution) {
@@ -77,30 +74,40 @@ const adminService = {
   },
 
   async removeReport(id, resolution) {
-    return this.updateReport(id, 'removed', resolution);
+    return this.updateReport(id, 'dismissed', resolution);
   },
 
   /* ---------------- platform settings ---------------- */
 
   async getSettings() {
-    await delay(300);
-    return {
-      platformName: 'RentLink',
-      supportEmail: 'support@rentlink.pk',
-      supportPhone: '+92 5811 456789',
-      platformFee: 5,
-      autoApprove: false,
-      requireVerification: true,
-      maintenanceMode: false,
-      visitWindowDays: 14,
-      maxImagesPerListing: 8,
-    };
+    try {
+      const settings = await api.get('/admin/settings');
+      return (
+        settings || {
+          platformName: 'RentLink',
+          supportEmail: 'support@rentlink.pk',
+          supportPhone: '+92 5811 456789',
+          platformFee: 5,
+          autoApprove: false,
+          requireVerification: true,
+          maintenanceMode: false,
+          visitWindowDays: 14,
+          maxImagesPerListing: 8,
+        }
+      );
+    } catch {
+      return {
+        platformName: 'RentLink',
+        supportEmail: 'support@rentlink.pk',
+        platformFee: 5,
+      };
+    }
   },
 
   async saveSettings(settings) {
-    await delay(600);
-    emit();
-    return settings;
+    const updated = await api.put('/admin/settings', settings);
+    emit('settings');
+    return updated;
   },
 };
 

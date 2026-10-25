@@ -7,7 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { validateEmail, validatePassword, validateRequired, validateMatch } from '../../utils/validation';
 import authService from '../../services/authService';
-import { DEMO_ACCOUNTS } from '../../data/users';
+import { DEMO_ACCOUNTS } from '../../utils/constants';
 import { cn } from '../../utils/format';
 
 const TITLES = {

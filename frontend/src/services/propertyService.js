@@ -1,48 +1,15 @@
-import { db, emit, getOwner, getUser, isVerifiedOwner, uid } from '../data/store';
-import { delay, fail } from './core';
+import api from './api';
+import { emit, fail } from './core';
 import { PLATFORM_FEE_RATE } from '../utils/constants';
 
-/** Attach the reviewer's real account details so reviews never show a bare "Reviewer". */
-function decorateReview(review) {
-  const user = getUser(review.userId);
-  return {
-    ...review,
-    userName: review.userName || user?.name || null,
-    userRole: user?.role || null,
-    userVerification: user?.verification || null,
-  };
-}
-
-function decorate(property) {
-  if (!property) return null;
-  const owner = getOwner(property);
-  return {
-    ...property,
-    owner: owner ? { id: owner.id, name: owner.name, avatar: owner.avatar, verification: owner.verification, memberSince: owner.memberSince, phone: owner.phone, role: owner.role } : null,
-    ownerVerified: isVerifiedOwner(property),
-    reviews: db.reviews.filter((r) => r.propertyId === property.id).map(decorateReview),
-    favoriteCount: (db.favorites[property.ownerId] ? property.favorites : property.favorites) || 0,
-  };
-}
-
-function matchesQuery(property, q) {
-  if (!q) return true;
-  const haystack = [property.title, property.description, property.district, property.city, property.area, property.address].join(' ').toLowerCase();
-  return q
-    .toLowerCase()
-    .split(/\s+/)
-    .filter(Boolean)
-    .every((word) => haystack.includes(word));
-}
+// Local cache for favorite property IDs to support fast synchronous reads
+let cachedFavoriteIds = null;
 
 const propertyService = {
   /**
-   * Search & filter listings.
-   * filters: { query, types[], districts[], cities[], areas[], minPrice, maxPrice,
-   *           bedrooms, bathrooms, furnished, availability, verifiedOnly, sort, page, limit }
+   * Search & filter listings via GET /api/properties.
    */
   async list(filters = {}) {
-    await delay(380);
     const {
       query = '',
       types = [],
@@ -55,188 +22,165 @@ const propertyService = {
       bathrooms,
       furnished,
       availability,
-      verifiedOnly = false,
-      sort = 'recommended',
+      sort = 'newest',
       page = 1,
       limit = 12,
       status = 'approved',
     } = filters;
 
-    let items = db.properties.filter((p) => (status ? p.status === status : true));
-
-    items = items.filter((p) => matchesQuery(p, query));
-    if (types.length) items = items.filter((p) => types.includes(p.type));
-    if (districts.length) items = items.filter((p) => districts.includes(p.district));
-    if (cities.length) items = items.filter((p) => cities.includes(p.city));
-    if (areas.length) items = items.filter((p) => areas.includes(p.area));
-    if (minPrice !== undefined && minPrice !== null && minPrice !== '') items = items.filter((p) => p.price >= Number(minPrice));
-    if (maxPrice !== undefined && maxPrice !== null && maxPrice !== '') items = items.filter((p) => p.price <= Number(maxPrice));
-    if (bedrooms) items = items.filter((p) => p.bedrooms >= Number(bedrooms));
-    if (bathrooms) items = items.filter((p) => p.bathrooms >= Number(bathrooms));
-    if (furnished === 'furnished') items = items.filter((p) => p.furnishing !== 'Unfurnished');
-    if (furnished === 'unfurnished') items = items.filter((p) => p.furnishing === 'Unfurnished');
-    if (availability) items = items.filter((p) => new Date(p.availableFrom) <= new Date(availability));
-    if (verifiedOnly) items = items.filter((p) => isVerifiedOwner(p));
-
-    const sorters = {
-      newest: (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
-      price_asc: (a, b) => a.price - b.price,
-      price_desc: (a, b) => b.price - a.price,
-      recommended: (a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0) || b.views - a.views,
-    };
-    items = [...items].sort(sorters[sort] || sorters.recommended);
-
-    const total = items.length;
-    const start = (page - 1) * limit;
-    const paged = items.slice(start, start + limit);
-
-    return {
-      items: paged.map(decorate),
-      total,
+    const params = {
       page,
-      pages: Math.max(1, Math.ceil(total / limit)),
+      limit,
+      status,
+      sort,
+    };
+
+    if (query) params.query = query;
+    if (types.length) params.types = types.join(',');
+    if (districts.length) params.districts = districts.join(',');
+    if (cities.length) params.city = cities[0];
+    if (areas.length) params.area = areas[0];
+    if (minPrice !== undefined && minPrice !== null && minPrice !== '') params.minPrice = minPrice;
+    if (maxPrice !== undefined && maxPrice !== null && maxPrice !== '') params.maxPrice = maxPrice;
+    if (bedrooms) params.bedrooms = bedrooms;
+    if (bathrooms) params.bathrooms = bathrooms;
+    if (furnished) params.furnished = furnished;
+    if (availability) params.availability = availability;
+
+    const data = await api.get('/properties', params);
+    return {
+      items: data.items || [],
+      total: data.total || 0,
+      page: data.page || page,
+      pages: data.pages || 1,
     };
   },
 
   async getById(id) {
-    await delay(300);
-    const property = db.properties.find((p) => p.id === id);
-    if (!property) fail('Property not found.');
-    return decorate(property);
+    if (!id) fail('Property ID is required.');
+    return api.get(`/properties/${id}`);
   },
 
   async getFeatured(limit = 6) {
-    await delay(350);
-    const featured = db.properties.filter((p) => p.status === 'approved' && p.featured);
-    const rest = db.properties.filter((p) => p.status === 'approved' && !p.featured);
-    return [...featured, ...rest].slice(0, limit).map(decorate);
+    const items = await api.get('/properties/featured', { limit });
+    return Array.isArray(items) ? items : [];
   },
 
   /** Aggregated figures used on the marketing homepage. */
   async stats() {
-    await delay(220);
-    const approved = db.properties.filter((p) => p.status === 'approved');
-    const byType = {};
-    approved.forEach((p) => { byType[p.type] = (byType[p.type] || 0) + 1; });
+    const data = await api.get('/properties/stats');
+    const byDistrict = data?.byDistrict || {};
+    const byType = data?.byType || {};
+    const total = data?.totalApproved || 0;
+
     return {
-      total: approved.length,
-      districts: new Set(approved.map((p) => p.district)).size,
-      types: new Set(approved.map((p) => p.type)).size,
+      total,
+      districts: Object.keys(byDistrict).length,
+      types: Object.keys(byType).length,
       byType,
-      // Real approved-listing counts per district (used by the homepage location cards).
-      byDistrict: approved.reduce((acc, p) => {
-        acc[p.district] = (acc[p.district] || 0) + 1;
-        return acc;
-      }, {}),
+      byDistrict,
     };
   },
 
   async getRelated(id, limit = 3) {
-    await delay(250);
-    const current = db.properties.find((p) => p.id === id);
-    if (!current) return [];
-    return db.properties
-      .filter((p) => p.id !== id && p.status === 'approved' && (p.type === current.type || p.district === current.district))
-      .slice(0, limit)
-      .map(decorate);
+    if (!id) return [];
+    try {
+      const items = await api.get(`/properties/${id}/related`, { limit });
+      return Array.isArray(items) ? items : [];
+    } catch {
+      return [];
+    }
   },
 
   async getSimilarStats() {
-    await delay(200);
-    const approved = db.properties.filter((p) => p.status === 'approved');
-    return { total: approved.length };
+    const data = await this.stats();
+    return { total: data.total };
   },
 
   /* ---------------- favourites ---------------- */
 
   favoritesOf(userId) {
-    return db.favorites[userId] || [];
+    if (cachedFavoriteIds !== null) {
+      return cachedFavoriteIds;
+    }
+    try {
+      const raw = localStorage.getItem('rentlink_favorites');
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
   },
 
   async toggleFavorite(propertyId, userId) {
-    await delay(180);
-    if (!userId) fail('Sign in to save properties.');
-    const list = db.favorites[userId] || [];
-    const exists = list.includes(propertyId);
-    db.favorites[userId] = exists ? list.filter((id) => id !== propertyId) : [propertyId, ...list];
+    if (!propertyId) fail('Property ID is required.');
+    const result = await api.post('/favorites/toggle', { propertyId });
 
-    const property = db.properties.find((p) => p.id === propertyId);
-    if (property) property.favorites = Math.max(0, property.favorites + (exists ? -1 : 1));
-    emit();
-    return { favorited: !exists, favorites: db.favorites[userId] };
+    const currentList = this.favoritesOf(userId);
+    let updated;
+    if (result.favorited) {
+      updated = Array.from(new Set([...currentList, propertyId]));
+    } else {
+      updated = currentList.filter((id) => id !== propertyId);
+    }
+
+    cachedFavoriteIds = updated;
+    try {
+      localStorage.setItem('rentlink_favorites', JSON.stringify(updated));
+    } catch {}
+
+    emit('favorites');
+    return { favorited: result.favorited, favorites: updated };
   },
 
   async getFavorites(userId) {
-    await delay(320);
-    const ids = db.favorites[userId] || [];
-    return ids.map((id) => decorate(db.properties.find((p) => p.id === id))).filter(Boolean);
+    try {
+      const res = await api.get('/favorites');
+      const ids = res?.ids || [];
+      cachedFavoriteIds = ids;
+      try {
+        localStorage.setItem('rentlink_favorites', JSON.stringify(ids));
+      } catch {}
+      return res?.items || [];
+    } catch {
+      return [];
+    }
   },
 
   async incrementView(id) {
-    const property = db.properties.find((p) => p.id === id);
-    if (property) {
-      property.views += 1;
-      emit();
+    if (!id) return;
+    try {
+      await api.post(`/properties/${id}/view`);
+    } catch {
+      // non-blocking
     }
   },
 
   /* ---------------- owner lifecycle ---------------- */
 
   async create(data, ownerId) {
-    await delay(700);
-    const owner = db.users.find((u) => u.id === ownerId);
-    if (!owner) fail('You must be signed in to publish a listing.');
-
-    const property = {
-      id: uid('p'),
-      title: data.title,
-      type: data.type,
-      description: data.description,
+    const created = await api.post('/properties', {
+      ...data,
       price: Number(data.price),
-      district: data.district,
-      city: data.city,
-      area: data.area,
-      address: data.address,
       bedrooms: Number(data.bedrooms) || 0,
       bathrooms: Number(data.bathrooms) || 0,
       size: Number(data.size) || 0,
-      furnishing: data.furnishing || 'Unfurnished',
-      availableFrom: data.availableFrom || new Date().toISOString().slice(0, 10),
-      amenities: data.amenities || [],
       images: data.images?.length ? data.images : placeholderImages(data.type),
-      ownerId,
       status: data.status === 'draft' ? 'draft' : 'pending',
-      views: 0,
-      favorites: 0,
-      rating: 0,
-      reviewCount: 0,
-      featured: false,
-      createdAt: new Date().toISOString().slice(0, 10),
-      updatedAt: new Date().toISOString().slice(0, 10),
-    };
-    db.properties.unshift(property);
-    emit();
-    return decorate(property);
+    });
+    emit('properties');
+    return created;
   },
 
   async update(id, data) {
-    await delay(650);
-    const property = db.properties.find((p) => p.id === id);
-    if (!property) fail('Property not found.');
+    const payload = { ...data };
+    if (payload.price !== undefined) payload.price = Number(payload.price);
+    if (payload.bedrooms !== undefined) payload.bedrooms = Number(payload.bedrooms);
+    if (payload.bathrooms !== undefined) payload.bathrooms = Number(payload.bathrooms);
+    if (payload.size !== undefined) payload.size = Number(payload.size);
 
-    Object.assign(property, {
-      ...data,
-      price: data.price !== undefined ? Number(data.price) : property.price,
-      bedrooms: data.bedrooms !== undefined ? Number(data.bedrooms) : property.bedrooms,
-      bathrooms: data.bathrooms !== undefined ? Number(data.bathrooms) : property.bathrooms,
-      size: data.size !== undefined ? Number(data.size) : property.size,
-      updatedAt: new Date().toISOString().slice(0, 10),
-    });
-
-    // Published listings go back through admin review when edited.
-    if (property.status === 'approved') property.status = 'pending';
-    emit();
-    return decorate(property);
+    const updated = await api.put(`/properties/${id}`, payload);
+    emit('properties');
+    return updated;
   },
 
   async saveDraft(id, data, ownerId) {
@@ -245,64 +189,49 @@ const propertyService = {
   },
 
   async submitForReview(id) {
-    await delay(700);
-    const property = db.properties.find((p) => p.id === id);
-    if (!property) fail('Property not found.');
-    property.status = 'pending';
-    property.updatedAt = new Date().toISOString().slice(0, 10);
-    emit();
-    return decorate(property);
+    return this.update(id, { status: 'pending' });
   },
 
   async remove(id) {
-    await delay(450);
-    const index = db.properties.findIndex((p) => p.id === id);
-    if (index === -1) fail('Property not found.');
-    db.properties.splice(index, 1);
-    emit();
+    await api.delete(`/properties/${id}`);
+    emit('properties');
     return true;
   },
 
   async pause(id) {
-    await delay(400);
-    const property = db.properties.find((p) => p.id === id);
-    if (!property) fail('Property not found.');
-    property.status = property.status === 'suspended' ? 'approved' : 'suspended';
-    emit();
-    return decorate(property);
+    const updated = await api.patch(`/properties/${id}/toggle-pause`);
+    emit('properties');
+    return updated;
   },
 
   async getByOwner(ownerId, status) {
-    await delay(360);
-    let items = db.properties.filter((p) => p.ownerId === ownerId);
-    if (status && status !== 'all') items = items.filter((p) => p.status === status);
-    items = [...items].sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
-    return items.map(decorate);
+    const items = await api.get('/properties/my', {
+      status: status && status !== 'all' ? status : undefined,
+    });
+    return Array.isArray(items) ? items : [];
   },
 
   /* ---------------- admin review ---------------- */
 
   async adminList(status = 'all') {
-    await delay(400);
-    let items = [...db.properties];
-    if (status && status !== 'all') items = items.filter((p) => p.status === status);
-    items.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
-    return items.map(decorate);
+    const res = await api.get('/properties', {
+      status: status && status !== 'all' ? status : 'all',
+      limit: 100,
+    });
+    return res?.items || (Array.isArray(res) ? res : []);
   },
 
   async setListingStatus(id, status, reason = '') {
-    await delay(600);
-    const property = db.properties.find((p) => p.id === id);
-    if (!property) fail('Property not found.');
-    property.status = status;
-    property.adminNote = reason || '';
-    property.updatedAt = new Date().toISOString().slice(0, 10);
-    emit();
-    return decorate(property);
+    const updated = await api.put(`/properties/${id}`, {
+      status,
+      adminNote: reason || '',
+    });
+    emit('properties');
+    return updated;
   },
 };
 
-function placeholderImages(type) {
+export function placeholderImages(type) {
   const pools = {
     house: ['https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=1000&q=70'],
     apartment: ['https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1000&q=70'],

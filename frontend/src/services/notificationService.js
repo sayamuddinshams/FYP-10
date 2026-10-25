@@ -1,41 +1,52 @@
-import { db, emit } from '../data/store';
-import { delay, fail } from './core';
+import api from './api';
+import { emit } from './core';
+
+let cachedUnreadCount = 0;
 
 const notificationService = {
   async list(userId) {
-    await delay(280);
-    if (!userId) fail('Sign in to view notifications.');
-    const items = db.notifications.filter((n) => n.userId === userId);
-    items.sort((a, b) => new Date(b.at) - new Date(a.at));
-    return items.map((n) => ({ ...n }));
+    try {
+      const res = await api.get('/notifications');
+      const items = res?.items || (Array.isArray(res) ? res : []);
+      cachedUnreadCount = res?.unreadCount !== undefined ? res.unreadCount : items.filter((n) => !n.read).length;
+      return items;
+    } catch {
+      return [];
+    }
   },
 
   unreadCount(userId) {
-    if (!userId) return 0;
-    return db.notifications.filter((n) => n.userId === userId && !n.read).length;
+    return cachedUnreadCount;
   },
 
   async markRead(id) {
-    await delay(150);
-    const note = db.notifications.find((n) => n.id === id);
-    if (note) note.read = true;
-    emit();
+    if (!id) return true;
+    try {
+      await api.patch(`/notifications/${id}/read`);
+      if (cachedUnreadCount > 0) cachedUnreadCount -= 1;
+      emit('notifications');
+    } catch {
+      // non-blocking
+    }
     return true;
   },
 
   async markAllRead(userId) {
-    await delay(250);
-    db.notifications.forEach((n) => {
-      if (n.userId === userId) n.read = true;
-    });
-    emit();
+    try {
+      await api.patch('/notifications/read-all');
+      cachedUnreadCount = 0;
+      emit('notifications');
+    } catch {
+      // non-blocking
+    }
     return true;
   },
 
   async clearAll(userId) {
-    await delay(250);
-    db.notifications = db.notifications.filter((n) => n.userId !== userId);
-    emit();
+    try {
+      cachedUnreadCount = 0;
+      emit('notifications');
+    } catch {}
     return true;
   },
 };

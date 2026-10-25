@@ -1,36 +1,23 @@
-import { db, emit, getUser } from '../data/store';
+import api from './api';
+import { emit, subscribe, getVersion } from './events';
 
-/** Simulated network latency so loading states are real. */
-export function delay(ms = 320) {
+export class ServiceError extends Error {
+  constructor(message, status = 400, errors = null) {
+    super(message);
+    this.name = 'ServiceError';
+    this.status = status;
+    this.errors = errors;
+  }
+}
+
+export function fail(message, status = 400) {
+  throw new ServiceError(message, status);
+}
+
+/** Optional no-op or micro-delay when needed */
+export function delay(ms = 0) {
+  if (ms <= 0) return Promise.resolve();
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export class ServiceError extends Error {}
-
-export function fail(message) {
-  throw new ServiceError(message);
-}
-
-export function createNotification({ userId, type, title, body, link }) {
-  if (!userId || userId === 'system') return null;
-  const note = {
-    id: `n_${Math.random().toString(36).slice(2, 9)}`,
-    userId,
-    type,
-    title,
-    body,
-    link,
-    at: new Date().toISOString(),
-    read: false,
-  };
-  db.notifications.unshift(note);
-  return note;
-}
-
-export function notifyOwnerOfProperty(propertyId, payload) {
-  const property = db.properties.find((p) => p.id === propertyId);
-  if (!property) return;
-  createNotification({ ...payload, userId: property.ownerId });
-}
-
-export { emit, getUser };
+export { api, emit, subscribe, getVersion };

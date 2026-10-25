@@ -1,25 +1,28 @@
-import { db, emit } from '../data/store';
-import { delay, fail } from './core';
+import api from './api';
+import { emit, fail } from './core';
 
 const advertisementService = {
   async listActive() {
-    await delay(320);
-    const today = new Date().toISOString().slice(0, 10);
-    return db.advertisements
-      .filter((a) => a.status === 'active' && a.start <= today && a.end >= today)
-      .map((a) => ({ ...a }));
+    try {
+      const ads = await api.get('/advertisements/active');
+      return Array.isArray(ads) ? ads : [];
+    } catch {
+      return [];
+    }
   },
 
   async listAll() {
-    await delay(340);
-    return [...db.advertisements].sort((a, b) => new Date(b.start) - new Date(a.start)).map((a) => ({ ...a }));
+    try {
+      const ads = await api.get('/advertisements');
+      return Array.isArray(ads) ? ads : [];
+    } catch {
+      return [];
+    }
   },
 
   async create(data) {
-    await delay(600);
     if (!data.title?.trim()) fail('Title is required.');
-    const ad = {
-      id: `ad_${Math.random().toString(36).slice(2, 8)}`,
+    const ad = await api.post('/advertisements', {
       title: data.title.trim(),
       description: data.description?.trim() || '',
       image: data.image || 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=1200&q=70',
@@ -27,41 +30,38 @@ const advertisementService = {
       target: data.target || 'All Gilgit-Baltistan',
       start: data.start,
       end: data.end,
-      status: data.status || 'scheduled',
+      status: data.status || 'active',
       owner: data.owner || 'RentLink',
-      impressions: 0,
-      clicks: 0,
-    };
-    db.advertisements.unshift(ad);
-    emit();
-    return { ...ad };
+    });
+    emit('ads');
+    return ad;
   },
 
   async update(id, data) {
-    await delay(500);
-    const ad = db.advertisements.find((a) => a.id === id);
-    if (!ad) fail('Advertisement not found.');
-    Object.assign(ad, data);
-    emit();
-    return { ...ad };
+    if (!id) fail('Advertisement ID is required.');
+    const updated = await api.put(`/advertisements/${id}`, data);
+    emit('ads');
+    return updated;
   },
 
   async setStatus(id, status) {
-    await delay(400);
-    const ad = db.advertisements.find((a) => a.id === id);
-    if (!ad) fail('Advertisement not found.');
-    ad.status = status;
-    emit();
-    return { ...ad };
+    return this.update(id, { status });
   },
 
   async remove(id) {
-    await delay(420);
-    const index = db.advertisements.findIndex((a) => a.id === id);
-    if (index === -1) fail('Advertisement not found.');
-    db.advertisements.splice(index, 1);
-    emit();
+    if (!id) fail('Advertisement ID is required.');
+    await api.delete(`/advertisements/${id}`);
+    emit('ads');
     return true;
+  },
+
+  async recordInteraction(id, type = 'impression') {
+    if (!id) return;
+    try {
+      await api.post(`/advertisements/${id}/interact`, { type });
+    } catch {
+      // non-blocking
+    }
   },
 };
 

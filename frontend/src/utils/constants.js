@@ -85,3 +85,9 @@ export const SORT_OPTIONS = [
 ];
 
 export const PLATFORM_FEE_RATE = 0.05;
+
+export const DEMO_ACCOUNTS = [
+  { role: 'tenant', name: 'Karim Ali', email: 'tenant@rentlink.pk' },
+  { role: 'owner', name: 'Hunza Heritage Homes', email: 'owner@rentlink.pk' },
+  { role: 'admin', name: 'RentLink Admin', email: 'admin@rentlink.pk' },
+];
