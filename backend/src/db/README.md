@@ -8,11 +8,12 @@ This document provides a comprehensive guide to the **RentLink** database layer.
 1. [Overview & Design Principles](#1-overview--design-principles)
 2. [Connection & Configuration](#2-connection--configuration)
 3. [Collections & Schema Specification](#3-collections--schema-specification)
-4. [Indexing Strategy & Constraints](#4-indexing-strategy--constraints)
-5. [Database Seeding & Initialization](#5-database-seeding--initialization)
-6. [Inspecting with MongoDB Compass](#6-inspecting-with-mongodb-compass)
-7. [Query Patterns & ID Normalization](#7-query-patterns--id-normalization)
-8. [Troubleshooting](#8-troubleshooting)
+4. [Image & Media Storage Strategy](#4-image--media-storage-strategy)
+5. [Indexing Strategy & Constraints](#5-indexing-strategy--constraints)
+6. [Database Seeding & Initialization](#6-database-seeding--initialization)
+7. [Inspecting with MongoDB Compass](#7-inspecting-with-mongodb-compass)
+8. [Query Patterns & ID Normalization](#8-query-patterns--id-normalization)
+9. [Troubleshooting](#9-troubleshooting)
 
 ---
 
@@ -64,26 +65,95 @@ process.on('SIGTERM', () => shutdown('SIGTERM'));
 The `rentlink` database contains **12 collections**:
 
 ### 1. `users`
-Stores user identity, roles, profile metadata, and verification states.
+Stores user identity, roles, profile metadata, credentials, and verification states across all three platform personas: **Tenants**, **Property Owners / Agents**, and **Platform Administrators**.
+
+#### Role-Based Data Architecture & Password Security:
+* **Password Encryption:** Passwords are never stored in plaintext. They are salted and encrypted using `bcryptjs` with salt rounds 10 (`passwordHash: "$2a$10$..."`). During authentication, `bcrypt.compare()` validates the password, and `passwordHash` is always stripped before documents are returned to the client.
+* **Tenant Documents:** Contain tenant identity, verified phone, residency tags (`district`, `city`, `area`), bio, and verification level (`unverified | pending | verified`).
+* **Owner Documents:** Contain property operator credentials extended with official NADRA CNIC verification fields (`cnic`, `cnicName`, `cnicDob`, `cnicExpiry`, `cnicLifetime`, `cnicFront`, `cnicBack`, `nadraTrackingId`, `nadraStatus`, `verifiedAt`, `verificationNotes`, `propertiesManaged`).
+* **Admin Documents:** Elevated role (`role: "admin"`) with permissions to moderate listings, audit financial ledgers, approve CNIC verifications, and manage platform parameters.
+
+#### Schema Example: Tenant User
 ```json
 {
   "_id": "u1",
   "id": "u1",
   "name": "Ayesha Khan",
   "email": "ayesha.khan@example.com",
-  "passwordHash": "$2a$10$...",
-  "role": "tenant",                   // "tenant" | "owner" | "admin"
-  "phone": "+92 345 1234567",
+  "passwordHash": "$2a$10$eO...[bcrypt salt + hash]",
+  "role": "tenant",
+  "phone": "+92 355 4120876",
   "district": "Gilgit",
   "city": "Gilgit",
   "area": "Jutial",
-  "address": "Khomer Chowk, Jutial",
-  "avatar": "https://images.unsplash.com/...",
-  "bio": "Software developer looking for a rental near KIU.",
-  "status": "active",                 // "active" | "suspended"
-  "verification": "unverified",       // "unverified" | "pending" | "verified" | "rejected"
-  "createdAt": "2026-09-01T00:00:00.000Z",
-  "updatedAt": "2026-10-22T21:00:00.000Z"
+  "address": "Near Gilgit-Baltistan University, Jutial",
+  "avatar": null,
+  "bio": "Software student looking for a quiet place to live close to campus.",
+  "status": "active",
+  "verification": "verified",
+  "createdAt": "2025-03-14T00:00:00.000Z",
+  "updatedAt": "2026-10-25T12:00:00.000Z"
+}
+```
+
+#### Schema Example: Property Owner / Landlord (with NADRA CNIC Verification)
+```json
+{
+  "_id": "u0_owner",
+  "id": "u0_owner",
+  "name": "Hunza Heritage Homes",
+  "email": "owner@rentlink.pk",
+  "passwordHash": "$2a$10$eO...[bcrypt salt + hash]",
+  "role": "owner",
+  "phone": "+92 345 7712094",
+  "district": "Hunza",
+  "city": "Hunza",
+  "area": "Karimabad",
+  "address": "Altit Road, Karimabad, Hunza",
+  "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+  "bio": "Boutique rental operator offering furnished homes and guest apartments in Hunza Valley.",
+  "status": "active",
+  "verification": "verified",
+  "propertiesManaged": 4,
+
+  // NADRA Identity & Document Verification Fields
+  "cnic": "71501-1928374-1",
+  "cnicName": "Hunza Heritage Homes",
+  "cnicDob": "1988-06-15",
+  "cnicExpiry": "2031-06-15",
+  "cnicLifetime": false,
+  "cnicFront": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 500 315\">...[High-fidelity vector CNIC Front with Microprinting & Chip]...</svg>",
+  "cnicBack": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 500 315\">...[High-fidelity vector CNIC Back with Security Barcode]...</svg>",
+  "nadraTrackingId": "NADRA-PK-884129",
+  "nadraStatus": "nadra_verified",
+  "verifiedAt": "2025-02-18T10:30:00.000Z",
+  "verificationNotes": "Verified against NADRA National Database registry.",
+
+  "createdAt": "2025-02-17T00:00:00.000Z",
+  "updatedAt": "2026-10-25T12:00:00.000Z"
+}
+```
+
+#### Schema Example: Platform Administrator
+```json
+{
+  "_id": "u11",
+  "id": "u11",
+  "name": "RentLink Admin",
+  "email": "admin@rentlink.pk",
+  "passwordHash": "$2a$10$eO...[bcrypt salt + hash]",
+  "role": "admin",
+  "phone": "+92 5811 456789",
+  "district": "Gilgit",
+  "city": "Gilgit",
+  "area": "Konodas",
+  "address": "RentLink Operations, Konodas, Gilgit",
+  "avatar": null,
+  "bio": "Platform operations and trust & safety moderation team.",
+  "status": "active",
+  "verification": "verified",
+  "createdAt": "2024-10-01T00:00:00.000Z",
+  "updatedAt": "2026-10-25T12:00:00.000Z"
 }
 ```
 
@@ -289,7 +359,48 @@ Global system configuration parameters (single document with `_id: "global"`).
 
 ---
 
-## 4. Indexing Strategy & Constraints
+## 4. Image & Media Storage Strategy
+
+RentLink follows a cloud-native, high-throughput media storage pattern optimized for MongoDB Community Server:
+
+```mermaid
+flowchart LR
+    subgraph Browser ["Client View"]
+        ImageTag["<img src=... /> or <svg>"]
+    end
+
+    subgraph MongoDoc ["MongoDB Document"]
+        ImgArray["properties.images: [ 'https://images.unsplash.com/...' ]"]
+        AvatarStr["users.avatar: 'https://images.unsplash.com/...'"]
+        CnicVector["users.cnicFront: '<svg>...[Vector Security Template]...</svg>'"]
+        AdBanner["advertisements.image: 'https://images.unsplash.com/...'"]
+    end
+
+    subgraph CDN ["Edge CDN / Asset Pipeline"]
+        CloudStorage["High-Res Unsplash CDN / WebP Optimized"]
+    end
+
+    Browser <--> MongoDoc
+    Browser <--> CDN
+```
+
+### 1. Why URL Pointers Instead of Raw Binary (GridFS/BLOBs)?
+* **Sub-Millisecond Query Speeds:** Storing multi-megabyte binary chunks directly in MongoDB bloats document size, exhausts working set RAM in the MongoDB engine, and slows down indexing and query filtering.
+* **Document Size Optimization:** Keeping media as URL pointers keeps individual property documents tiny (~2 KB), allowing MongoDB to fetch hundreds of listings in milliseconds.
+* **Browser & CDN Edge Caching:** Storing public CDN/cloud URLs allows client browsers and edge caches to cache and serve images instantly without burdening the Node.js backend.
+* **Dynamic Transformations:** Image URLs include responsive query parameters (e.g., `?auto=format&fit=crop&w=1200&q=80`) for on-the-fly WebP compression and device-tailored resizing.
+
+### 2. Media Attribute Breakdown by Collection:
+| Media Type | MongoDB Location | Data Format | Description |
+| :--- | :--- | :--- | :--- |
+| **Property Photos** | `properties.images` | `[String]` (Array of URLs) | 1 to 8 high-resolution photo URLs showcasing exterior, bedrooms, kitchen, and scenic surroundings. |
+| **User Avatars** | `users.avatar` | `String` or `null` | Square profile photo URL (or `null` to trigger fallback UI initials/geometric avatar). |
+| **NADRA CNIC Documents** | `users.cnicFront` & `users.cnicBack` | `String` (Vector SVG XML) | High-fidelity vector security templates representing the government-issued CNIC (with microprinting, biometric chip visuals, and barcode). Stored directly in the owner document for instant admin verification review without external storage dependencies. |
+| **Partner Ad Banners** | `advertisements.image` | `String` (URL) | 16:9 or 21:9 landscape banner image URL for regional business promotions. |
+
+---
+
+## 5. Indexing Strategy & Constraints
 
 All indexes are built idempotently during server startup by `initDBIndexes()` in `backend/src/config/db.js`:
 
@@ -307,9 +418,18 @@ All indexes are built idempotently during server startup by `initDBIndexes()` in
 
 ---
 
-## 5. Database Seeding & Initialization
+## 6. Database Seeding & Initialization
 
-A standalone seeder script is provided at [`backend/src/db/seed.js`](file:///c:/Users/uddin/Downloads/sq/backend/src/db/seed.js).
+A standalone, fully decoupled database seeder script is provided at [`backend/src/db/seed.js`](file:///c:/Users/Admin/Downloads/FYP-10/backend/src/db/seed.js).
+
+### Independent Backend Fixtures (`backend/src/db/fixtures/`)
+The backend maintains its own dedicated seed fixture datasets, ensuring complete decoupling from frontend source files:
+* [`fixtures/users.js`](file:///c:/Users/Admin/Downloads/FYP-10/backend/src/db/fixtures/users.js): Canonical accounts (Tenant: `tenant@rentlink.pk`, Owner: `owner@rentlink.pk`, Admin: `admin@rentlink.pk`).
+* [`fixtures/properties.js`](file:///c:/Users/Admin/Downloads/FYP-10/backend/src/db/fixtures/properties.js): 26 properties localized across Gilgit, Hunza, Skardu, Ghizer, etc.
+* [`fixtures/visits.js`](file:///c:/Users/Admin/Downloads/FYP-10/backend/src/db/fixtures/visits.js): Seeded tour requests and verification workflows.
+* [`fixtures/notifications.js`](file:///c:/Users/Admin/Downloads/FYP-10/backend/src/db/fixtures/notifications.js): Pre-populated user notification activity.
+* [`fixtures/platform.js`](file:///c:/Users/Admin/Downloads/FYP-10/backend/src/db/fixtures/platform.js): Transactions, partner advertisements, and moderation reports.
+* [`fixtures/cnicTemplates.js`](file:///c:/Users/Admin/Downloads/FYP-10/backend/src/db/fixtures/cnicTemplates.js): High-fidelity vector CNIC SVG generators.
 
 ### Running the Seeder
 From the repository root:
@@ -328,11 +448,11 @@ npm run seed
 4. Seeds **13 users** across tenant, owner, and admin roles.
 5. Seeds **26 properties** with authentic Gilgit-Baltistan districts, high-res photos, and amenities.
 6. Seeds **12 visit requests**, **32 notifications**, **16 transactions**, **6 advertisements**, and **6 reports**.
-7. Verifies and builds all required indexes.
+7. Verifies and builds all 12 required collection indexes.
 
 ---
 
-## 6. Inspecting with MongoDB Compass
+## 7. Inspecting with MongoDB Compass
 
 MongoDB Compass is the official GUI for inspecting and managing MongoDB databases.
 
@@ -350,7 +470,7 @@ MongoDB Compass is the official GUI for inspecting and managing MongoDB database
 
 ---
 
-## 7. Query Patterns & ID Normalization
+## 8. Query Patterns & ID Normalization
 
 ### Helper Function: `toIdQuery(id)`
 MongoDB allows document `_id` values to be strings or `ObjectId` instances. To ensure safe, injection-proof lookups:
@@ -382,7 +502,7 @@ export function normalizeDoc(doc) {
 
 ---
 
-## 8. Troubleshooting
+## 9. Troubleshooting
 
 | Issue | Cause | Solution |
 | :--- | :--- | :--- |
