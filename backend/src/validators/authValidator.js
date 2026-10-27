@@ -30,5 +30,9 @@ export const updateProfileSchema = z.object({
     address: z.string().optional(),
     bio: z.string().optional(),
     avatar: z.string().nullable().optional(),
+    preferredType: z.string().nullable().optional(),
+    budgetMax: z.number().nullable().optional(),
+    notificationPrefs: z.record(z.any()).optional(),
+    appSettings: z.record(z.any()).optional(),
   }),
 });

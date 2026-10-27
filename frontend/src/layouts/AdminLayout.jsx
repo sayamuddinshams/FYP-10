@@ -33,6 +33,7 @@ export default function AdminLayout() {
           items: [
             { to: '/admin/analytics', label: 'Analytics', icon: 'chart' },
             { to: '/admin/notifications', label: 'Notifications', icon: 'bell', badge: unread },
+            { to: '/admin/profile', label: 'Profile', icon: 'user' },
             { to: '/admin/settings', label: 'Settings', icon: 'settings' },
           ],
         },

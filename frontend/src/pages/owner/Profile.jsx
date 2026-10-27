@@ -18,6 +18,7 @@ import { useToast } from '../../context/ToastContext';
 import { useAsync, useDocumentTitle, useStoreVersion } from '../../hooks';
 import Modal from '../../components/common/Modal';
 import CnicVerificationModal from '../../components/owner/CnicVerificationModal';
+import { DISTRICTS, getCities, getAreas } from '../../data/locations';
 import { cn, formatDate } from '../../utils/format';
 
 const PHONE_PATTERN = /^[+0-9][0-9\s-]{6,19}$/;

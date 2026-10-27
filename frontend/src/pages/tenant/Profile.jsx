@@ -11,6 +11,7 @@ import { useDocumentTitle } from '../../hooks';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import userService from '../../services/userService';
+import authService from '../../services/authService';
 import { DISTRICTS, getAreas, getCities } from '../../data/locations';
 import { PROPERTY_TYPES } from '../../utils/constants';
 
@@ -45,7 +46,7 @@ export default function Profile() {
   const [prefsSaving, setPrefsSaving] = useState(false);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || editing) return;
     setForm({
       name: user.name || '',
       phone: user.phone || '',
@@ -59,8 +60,7 @@ export default function Profile() {
       budgetMax: user.budgetMax ? String(user.budgetMax) : '',
     });
     setNotifPrefs((prev) => ({ ...prev, ...(user.notificationPrefs || {}) }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]);
+  }, [user, editing]);
 
   if (!user) return <PageLoader label="Loading your profile…" />;
 
@@ -148,7 +148,7 @@ export default function Profile() {
     }
     setPwSaving(true);
     try {
-      await userService.updateProfile(user.id, { password: pw.next });
+      await authService.changePassword({ currentPassword: pw.current, newPassword: pw.next });
       toast.success('Password changed. Use it next time you sign in.');
       setPw({ current: '', next: '', confirm: '' });
       setPwErrors({});

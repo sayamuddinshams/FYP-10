@@ -1,5 +1,6 @@
 import api from './api';
 import { emit, fail } from './core';
+import { saveSession, readSession } from './authService';
 
 const userService = {
   async list({ role, status, query = '', page = 1, limit = 8 } = {}) {
@@ -33,8 +34,14 @@ const userService = {
   async updateProfile(id, data) {
     if (!id) fail('User ID is required.');
     const updated = await api.put('/auth/profile', data);
+    const user = updated?.user || updated;
+    const current = readSession();
+    if (user && current && String(current.id) === String(id)) {
+      saveSession({ ...current, ...user });
+    }
+    emit('auth');
     emit('users');
-    return updated?.user || updated;
+    return user;
   },
 
   async setStatus(id, status) {
@@ -50,6 +57,11 @@ const userService = {
       verification,
       notes,
     });
+    const current = readSession();
+    if (current && String(current.id) === String(id)) {
+      saveSession({ ...current, verification, verificationNotes: notes });
+    }
+    emit('auth');
     emit('users');
     return updated;
   },
@@ -57,6 +69,12 @@ const userService = {
   async submitCnicVerification(id, payload) {
     if (!id) fail('User ID is required.');
     const updated = await api.post(`/users/${id}/cnic-verification`, payload);
+    const user = updated?.user || updated;
+    const current = readSession();
+    if (current && String(current.id) === String(id)) {
+      saveSession({ ...current, ...(user || {}), verification: 'pending' });
+    }
+    emit('auth');
     emit('users');
     return updated;
   },

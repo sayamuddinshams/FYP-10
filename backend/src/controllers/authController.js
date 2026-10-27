@@ -145,7 +145,7 @@ export async function getMe(req, res, next) {
 
 export async function updateProfile(req, res, next) {
   try {
-    const { name, phone, district, city, area, address, bio, avatar } = req.body;
+    const { name, phone, district, city, area, address, bio, avatar, preferredType, budgetMax, notificationPrefs, appSettings } = req.body;
 
     const updateFields = { updatedAt: new Date() };
     if (name !== undefined) updateFields.name = name.trim();
@@ -156,6 +156,10 @@ export async function updateProfile(req, res, next) {
     if (address !== undefined) updateFields.address = address;
     if (bio !== undefined) updateFields.bio = bio;
     if (avatar !== undefined) updateFields.avatar = avatar;
+    if (preferredType !== undefined) updateFields.preferredType = preferredType;
+    if (budgetMax !== undefined) updateFields.budgetMax = budgetMax;
+    if (notificationPrefs !== undefined) updateFields.notificationPrefs = notificationPrefs;
+    if (appSettings !== undefined) updateFields.appSettings = appSettings;
 
     await collections.users().updateOne(toIdQuery(req.user.id), { $set: updateFields });
 
