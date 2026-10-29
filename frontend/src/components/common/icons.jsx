@@ -122,6 +122,7 @@ const PATHS = {
   arrowRight: <path d="M5 12h14M13 6l6 6-6 6" />,
   arrowLeft: <path d="M19 12H5M11 6l-6 6 6 6" />,
   chevronDown: <path d="m6 9.5 6 6 6-6" />,
+  chevronUp: <path d="m6 14.5 6-6 6 6" />,
   chevronLeft: <path d="m14.5 6-6 6 6 6" />,
   chevronRight: <path d="m9.5 6 6 6-6 6" />,
   share: (
@@ -307,4 +308,73 @@ export function StarIcon({ filled = false, className = 'h-4 w-4' }) {
       <path d="m12 3.5 2.7 5.5 6 .9-4.4 4.2 1.1 6L12 17.3l-5.4 2.8 1.1-6L3.3 9.9l6-.9L12 3.5z" />
     </svg>
   );
+}
+
+const MATERIAL_ICON_ALIASES = {
+  landscape: 'map',
+  search: 'search',
+  favorite: 'heart',
+  favorite_border: 'heart',
+  notifications: 'bell',
+  add_business: 'building',
+  menu: 'menu',
+  close: 'x',
+  logout: 'logout',
+  dashboard: 'grid',
+  person: 'user',
+  settings: 'settings',
+  pin_drop: 'pin',
+  location_on: 'pin',
+  call: 'phone',
+  mail: 'mail',
+  verified: 'verified',
+  keyboard_arrow_up: 'chevronUp',
+  arrow_drop_down: 'chevronDown',
+  expand_more: 'chevronDown',
+  arrow_forward: 'arrowRight',
+  open_in_new: 'external',
+  travel_explore: 'search',
+  explore: 'map',
+  home: 'home',
+  home_work: 'building',
+  villa: 'home',
+  apartment: 'building',
+  single_bed: 'home',
+  group: 'users',
+  domain: 'building',
+  storefront: 'building',
+  payments: 'wallet',
+  map: 'map',
+  category: 'grid',
+  verified_user: 'shield',
+  calendar_month: 'calendar',
+  handshake: 'users',
+  badge: 'idCard',
+  thermostat: 'gauge',
+  chat: 'chat',
+  edit_note: 'edit',
+  rate_review: 'star',
+  format_quote: 'chat',
+  bed: 'home',
+  bathtub: 'spark',
+  square_foot: 'gauge',
+  star: 'star',
+};
+
+/**
+ * Local SVG replacement for the former Google Material Symbols ligatures.
+ * Keeping this adapter lets existing screens use familiar icon names without
+ * exposing those names when an external font request is blocked.
+ */
+export function MaterialIcon({ children, name, className = 'h-5 w-5', ...rest }) {
+  const materialName = name || (typeof children === 'string' ? children.trim() : 'info');
+  const iconName = MATERIAL_ICON_ALIASES[materialName] || materialName;
+
+  if (materialName === 'favorite' || materialName === 'favorite_border') {
+    return <HeartIcon filled={materialName === 'favorite'} className={cn('h-[1em] w-[1em]', className)} {...rest} />;
+  }
+  if (materialName === 'star') {
+    return <StarIcon filled className={cn('h-[1em] w-[1em]', className)} {...rest} />;
+  }
+  return <Icon name={iconName} className={cn('h-[1em] w-[1em]', className)} {...rest} />;
 }

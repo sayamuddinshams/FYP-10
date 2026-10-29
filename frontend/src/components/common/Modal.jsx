@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef } from 'react';
 import { cn } from '../../utils/format';
+import { MaterialIcon } from './icons';
 
 /**
  * Accessible modal built with pure React and Tailwind CSS:
@@ -109,7 +110,7 @@ export default function Modal({
                 aria-label="Close dialog"
                 className="w-8 h-8 -mr-2 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
               >
-                <span className="material-symbols-outlined text-[20px]">close</span>
+                <MaterialIcon className="text-[20px]">close</MaterialIcon>
               </button>
             )}
           </div>

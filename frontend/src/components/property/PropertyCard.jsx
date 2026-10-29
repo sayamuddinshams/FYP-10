@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import ImageWithFallback from '../common/ImageWithFallback';
 import Avatar from '../common/Avatar';
+import { MaterialIcon } from '../common/icons';
 import useFavorite from '../../hooks/useFavorite';
 import { formatPrice, cn } from '../../utils/format';
 import { LISTING_STATUS_LABELS, USER_ROLES, propertyTypeLabel } from '../../utils/constants';
@@ -55,7 +56,7 @@ export default function PropertyCard({ property, className = '', compact = false
           </span>
           {property.ownerVerified && (
             <span className="px-2.5 py-1 rounded-md bg-[#85F8C4] text-[#002114] text-[11px] flex items-center gap-1 font-bold">
-              <span className="material-symbols-outlined text-[13px]">verified</span>
+              <MaterialIcon className="text-[13px]">verified</MaterialIcon>
               Verified
             </span>
           )}
@@ -73,15 +74,15 @@ export default function PropertyCard({ property, className = '', compact = false
           aria-label={favorited ? 'Remove from saved' : 'Save to favorites'}
           className="absolute top-3 right-3 w-9 h-9 rounded-full bg-white/85 backdrop-blur-md flex items-center justify-center text-slate-500 hover:text-[#BA1A1A] transition-colors shadow-sm cursor-pointer z-10"
         >
-          <span
+          <MaterialIcon
             className={cn(
-              'material-symbols-outlined text-[20px] transition-transform duration-300',
-              favorited && 'fill text-[#BA1A1A]',
+              'text-[20px] transition-transform duration-300',
+              favorited && 'text-[#BA1A1A]',
               popping && 'scale-125'
             )}
+            name={favorited ? 'favorite' : 'favorite_border'}
           >
-            favorite
-          </span>
+          </MaterialIcon>
         </button>
       </div>
 
@@ -96,7 +97,7 @@ export default function PropertyCard({ property, className = '', compact = false
             </div>
             {property.rating > 0 && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 text-xs font-bold">
-                <span className="material-symbols-outlined text-[14px] text-[#D97706] fill">star</span>
+                <MaterialIcon className="text-[14px] text-[#D97706] fill">star</MaterialIcon>
                 {property.rating.toFixed(1)}
               </span>
             )}
@@ -109,7 +110,7 @@ export default function PropertyCard({ property, className = '', compact = false
           </Link>
 
           <p className="text-xs text-slate-500 flex items-center gap-1 mt-1">
-            <span className="material-symbols-outlined text-[15px] text-[#D97706] shrink-0">location_on</span>
+            <MaterialIcon className="text-[15px] text-[#D97706] shrink-0">location_on</MaterialIcon>
             <span className="truncate">
               {property.area}, {property.city}, {property.district}
             </span>
@@ -120,19 +121,19 @@ export default function PropertyCard({ property, className = '', compact = false
             {property.bedrooms > 0 && (
               <>
                 <span className="flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[16px] text-slate-400">bed</span>
+                  <MaterialIcon className="text-[16px] text-slate-400">bed</MaterialIcon>
                   {property.bedrooms} {property.bedrooms === 1 ? 'Bed' : 'Beds'}
                 </span>
                 <span className="text-slate-300">•</span>
               </>
             )}
             <span className="flex items-center gap-1">
-              <span className="material-symbols-outlined text-[16px] text-slate-400">bathtub</span>
+              <MaterialIcon className="text-[16px] text-slate-400">bathtub</MaterialIcon>
               {property.bathrooms} {property.bathrooms === 1 ? 'Bath' : 'Baths'}
             </span>
             <span className="text-slate-300">•</span>
             <span className="flex items-center gap-1">
-              <span className="material-symbols-outlined text-[16px] text-slate-400">square_foot</span>
+              <MaterialIcon className="text-[16px] text-slate-400">square_foot</MaterialIcon>
               {property.size ? `${property.size} sq ft` : '–'}
             </span>
           </div>
@@ -159,9 +160,9 @@ export default function PropertyCard({ property, className = '', compact = false
             className="inline-flex items-center gap-1 text-xs font-bold text-[#0B1320] hover:text-[#D97706] transition-colors group/link shrink-0"
           >
             <span>View Details</span>
-            <span className="material-symbols-outlined text-[15px] group-hover/link:translate-x-0.5 transition-transform">
+            <MaterialIcon className="text-[15px] group-hover/link:translate-x-0.5 transition-transform">
               arrow_forward
-            </span>
+            </MaterialIcon>
           </Link>
         </div>
       </div>

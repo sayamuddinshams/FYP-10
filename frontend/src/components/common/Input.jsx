@@ -1,5 +1,6 @@
 import { useId } from 'react';
 import { cn } from '../../utils/format';
+import { MaterialIcon } from './icons';
 
 export function FieldLabel({ htmlFor, children, required, hint, hintId }) {
   return (
@@ -122,9 +123,9 @@ export function Select({ label, error, hint, required, id, children, className =
           )}
           {children}
         </select>
-        <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-slate-500 material-symbols-outlined text-[18px]">
+        <MaterialIcon className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-slate-500 text-[18px]">
           arrow_drop_down
-        </span>
+        </MaterialIcon>
       </div>
       <FieldError id={`${inputId}-error`}>{error}</FieldError>
     </div>

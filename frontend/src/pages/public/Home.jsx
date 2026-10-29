@@ -9,6 +9,7 @@ import LocationAutocomplete from '../../components/property/LocationAutocomplete
 import { PropertyCardSkeleton } from '../../components/common/Skeleton';
 import EmptyState from '../../components/common/EmptyState';
 import PopularLocationsExpand from '../../components/home/PopularLocationsExpand';
+import { MaterialIcon } from '../../components/common/icons';
 
 const HERO_POSTER =
   'https://lh3.googleusercontent.com/aida-public/AB6AXuAmLKAnVMgYwlQODw7eddXv53dZYfd1wIh1r15wkh0Ml6_FBNFn9db_L95WkKLBUe-06CgSRI5O69KFIaVL2beKQIm4DuIo6jExMe0NO4msJ_bZSM2KyA1eRANg_6s5iRKfxCrYl6AF0Yw8en8G5uHWkDHgLc_2OGlqTnbIQ7mPzLvytTgN9QoQGc59d4JZkgOZlz8E-eUL8bgvq71U2YR-XOafcxboFvYA5pGMc8Ae0uoTlQmJwP_E';
@@ -137,7 +138,7 @@ export default function Home() {
             >
               {/* Compartment 1: Location */}
               <div className="flex-1 w-full md:w-auto relative flex items-center px-4 py-2 md:py-1">
-                <span className="material-symbols-outlined text-slate-400 text-[20px] mr-2 shrink-0">pin_drop</span>
+                <MaterialIcon className="text-slate-400 text-[20px] mr-2 shrink-0">pin_drop</MaterialIcon>
                 <div className="flex flex-col flex-1 min-w-0">
                   <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider leading-none mb-0.5" htmlFor="hero-location">
                     Location
@@ -157,7 +158,7 @@ export default function Home() {
 
               {/* Compartment 2: Property Type */}
               <div className="w-full md:w-48 relative flex items-center px-4 py-2 md:py-1">
-                <span className="material-symbols-outlined text-slate-400 text-[20px] mr-2 shrink-0">home_work</span>
+                <MaterialIcon className="text-slate-400 text-[20px] mr-2 shrink-0">home_work</MaterialIcon>
                 <div className="flex flex-col flex-1 min-w-0">
                   <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider leading-none mb-0.5" htmlFor="hero-type">
                     Property Type
@@ -183,7 +184,7 @@ export default function Home() {
 
               {/* Compartment 3: Budget */}
               <div className="w-full md:w-44 relative flex items-center px-4 py-2 md:py-1">
-                <span className="material-symbols-outlined text-slate-400 text-[20px] mr-2 shrink-0">payments</span>
+                <MaterialIcon className="text-slate-400 text-[20px] mr-2 shrink-0">payments</MaterialIcon>
                 <div className="flex flex-col flex-1 min-w-0">
                   <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider leading-none mb-0.5" htmlFor="hero-budget">
                     Budget
@@ -209,7 +210,7 @@ export default function Home() {
                   type="submit"
                   className="w-full md:w-auto h-11 px-6 rounded-xl md:rounded-full bg-[#0B1320] text-white hover:bg-[#D97706] transition-all flex items-center justify-center gap-1.5 shadow-md active:scale-95 font-semibold text-sm cursor-pointer shrink-0"
                 >
-                  <span className="material-symbols-outlined text-[18px]">search</span>
+                  <MaterialIcon className="text-[18px]">search</MaterialIcon>
                   <span>Search</span>
                 </button>
               </div>
@@ -235,7 +236,7 @@ export default function Home() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mt-10 w-full max-w-4xl p-2 sm:p-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl shadow-2xl">
             <div className="bg-[#141C29]/80 backdrop-blur-md border border-white/10 rounded-2xl p-4 flex items-center gap-3.5 shadow-lg hover:border-[#059669]/40 hover:bg-[#141C29] transition-all group">
               <div className="rounded-xl bg-white/5 border border-white/10 p-2.5 text-[#85F8C4] group-hover:scale-110 transition-transform flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-[20px]">villa</span>
+                <MaterialIcon className="text-[20px]">villa</MaterialIcon>
               </div>
               <div className="text-left min-w-0">
                 <div className="flex items-center gap-2">
@@ -255,7 +256,7 @@ export default function Home() {
 
             <div className="bg-[#141C29]/80 backdrop-blur-md border border-white/10 rounded-2xl p-4 flex items-center gap-3.5 shadow-lg hover:border-[#059669]/40 hover:bg-[#141C29] transition-all group">
               <div className="rounded-xl bg-white/5 border border-white/10 p-2.5 text-[#85F8C4] group-hover:scale-110 transition-transform flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-[20px]">map</span>
+                <MaterialIcon className="text-[20px]">map</MaterialIcon>
               </div>
               <div className="text-left min-w-0">
                 <span className="text-2xl font-bold text-white tracking-tight leading-none">
@@ -269,7 +270,7 @@ export default function Home() {
 
             <div className="bg-[#141C29]/80 backdrop-blur-md border border-white/10 rounded-2xl p-4 flex items-center gap-3.5 shadow-lg hover:border-[#059669]/40 hover:bg-[#141C29] transition-all group">
               <div className="rounded-xl bg-white/5 border border-white/10 p-2.5 text-[#85F8C4] group-hover:scale-110 transition-transform flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-[20px]">category</span>
+                <MaterialIcon className="text-[20px]">category</MaterialIcon>
               </div>
               <div className="text-left min-w-0">
                 <span className="text-2xl font-bold text-white tracking-tight leading-none">6</span>
@@ -281,7 +282,7 @@ export default function Home() {
 
             <div className="bg-[#141C29]/80 backdrop-blur-md border border-white/10 rounded-2xl p-4 flex items-center gap-3.5 shadow-lg hover:border-[#059669]/40 hover:bg-[#141C29] transition-all group">
               <div className="rounded-xl bg-white/5 border border-white/10 p-2.5 text-[#85F8C4] group-hover:scale-110 transition-transform flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-[20px]">verified_user</span>
+                <MaterialIcon className="text-[20px]">verified_user</MaterialIcon>
               </div>
               <div className="text-left min-w-0">
                 <span className="text-2xl font-bold text-white tracking-tight leading-none">100%</span>
@@ -328,9 +329,9 @@ export default function Home() {
               className="inline-flex items-center gap-1 text-sm font-bold text-[#D97706] hover:text-[#904D00] transition-colors group"
             >
               <span>Browse all properties</span>
-              <span className="material-symbols-outlined text-[18px] transform group-hover:translate-x-1 transition-transform">
+              <MaterialIcon className="text-[18px] transform group-hover:translate-x-1 transition-transform">
                 arrow_forward
-              </span>
+              </MaterialIcon>
             </Link>
           </div>
         </div>
@@ -398,7 +399,7 @@ export default function Home() {
                     className="bow-card w-56 shrink-0 p-6 rounded-3xl bg-white border border-white/80 hover:border-[#FE932C]/40 group transition-all duration-300 flex flex-col items-center text-center shadow-[0_12px_28px_-6px_rgba(20,28,41,0.08)] hover:shadow-2xl relative overflow-hidden"
                   >
                     <div className="w-14 h-14 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-[#0B1320] mb-4 shadow-sm group-hover:scale-110 group-hover:bg-[#0B1320] group-hover:text-white transition-all duration-300">
-                      <span className="material-symbols-outlined text-[28px]">{item.icon}</span>
+                      <MaterialIcon className="text-[28px]">{item.icon}</MaterialIcon>
                     </div>
                     <span className="text-base font-bold text-[#1B1B1D] group-hover:text-[#D97706] transition-colors">
                       {item.label}
@@ -408,9 +409,9 @@ export default function Home() {
                     </span>
                     <span className="text-[11px] text-slate-400 group-hover:text-slate-600 transition-colors mt-2 flex items-center gap-1 font-medium">
                       {item.desc}
-                      <span className="material-symbols-outlined text-[13px] group-hover:translate-x-0.5 transition-transform">
+                      <MaterialIcon className="text-[13px] group-hover:translate-x-0.5 transition-transform">
                         arrow_forward
-                      </span>
+                      </MaterialIcon>
                     </span>
                   </Link>
                 ))}
@@ -423,7 +424,7 @@ export default function Home() {
                     className="bow-card w-56 shrink-0 p-6 rounded-3xl bg-white border border-white/80 hover:border-[#FE932C]/40 group transition-all duration-300 flex flex-col items-center text-center shadow-[0_12px_28px_-6px_rgba(20,28,41,0.08)] hover:shadow-2xl relative overflow-hidden"
                   >
                     <div className="w-14 h-14 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-[#0B1320] mb-4 shadow-sm group-hover:scale-110 group-hover:bg-[#0B1320] group-hover:text-white transition-all duration-300">
-                      <span className="material-symbols-outlined text-[28px]">{item.icon}</span>
+                      <MaterialIcon className="text-[28px]">{item.icon}</MaterialIcon>
                     </div>
                     <span className="text-base font-bold text-[#1B1B1D] group-hover:text-[#D97706] transition-colors">
                       {item.label}
@@ -433,9 +434,9 @@ export default function Home() {
                     </span>
                     <span className="text-[11px] text-slate-400 group-hover:text-slate-600 transition-colors mt-2 flex items-center gap-1 font-medium">
                       {item.desc}
-                      <span className="material-symbols-outlined text-[13px] group-hover:translate-x-0.5 transition-transform">
+                      <MaterialIcon className="text-[13px] group-hover:translate-x-0.5 transition-transform">
                         arrow_forward
-                      </span>
+                      </MaterialIcon>
                     </span>
                   </Link>
                 ))}
@@ -452,7 +453,7 @@ export default function Home() {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
           <div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-xs font-bold uppercase tracking-widest text-[#D97706] mb-2 shadow-xs">
-              <span className="material-symbols-outlined text-[14px]">explore</span>
+              <MaterialIcon className="text-[14px]">explore</MaterialIcon>
               <span>Explore the region</span>
             </div>
             <h2 className="text-3xl sm:text-4xl font-bold text-[#1B1B1D] mt-1">Popular locations</h2>
@@ -463,9 +464,9 @@ export default function Home() {
             className="inline-flex items-center gap-1.5 text-sm font-bold text-[#D97706] hover:text-[#904D00] transition-colors group"
           >
             <span>View all 10 districts</span>
-            <span className="material-symbols-outlined text-[18px] transform group-hover:translate-x-1 transition-transform">
+            <MaterialIcon className="text-[18px] transform group-hover:translate-x-1 transition-transform">
               arrow_forward
-            </span>
+            </MaterialIcon>
           </Link>
         </div>
 
@@ -492,7 +493,7 @@ export default function Home() {
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center text-[#DBE2F5]">
-                    <span className="material-symbols-outlined text-[24px]">search</span>
+                    <MaterialIcon className="text-[24px]">search</MaterialIcon>
                   </div>
                   <span className="text-2xl font-bold text-white/20">01</span>
                 </div>
@@ -507,7 +508,7 @@ export default function Home() {
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center text-[#85F8C4]">
-                    <span className="material-symbols-outlined text-[24px]">verified</span>
+                    <MaterialIcon className="text-[24px]">verified</MaterialIcon>
                   </div>
                   <span className="text-2xl font-bold text-white/20">02</span>
                 </div>
@@ -522,7 +523,7 @@ export default function Home() {
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center text-[#FFDCC3]">
-                    <span className="material-symbols-outlined text-[24px]">calendar_month</span>
+                    <MaterialIcon className="text-[24px]">calendar_month</MaterialIcon>
                   </div>
                   <span className="text-2xl font-bold text-white/20">03</span>
                 </div>
@@ -537,7 +538,7 @@ export default function Home() {
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center text-[#DBE2F5]">
-                    <span className="material-symbols-outlined text-[24px]">handshake</span>
+                    <MaterialIcon className="text-[24px]">handshake</MaterialIcon>
                   </div>
                   <span className="text-2xl font-bold text-white/20">04</span>
                 </div>
@@ -570,7 +571,7 @@ export default function Home() {
                 className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-[#0B1320] text-white font-bold text-sm shadow-md hover:bg-[#D97706] transition-all"
               >
                 <span>Learn more about us</span>
-                <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                <MaterialIcon className="text-[18px]">arrow_forward</MaterialIcon>
               </Link>
             </div>
           </div>
@@ -578,7 +579,7 @@ export default function Home() {
           <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="p-6 rounded-2xl bg-white shadow-sm border border-slate-900/5 hover:shadow-md transition-shadow">
               <div className="w-12 h-12 rounded-xl bg-[#ECFDF5] flex items-center justify-center text-[#047857] mb-4">
-                <span className="material-symbols-outlined text-[24px]">verified_user</span>
+                <MaterialIcon className="text-[24px]">verified_user</MaterialIcon>
               </div>
               <h3 className="font-bold text-base text-[#1B1B1D] mb-1.5">Verified listings only</h3>
               <p className="text-xs text-slate-500 leading-relaxed">
@@ -588,7 +589,7 @@ export default function Home() {
 
             <div className="p-6 rounded-2xl bg-white shadow-sm border border-slate-900/5 hover:shadow-md transition-shadow">
               <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-[#0B1320] mb-4">
-                <span className="material-symbols-outlined text-[24px]">badge</span>
+                <MaterialIcon className="text-[24px]">badge</MaterialIcon>
               </div>
               <h3 className="font-bold text-base text-[#1B1B1D] mb-1.5">Real people, real profiles</h3>
               <p className="text-xs text-slate-500 leading-relaxed">
@@ -598,7 +599,7 @@ export default function Home() {
 
             <div className="p-6 rounded-2xl bg-white shadow-sm border border-slate-900/5 hover:shadow-md transition-shadow">
               <div className="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center text-[#904D00] mb-4">
-                <span className="material-symbols-outlined text-[24px]">thermostat</span>
+                <MaterialIcon className="text-[24px]">thermostat</MaterialIcon>
               </div>
               <h3 className="font-bold text-base text-[#1B1B1D] mb-1.5">Built for Gilgit-Baltistan</h3>
               <p className="text-xs text-slate-500 leading-relaxed">
@@ -608,7 +609,7 @@ export default function Home() {
 
             <div className="p-6 rounded-2xl bg-white shadow-sm border border-slate-900/5 hover:shadow-md transition-shadow">
               <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 mb-4">
-                <span className="material-symbols-outlined text-[24px]">chat</span>
+                <MaterialIcon className="text-[24px]">chat</MaterialIcon>
               </div>
               <h3 className="font-bold text-base text-[#1B1B1D] mb-1.5">Direct communication</h3>
               <p className="text-xs text-slate-500 leading-relaxed">
@@ -638,7 +639,7 @@ export default function Home() {
                   to="/owner/properties/new"
                   className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-[#0B1320] text-white font-bold text-sm shadow-md hover:bg-[#D97706] transition-all"
                 >
-                  <span className="material-symbols-outlined text-[18px]">add_business</span>
+                  <MaterialIcon className="text-[18px]">add_business</MaterialIcon>
                   <span>List your property</span>
                 </Link>
                 <Link
@@ -646,7 +647,7 @@ export default function Home() {
                   className="inline-flex items-center gap-1.5 font-bold text-sm text-[#1B1B1D] hover:text-[#D97706] transition-colors"
                 >
                   <span>How listing works</span>
-                  <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                  <MaterialIcon className="text-[18px]">arrow_forward</MaterialIcon>
                 </Link>
               </div>
             </div>
@@ -654,7 +655,7 @@ export default function Home() {
             <div className="lg:col-span-6 flex flex-col gap-4">
               <div className="flex items-start gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
                 <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-[#0B1320] shrink-0 shadow-sm">
-                  <span className="material-symbols-outlined text-[20px]">edit_note</span>
+                  <MaterialIcon className="text-[20px]">edit_note</MaterialIcon>
                 </div>
                 <div>
                   <h4 className="font-bold text-sm text-[#1B1B1D]">Guided listing form</h4>
@@ -666,7 +667,7 @@ export default function Home() {
 
               <div className="flex items-start gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
                 <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-[#D97706] shrink-0 shadow-sm">
-                  <span className="material-symbols-outlined text-[20px]">rate_review</span>
+                  <MaterialIcon className="text-[20px]">rate_review</MaterialIcon>
                 </div>
                 <div>
                   <h4 className="font-bold text-sm text-[#1B1B1D]">Reviewed before it goes live</h4>
@@ -678,7 +679,7 @@ export default function Home() {
 
               <div className="flex items-start gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
                 <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-[#059669] shrink-0 shadow-sm">
-                  <span className="material-symbols-outlined text-[20px]">dashboard</span>
+                  <MaterialIcon className="text-[20px]">dashboard</MaterialIcon>
                 </div>
                 <div>
                   <h4 className="font-bold text-sm text-[#1B1B1D]">Everything in one dashboard</h4>
@@ -707,7 +708,7 @@ export default function Home() {
 
           <div className="relative z-10 max-w-2xl flex flex-col items-center">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/15 backdrop-blur-md mb-6">
-              <span className="material-symbols-outlined text-[16px] text-[#FE932C]">verified</span>
+              <MaterialIcon className="text-[16px] text-[#FE932C]">verified</MaterialIcon>
               <span className="text-[11px] font-bold uppercase tracking-wider text-white">
                 Verified listings across Gilgit-Baltistan
               </span>
@@ -733,7 +734,7 @@ export default function Home() {
                 className="inline-flex items-center gap-1.5 px-6 py-3.5 rounded-xl bg-white/10 border border-white/20 backdrop-blur-md text-white font-bold text-sm hover:bg-white/20 transition-all active:scale-95"
               >
                 <span>Learn how it works</span>
-                <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                <MaterialIcon className="text-[18px]">arrow_forward</MaterialIcon>
               </Link>
             </div>
           </div>

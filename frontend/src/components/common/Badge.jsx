@@ -1,4 +1,5 @@
 import { cn } from '../../utils/format';
+import { MaterialIcon } from './icons';
 
 const tones = {
   success: 'bg-[#ECFDF5] text-[#047857] ring-[#047857]/20',
@@ -71,7 +72,7 @@ export function VerificationBadge({ status, className }) {
         tone="success"
         className={className}
         icon={
-          <span className="material-symbols-outlined text-[14px]">verified</span>
+          <MaterialIcon className="text-[14px]">verified</MaterialIcon>
         }
       >
         Verified Owner

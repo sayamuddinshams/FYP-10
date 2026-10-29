@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import Avatar from '../common/Avatar';
-import Icon from '../common/icons';
+import Icon, { MaterialIcon } from '../common/icons';
 import Dropdown from '../common/Dropdown';
 import { cn } from '../../utils/format';
 import { useAuth } from '../../context/AuthContext';
@@ -163,7 +163,7 @@ export default function DashboardShell({ navGroups, children, brandLabel }) {
           aria-hidden="true"
           className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-amber-500 text-white shadow-md shadow-amber-500/20 group-hover:scale-105 transition-transform"
         >
-          <span className="material-symbols-outlined text-xl">landscape</span>
+          <MaterialIcon className="text-xl">landscape</MaterialIcon>
         </span>
         <div className="leading-tight">
           <p className="text-[16px] font-bold tracking-tight text-white">
@@ -197,7 +197,7 @@ export default function DashboardShell({ navGroups, children, brandLabel }) {
           </div>
         }
         items={[
-          { label: 'Public Portal', icon: <span className="material-symbols-outlined text-sm">open_in_new</span>, onClick: () => navigate('/') },
+          { label: 'Public Portal', icon: <MaterialIcon className="text-sm">open_in_new</MaterialIcon>, onClick: () => navigate('/') },
           { label: 'Browse Properties', icon: <Icon name="home" className="h-4 w-4" />, onClick: () => navigate('/browse') },
           '-',
           { label: 'Profile', icon: <Icon name="user" className="h-4 w-4" />, onClick: goProfile },
@@ -228,7 +228,7 @@ export default function DashboardShell({ navGroups, children, brandLabel }) {
       <div className="fixed inset-x-0 top-0 z-40 flex h-16 items-center justify-between border-b border-slate-800 bg-[#0B1320] px-4 backdrop-blur-md lg:hidden">
         <Link to="/" className="flex items-center gap-2.5" aria-label="RentLink home">
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500 text-white shadow-sm">
-            <span className="material-symbols-outlined text-lg">landscape</span>
+            <MaterialIcon className="text-lg">landscape</MaterialIcon>
           </span>
           <span className="text-lg font-bold tracking-tight text-white">
             Rent<span className="text-amber-400">Link</span>
@@ -348,7 +348,7 @@ export default function DashboardShell({ navGroups, children, brandLabel }) {
               to="/browse"
               className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs hover:border-amber-300 hover:text-amber-800 transition-colors"
             >
-              <span className="material-symbols-outlined text-sm text-amber-600">travel_explore</span>
+              <MaterialIcon className="text-sm text-amber-600">travel_explore</MaterialIcon>
               <span>Browse GB Listings</span>
             </Link>
 
@@ -389,7 +389,7 @@ export default function DashboardShell({ navGroups, children, brandLabel }) {
                 </div>
               }
               items={[
-                { label: 'Public Website', icon: <span className="material-symbols-outlined text-sm">home</span>, onClick: () => navigate('/') },
+                { label: 'Public Website', icon: <MaterialIcon className="text-sm">home</MaterialIcon>, onClick: () => navigate('/') },
                 { label: 'My profile', icon: <Icon name="user" className="h-4 w-4" />, onClick: goProfile },
                 { label: 'Settings', icon: <Icon name="settings" className="h-4 w-4" />, onClick: goSettings },
                 '-',

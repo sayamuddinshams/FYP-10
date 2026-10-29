@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 import DataRain from '@/components/ui/data-rain';
+import { MaterialIcon } from '../common/icons';
 
 export default function Footer() {
   const prefersReducedMotion = useReducedMotion();
@@ -21,7 +22,7 @@ export default function Footer() {
           <div className="lg:col-span-2 flex flex-col gap-4">
             <Link to="/" className="flex items-center gap-3 group">
               <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-[#FE932C] shadow-sm group-hover:scale-105 transition-transform">
-                <span className="material-symbols-outlined text-[24px]">landscape</span>
+                <MaterialIcon className="text-[24px]">landscape</MaterialIcon>
               </div>
               <span className="text-2xl font-bold text-white tracking-tight">
                 rent<span className="text-[#FE932C] font-normal">link</span>
@@ -32,7 +33,7 @@ export default function Footer() {
             </p>
             <div className="flex items-center gap-3 mt-2">
               <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-white text-xs font-medium">
-                <span className="material-symbols-outlined text-[#FE932C] text-[16px]">pin_drop</span>
+                <MaterialIcon className="text-[#FE932C] text-[16px]">pin_drop</MaterialIcon>
                 <span>Hunza • Skardu • Gilgit • Nagar • Ghizer</span>
               </div>
             </div>
@@ -107,24 +108,24 @@ export default function Footer() {
             <span className="text-xs font-bold text-white uppercase tracking-wider">Liaison Desk</span>
             <div className="flex flex-col gap-2.5">
               <div className="flex items-center gap-2 text-slate-400 text-xs sm:text-sm">
-                <span className="material-symbols-outlined text-[18px] text-[#FE932C]">location_on</span>
+                <MaterialIcon className="text-[18px] text-[#FE932C]">location_on</MaterialIcon>
                 <span>River Road, Gilgit City, GB</span>
               </div>
               <div className="flex items-center gap-2 text-slate-400 text-xs sm:text-sm">
-                <span className="material-symbols-outlined text-[18px] text-[#FE932C]">call</span>
+                <MaterialIcon className="text-[18px] text-[#FE932C]">call</MaterialIcon>
                 <a href="tel:+925811459200" className="hover:text-white transition-colors">
                   +92 5811 459 200
                 </a>
               </div>
               <div className="flex items-center gap-2 text-slate-400 text-xs sm:text-sm">
-                <span className="material-symbols-outlined text-[18px] text-[#FE932C]">mail</span>
+                <MaterialIcon className="text-[18px] text-[#FE932C]">mail</MaterialIcon>
                 <a href="mailto:liaison@rentlink.pk" className="hover:text-white transition-colors">
                   liaison@rentlink.pk
                 </a>
               </div>
               <div className="mt-2">
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#002114] border border-[#069669]/40 text-[#85F8C4] text-[11px] font-bold uppercase tracking-wider">
-                  <span className="material-symbols-outlined text-[14px]">verified</span>
+                  <MaterialIcon className="text-[14px]">verified</MaterialIcon>
                   Verified Land Registry
                 </span>
               </div>
@@ -151,7 +152,7 @@ export default function Footer() {
               aria-label="Back to top"
               className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center text-white/70 hover:text-white hover:border-white transition-colors ml-2"
             >
-              <span className="material-symbols-outlined text-[18px]">keyboard_arrow_up</span>
+              <MaterialIcon className="text-[18px]">keyboard_arrow_up</MaterialIcon>
             </button>
           </div>
         </div>

@@ -13,6 +13,7 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { useAsync, useDocumentTitle } from '../../hooks';
+import { MaterialIcon } from '../../components/common/icons';
 import propertyService from '../../services/propertyService';
 import Button from '../../components/common/Button';
 import Icon from '../../components/common/icons';
@@ -358,7 +359,7 @@ export default function Story() {
       <section className="border-y border-slate-800 bg-[#0B1320] text-white py-20">
         <div className="mx-auto w-full max-w-4xl px-4 text-center sm:px-6 lg:px-8">
           <figure>
-            <span className="material-symbols-outlined text-4xl text-amber-400 mb-4 inline-block">format_quote</span>
+            <MaterialIcon className="text-4xl text-amber-400 mb-4 inline-block">format_quote</MaterialIcon>
             <blockquote className="text-2xl sm:text-3xl leading-relaxed font-normal text-slate-100">
               “A rental listing is a promise made across mountains. It must describe an authentic place,
               at an honest rate, that someone is genuinely prepared to welcome you into this week.”

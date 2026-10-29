@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Avatar from '../common/Avatar';
-import Icon from '../common/icons';
+import Icon, { MaterialIcon } from '../common/icons';
 import Button from '../common/Button';
 import LocationAutocomplete from '../property/LocationAutocomplete';
 import { PROPERTY_TYPES } from '../../utils/constants';
@@ -32,7 +32,7 @@ export function LogoMark({ size = 'md' }) {
   return (
     <Link to="/" className="flex items-center gap-2 group tracking-tight py-1 text-white">
       <div className="w-9 h-9 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-[#FE932C] shadow-sm group-hover:scale-105 transition-transform">
-        <span className="material-symbols-outlined text-[20px]">landscape</span>
+        <MaterialIcon className="text-[20px]">landscape</MaterialIcon>
       </div>
       <span className="text-[24px] lg:text-[26px] font-semibold text-white tracking-tight flex items-center">
         rent<span className="text-[#FE932C] font-normal">link</span>
@@ -151,7 +151,7 @@ export default function Header() {
                 searchOpen && 'bg-white/20 text-white'
               )}
             >
-              <span className="material-symbols-outlined text-[20px]">search</span>
+              <MaterialIcon className="text-[20px]">search</MaterialIcon>
             </button>
 
             <button
@@ -163,7 +163,7 @@ export default function Header() {
               aria-label="Saved favorites"
               className="w-9 h-9 rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-white/10 transition-all"
             >
-              <span className="material-symbols-outlined text-[20px]">favorite_border</span>
+              <MaterialIcon className="text-[20px]">favorite_border</MaterialIcon>
             </button>
 
             {isAuthenticated && (
@@ -181,7 +181,7 @@ export default function Header() {
                 aria-label="Notifications"
                 className="relative w-9 h-9 rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-white/10 transition-all"
               >
-                <span className="material-symbols-outlined text-[20px]">notifications</span>
+                <MaterialIcon className="text-[20px]">notifications</MaterialIcon>
                 {unread > 0 && (
                   <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#FE932C] ring-2 ring-[#0B1320]" />
                 )}
@@ -200,7 +200,7 @@ export default function Header() {
             }}
             className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-white font-medium text-[13px] transition-all shadow-sm active:scale-95 shrink-0"
           >
-            <span className="material-symbols-outlined text-[17px] text-[#FE932C]">add_business</span>
+            <MaterialIcon className="text-[17px] text-[#FE932C]">add_business</MaterialIcon>
             <span>List Property</span>
           </Link>
 
@@ -228,9 +228,9 @@ export default function Header() {
             aria-label="Toggle navigation menu"
             className="md:hidden w-10 h-10 rounded-xl flex items-center justify-center text-white/90 hover:bg-white/10 active:scale-95 transition-all cursor-pointer z-50 shrink-0"
           >
-            <span className="material-symbols-outlined text-[24px]">
+            <MaterialIcon className="text-[24px]">
               {mobileOpen ? 'close' : 'menu'}
-            </span>
+            </MaterialIcon>
           </button>
         </div>
       </div>
@@ -263,7 +263,7 @@ export default function Header() {
               ))}
             </select>
             <Button type="submit" variant="secondary" size="md" className="w-full sm:w-auto shrink-0">
-              <span className="material-symbols-outlined text-[18px]">search</span>
+              <MaterialIcon className="text-[18px]">search</MaterialIcon>
               <span>Find Homes</span>
             </Button>
           </form>
@@ -305,7 +305,7 @@ export default function Header() {
                 onClick={() => setMobileOpen(false)}
                 className="flex items-center gap-2 px-4 py-3 rounded-xl text-base font-medium text-white/80 hover:bg-white/10 hover:text-white"
               >
-                <span className="material-symbols-outlined text-[20px] text-[#FE932C]">search</span>
+                <MaterialIcon className="text-[20px] text-[#FE932C]">search</MaterialIcon>
                 <span>Browse All Listings</span>
               </Link>
 
@@ -320,7 +320,7 @@ export default function Header() {
                 }}
                 className="flex items-center gap-2 px-4 py-3 rounded-xl text-base font-medium text-white/80 hover:bg-white/10 hover:text-white"
               >
-                <span className="material-symbols-outlined text-[20px] text-[#FE932C]">favorite_border</span>
+                <MaterialIcon className="text-[20px] text-[#FE932C]">favorite_border</MaterialIcon>
                 <span>Saved Properties</span>
               </Link>
 
@@ -335,7 +335,7 @@ export default function Header() {
                 }}
                 className="flex items-center gap-2 px-4 py-3 rounded-xl text-base font-medium text-white/80 hover:bg-white/10 hover:text-white"
               >
-                <span className="material-symbols-outlined text-[20px] text-[#FE932C]">add_business</span>
+                <MaterialIcon className="text-[20px] text-[#FE932C]">add_business</MaterialIcon>
                 <span>List Your Property</span>
               </Link>
             </nav>
@@ -359,7 +359,7 @@ export default function Header() {
                     className="p-2 text-white/70 hover:text-red-400 cursor-pointer"
                     aria-label="Logout"
                   >
-                    <span className="material-symbols-outlined text-[20px]">logout</span>
+                    <MaterialIcon className="text-[20px]">logout</MaterialIcon>
                   </button>
                 </div>
               ) : (
@@ -449,7 +449,7 @@ function ProfileDropdown({ user, onLogout }) {
             }}
             className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm font-medium text-slate-700 hover:bg-amber-50/70 hover:text-[#904D00] transition-colors"
           >
-            <span className="material-symbols-outlined text-[18px]">dashboard</span>
+            <MaterialIcon className="text-[18px]">dashboard</MaterialIcon>
             My Dashboard
           </button>
 
@@ -467,7 +467,7 @@ function ProfileDropdown({ user, onLogout }) {
             }}
             className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm font-medium text-slate-700 hover:bg-amber-50/70 hover:text-[#904D00] transition-colors"
           >
-            <span className="material-symbols-outlined text-[18px]">person</span>
+            <MaterialIcon className="text-[18px]">person</MaterialIcon>
             Profile
           </button>
 
@@ -485,7 +485,7 @@ function ProfileDropdown({ user, onLogout }) {
             }}
             className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm font-medium text-slate-700 hover:bg-amber-50/70 hover:text-[#904D00] transition-colors"
           >
-            <span className="material-symbols-outlined text-[18px]">settings</span>
+            <MaterialIcon className="text-[18px]">settings</MaterialIcon>
             Settings
           </button>
 
@@ -499,7 +499,7 @@ function ProfileDropdown({ user, onLogout }) {
             }}
             className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm font-semibold text-[#BA1A1A] hover:bg-red-50 transition-colors"
           >
-            <span className="material-symbols-outlined text-[18px]">logout</span>
+            <MaterialIcon className="text-[18px]">logout</MaterialIcon>
             Log Out
           </button>
         </div>

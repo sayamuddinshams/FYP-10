@@ -3,7 +3,7 @@ import { useDocumentTitle } from '../../hooks';
 import { PROPERTY_TYPES } from '../../utils/constants';
 import { DISTRICTS } from '../../data/locations';
 import Button from '../../components/common/Button';
-import Icon from '../../components/common/icons';
+import Icon, { MaterialIcon } from '../../components/common/icons';
 import AboutCubesHero from '../../components/about/AboutCubesHero';
 
 const VALUES = [
@@ -179,7 +179,7 @@ export default function About() {
               </p>
               <div className="mt-8 flex items-center gap-4">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-500/20">
-                  <span className="material-symbols-outlined text-2xl">verified_user</span>
+                  <MaterialIcon className="text-2xl">verified_user</MaterialIcon>
                 </div>
                 <div>
                   <p className="font-bold text-slate-900">Zero Unverified Listings</p>

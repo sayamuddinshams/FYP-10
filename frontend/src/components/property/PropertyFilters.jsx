@@ -1,5 +1,5 @@
 import { useId, useState } from 'react';
-import Icon from '../common/icons';
+import Icon, { MaterialIcon } from '../common/icons';
 import MultiSelect from './MultiSelect';
 import { PROPERTY_TYPES, PRICE_RANGES } from '../../utils/constants';
 import { LOCATIONS, DISTRICTS, getCities, getAreas } from '../../data/locations';
@@ -40,11 +40,11 @@ function Section({ title, children }) {
           className="flex w-full items-center justify-between gap-3 rounded-lg py-1 text-left transition hover:text-[#0B1320] cursor-pointer"
         >
           <span className="text-xs font-bold tracking-wider text-slate-800 uppercase">{title}</span>
-          <span
-            className={cn('material-symbols-outlined text-[18px] text-slate-400 transition-transform duration-200', open ? '' : '-rotate-90')}
+          <MaterialIcon
+            className={cn('text-[18px] text-slate-400 transition-transform duration-200', open ? '' : '-rotate-90')}
           >
             expand_more
-          </span>
+          </MaterialIcon>
         </button>
       </h3>
       <div id={contentId} hidden={!open} className="mt-3">
@@ -273,7 +273,7 @@ export function FilterChips({ filters, onChange }) {
           className="group inline-flex min-h-8 items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50/70 py-1 pr-2.5 pl-3 text-xs font-bold text-[#904D00] transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 cursor-pointer"
         >
           {chip.label}
-          <span className="material-symbols-outlined text-[14px]">close</span>
+          <MaterialIcon className="text-[14px]">close</MaterialIcon>
         </button>
       ))}
       <button
